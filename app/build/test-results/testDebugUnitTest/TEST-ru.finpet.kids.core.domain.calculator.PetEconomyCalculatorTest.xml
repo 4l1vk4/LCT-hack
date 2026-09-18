@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-17T23:34:47" hostname="MacBook-Air-MacBook-6.local" time="0.016">
+  <properties/>
+  <testcase name="calculateHealth returns 90 when medicine is purchased after failure" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.006"/>
+  <testcase name="calculateCompliance never produces negative percent on severe overspending" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.001"/>
+  <testcase name="resolvePeriod progresses pet through evolution stages" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.005"/>
+  <testcase name="calculateCarePoints awards up to 4 points for ideal behavior" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.0"/>
+  <testcase name="calculateSatiety returns 30 when nothing is purchased (pet never dies)" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.0"/>
+  <testcase name="calculateMood clamps value between 10 and 100" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.0"/>
+  <testcase name="calculatePeriodsLeft correctly computes remaining periods" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.0"/>
+  <testcase name="calculateMood applies bonus for toys and penalty for overspending" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.0"/>
+  <testcase name="resolveEmotion correctly classifies HAPPY, NEUTRAL, and SAD" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.0"/>
+  <testcase name="calculateCompliance handles exact match and avoids division by zero" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.0"/>
+  <testcase name="calculateSatiety returns 60 when only water is purchased" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.0"/>
+  <testcase name="calculateHealth returns 100 when mandatory needs are covered" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.001"/>
+  <testcase name="calculateSatiety returns 100 when food is purchased" classname="ru.finpet.kids.core.domain.calculator.PetEconomyCalculatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

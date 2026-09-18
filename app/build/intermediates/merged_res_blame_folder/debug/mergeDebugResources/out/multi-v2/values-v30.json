@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "ru.finpet.kids.app-mergeDebugResources-67:/values-v30/values-v30.xml",
+            "map": [
+                {
+                    "source": "/Users/macbook/.gradle/caches/8.9/transforms/92f09246da39c70b85c69c2f0c9e3b8b/transformed/material3-release/res/values-v30/values-v30.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "72",
+                        "endOffsets": "123"
+                    }
+                }
+            ]
+        }
+    ]
+}
