@@ -40,12 +40,14 @@ class FakeFinPetRepository : FinPetRepository {
 
     override fun getPeriod(index: Int): Flow<PeriodEntity?> = flowOf(periods[index])
     override suspend fun getPeriodSync(index: Int): PeriodEntity? = periods[index]
+    override fun getAllPeriods(): Flow<List<PeriodEntity>> = flowOf(periods.values.toList())
     override suspend fun savePeriod(period: PeriodEntity) {
         periods[period.periodIndex] = period
     }
 
     override fun getPurchasesForPeriod(periodIndex: Int): Flow<List<PurchaseEntity>> =
         flowOf(purchases.filter { it.periodIndex == periodIndex })
+    override fun getAllPurchases(): Flow<List<PurchaseEntity>> = flowOf(purchases.toList())
 
     override suspend fun recordPurchase(purchase: PurchaseEntity) {
         purchases.add(purchase)
@@ -53,6 +55,7 @@ class FakeFinPetRepository : FinPetRepository {
 
     override fun getAllGoals(): Flow<List<GoalEntity>> = flowOf(goals.values.toList())
     override fun getGoalById(goalId: String): Flow<GoalEntity?> = flowOf(goals[goalId])
+    override suspend fun getGoalByIdSync(goalId: String): GoalEntity? = goals[goalId]
     override suspend fun updateGoal(goal: GoalEntity) {
         goals[goal.id] = goal
     }
@@ -160,5 +163,30 @@ class EconomyUseCasesTest {
         assertEquals(2, updatedProfile?.currentPeriodIndex) // Period 1 -> Period 2
         assertEquals(370, updatedProfile?.balance) // 300 - 30 + 100 = 370
         assertTrue(repository.getPeriodSync(1)?.isPeriodClosed == true)
+    }
+
+    @Test
+    fun `DepositToGoalUseCase deducts balance and updates saved amount`() = runTest {
+        repository.goals["goal_house"] = GoalEntity("goal_house", "Уютный домик", targetCost = 150, savedAmount = 0)
+        
+        val result = depositToGoalUseCase("goal_house", 50)
+        assertTrue(result is GoalDepositResult.Success)
+        val success = result as GoalDepositResult.Success
+        assertEquals(250, success.newBalance)
+        assertEquals(50, success.newSaved)
+        assertEquals(50, repository.getGoalByIdSync("goal_house")?.savedAmount)
+    }
+
+    @Test
+    fun `WithdrawFromGoalUseCase returns funds to balance and reduces savings`() = runTest {
+        repository.goals["goal_house"] = GoalEntity("goal_house", "Уютный домик", targetCost = 150, savedAmount = 50)
+        val withdrawUseCase = WithdrawFromGoalUseCase(repository)
+
+        val result = withdrawUseCase("goal_house", 30)
+        assertTrue(result is GoalWithdrawResult.Success)
+        val success = result as GoalWithdrawResult.Success
+        assertEquals(330, success.newBalance)
+        assertEquals(20, success.newSaved)
+        assertEquals(20, repository.getGoalByIdSync("goal_house")?.savedAmount)
     }
 }

@@ -6,12 +6,12 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "profiles")
 data class ProfileEntity(
     @PrimaryKey val id: String = "default_player",
-    val petName: String = "Дружок",
+    val petName: String = "Финни",
     val petType: String = "CAT",             // CAT, DOG, DRAGON
     val bodyColor: Int = 0xFFFFA726.toInt(), // Orange
     val eyesType: Int = 1,                   // 1..3
     val accessoryId: String = "none",        // none, scarf, bow, cap
-    val balance: Int = 300,                  // Стартовый баланс
+    val balance: Int = 50,                   // Стартовый баланс
     val currentPeriodIndex: Int = 1,         // 1..5+
     val carePoints: Int = 0,                 // Очки эволюции
     val growthStage: String = "BABY",        // BABY, TEEN, ADULT
@@ -19,7 +19,7 @@ data class ProfileEntity(
     val health: Int = 100,                   // 0..100
     val mood: Int = 70,                      // 0..100
     val activeGoalId: String? = "goal_house",
-    val isDemoMode: Boolean = true
+    val isDemoMode: Boolean = false
 )
 
 @Entity(tableName = "periods")

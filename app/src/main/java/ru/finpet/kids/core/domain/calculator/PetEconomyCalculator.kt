@@ -15,7 +15,7 @@ import kotlin.math.roundToInt
 
 object PetEconomyCalculator {
 
-    const val STARTING_BALANCE = 300
+    const val STARTING_BALANCE = 50
     const val PERIOD_INCOME = 100
     const val MIN_FOOD_COST = 30
     const val MIN_WATER_COST = 10

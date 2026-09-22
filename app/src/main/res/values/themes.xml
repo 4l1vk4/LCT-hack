@@ -1,0 +1,16 @@
+<resources>
+    <!-- Экран-заглушка рисуется системой ДО первого кадра: вместо белого экрана
+         пользователь мгновенно видит бренд-цвет и иконку. -->
+    <style name="Theme.FinPet.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher</item>
+        <item name="windowSplashScreenAnimationDuration">400</item>
+        <item name="postSplashScreenTheme">@style/Theme.FinPet</item>
+    </style>
+
+    <!-- Основная тема: windowBackground = цвет фона Compose (SoftBackground),
+         чтобы не было вспышки белым при смене Splash -> Activity. -->
+    <style name="Theme.FinPet" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+</resources>

@@ -1,6 +1,10 @@
 [
     {
-        "merged": "ru.finpet.kids.app-debug-69:/drawable_ic_launcher.xml.flat",
-        "source": "ru.finpet.kids.app-main-71:/drawable/ic_launcher.xml"
+        "merged": "ru.finpet.kids.app-debug-65:/drawable_ic_coin.png.flat",
+        "source": "ru.finpet.kids.app-main-67:/drawable/ic_coin.png"
+    },
+    {
+        "merged": "ru.finpet.kids.app-debug-65:/drawable_ic_launcher.xml.flat",
+        "source": "ru.finpet.kids.app-main-67:/drawable/ic_launcher.xml"
     }
 ]

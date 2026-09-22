@@ -1,0 +1,4 @@
+#Tue Sep 22 02:16:54 MSK 2026
+base.0=/Users/macbook/Documents/GitHub/LCT-hack/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+renamed.0=classes.dex
+path.0=classes.dex

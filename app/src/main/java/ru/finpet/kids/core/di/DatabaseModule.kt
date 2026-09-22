@@ -46,6 +46,9 @@ object DatabaseModule {
 
     @Provides
     fun provideQuestProgressDao(db: AppDatabase): QuestProgressDao = db.questProgressDao()
+
+    @Provides
+    fun provideCalendarDao(db: AppDatabase): ru.finpet.kids.core.data.local.dao.CalendarDao = db.calendarDao()
 }
 
 @Module

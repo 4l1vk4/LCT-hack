@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,7 @@ class SettingsRepository @Inject constructor(
     private object PreferencesKeys {
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         val MUSIC_ENABLED = booleanPreferencesKey("music_enabled")
+        val MUSIC_VOLUME = floatPreferencesKey("music_volume")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val DEMO_MODE = booleanPreferencesKey("demo_mode")
     }
@@ -33,12 +35,16 @@ class SettingsRepository @Inject constructor(
         preferences[PreferencesKeys.MUSIC_ENABLED] ?: true
     }
 
+    val musicVolume: Flow<Float> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.MUSIC_VOLUME] ?: 0.7f
+    }
+
     val isOnboardingCompleted: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[PreferencesKeys.ONBOARDING_COMPLETED] ?: false
     }
 
     val isDemoMode: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.DEMO_MODE] ?: true
+        preferences[PreferencesKeys.DEMO_MODE] ?: false
     }
 
     suspend fun setSoundEnabled(enabled: Boolean) {
@@ -50,6 +56,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setMusicEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.MUSIC_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setMusicVolume(volume: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.MUSIC_VOLUME] = volume
         }
     }
 

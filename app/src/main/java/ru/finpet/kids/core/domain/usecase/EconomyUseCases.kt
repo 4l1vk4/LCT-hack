@@ -129,23 +129,22 @@ class DepositToGoalUseCase @Inject constructor(
             return GoalDepositResult.NotEnoughMoney(amount - profile.balance)
         }
 
-        val goal = repository.getGoalById(goalId)
-        // Для синхронного чтения можно использовать прямой метод или список
-        val allGoals = repository.getAllGoals()
-        // Найдем цель
-        val currentGoal = repository.getProfileSync()?.let {
-            // обновим баланс
-            val newBalance = it.balance - amount
-            repository.updateBalance(newBalance)
+        val goal = repository.getGoalByIdSync(goalId) ?: return GoalDepositResult.GoalNotFound
 
-            // обновим период
-            val period = repository.getPeriodSync(it.currentPeriodIndex) ?: PeriodEntity(it.currentPeriodIndex)
-            repository.savePeriod(period.copy(actualSavings = period.actualSavings + amount))
+        // Списание с баланса
+        val newBalance = profile.balance - amount
+        repository.updateBalance(newBalance)
 
-            newBalance
-        } ?: return GoalDepositResult.GoalNotFound
+        // Пополнение цели
+        val newSaved = goal.savedAmount + amount
+        val isReached = newSaved >= goal.targetCost
+        repository.updateGoal(goal.copy(savedAmount = newSaved, isReached = isReached))
 
-        return GoalDepositResult.Success(currentGoal, amount, false)
+        // Учет в периоде
+        val period = repository.getPeriodSync(profile.currentPeriodIndex) ?: PeriodEntity(profile.currentPeriodIndex)
+        repository.savePeriod(period.copy(actualSavings = period.actualSavings + amount))
+
+        return GoalDepositResult.Success(newBalance, newSaved, isReached)
     }
 }
 

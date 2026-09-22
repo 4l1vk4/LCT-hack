@@ -40,12 +40,17 @@ class FinPetRepositoryImpl @Inject constructor(
 
     override suspend fun getPeriodSync(index: Int): PeriodEntity? = periodDao.getPeriodSync(index)
 
+    override fun getAllPeriods(): Flow<List<PeriodEntity>> = periodDao.getAllPeriods()
+
     override suspend fun savePeriod(period: PeriodEntity) {
         periodDao.insertOrUpdate(period)
     }
 
     override fun getPurchasesForPeriod(periodIndex: Int): Flow<List<PurchaseEntity>> =
         purchaseDao.getPurchasesForPeriod(periodIndex)
+
+    override fun getAllPurchases(): Flow<List<PurchaseEntity>> =
+        purchaseDao.getAllPurchases()
 
     override suspend fun recordPurchase(purchase: PurchaseEntity) {
         purchaseDao.insertPurchase(purchase)
@@ -54,6 +59,8 @@ class FinPetRepositoryImpl @Inject constructor(
     override fun getAllGoals(): Flow<List<GoalEntity>> = goalDao.getAllGoals()
 
     override fun getGoalById(goalId: String): Flow<GoalEntity?> = goalDao.getGoalById(goalId)
+
+    override suspend fun getGoalByIdSync(goalId: String): GoalEntity? = goalDao.getGoalByIdSync(goalId)
 
     override suspend fun updateGoal(goal: GoalEntity) {
         goalDao.updateGoal(goal)

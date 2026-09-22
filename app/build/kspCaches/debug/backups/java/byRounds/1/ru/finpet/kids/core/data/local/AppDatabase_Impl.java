@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.Generated;
+import ru.finpet.kids.core.data.local.dao.CalendarDao;
+import ru.finpet.kids.core.data.local.dao.CalendarDao_Impl;
 import ru.finpet.kids.core.data.local.dao.GoalDao;
 import ru.finpet.kids.core.data.local.dao.GoalDao_Impl;
 import ru.finpet.kids.core.data.local.dao.PeriodDao;
@@ -46,10 +48,12 @@ public final class AppDatabase_Impl extends AppDatabase {
 
   private volatile QuestProgressDao _questProgressDao;
 
+  private volatile CalendarDao _calendarDao;
+
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(1) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(2) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `profiles` (`id` TEXT NOT NULL, `petName` TEXT NOT NULL, `petType` TEXT NOT NULL, `bodyColor` INTEGER NOT NULL, `eyesType` INTEGER NOT NULL, `accessoryId` TEXT NOT NULL, `balance` INTEGER NOT NULL, `currentPeriodIndex` INTEGER NOT NULL, `carePoints` INTEGER NOT NULL, `growthStage` TEXT NOT NULL, `satiety` INTEGER NOT NULL, `health` INTEGER NOT NULL, `mood` INTEGER NOT NULL, `activeGoalId` TEXT, `isDemoMode` INTEGER NOT NULL, PRIMARY KEY(`id`))");
@@ -57,8 +61,10 @@ public final class AppDatabase_Impl extends AppDatabase {
         db.execSQL("CREATE TABLE IF NOT EXISTS `purchases` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `periodIndex` INTEGER NOT NULL, `itemId` TEXT NOT NULL, `itemName` TEXT NOT NULL, `category` TEXT NOT NULL, `price` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `goals` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `targetCost` INTEGER NOT NULL, `savedAmount` INTEGER NOT NULL, `isReached` INTEGER NOT NULL, `iconName` TEXT NOT NULL, PRIMARY KEY(`id`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS `quest_progress` (`questId` TEXT NOT NULL, `isCompleted` INTEGER NOT NULL, `selectedOptionId` TEXT, `rewardClaimed` INTEGER NOT NULL, `completedInPeriod` INTEGER NOT NULL, PRIMARY KEY(`questId`))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `calendar_notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `dayIndex` INTEGER NOT NULL, `title` TEXT NOT NULL, `cost` INTEGER NOT NULL, `category` TEXT NOT NULL, `isCompleted` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `recurring_expenses` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `cost` INTEGER NOT NULL, `frequencyDays` INTEGER NOT NULL, `icon` TEXT NOT NULL, `category` TEXT NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b813d7192eef66cd6e3b844dcf172bfc')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c3b55b24b327db4871dfb806a5002aeb')");
       }
 
       @Override
@@ -68,6 +74,8 @@ public final class AppDatabase_Impl extends AppDatabase {
         db.execSQL("DROP TABLE IF EXISTS `purchases`");
         db.execSQL("DROP TABLE IF EXISTS `goals`");
         db.execSQL("DROP TABLE IF EXISTS `quest_progress`");
+        db.execSQL("DROP TABLE IF EXISTS `calendar_notes`");
+        db.execSQL("DROP TABLE IF EXISTS `recurring_expenses`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -205,9 +213,41 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoQuestProgress + "\n"
                   + " Found:\n" + _existingQuestProgress);
         }
+        final HashMap<String, TableInfo.Column> _columnsCalendarNotes = new HashMap<String, TableInfo.Column>(6);
+        _columnsCalendarNotes.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCalendarNotes.put("dayIndex", new TableInfo.Column("dayIndex", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCalendarNotes.put("title", new TableInfo.Column("title", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCalendarNotes.put("cost", new TableInfo.Column("cost", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCalendarNotes.put("category", new TableInfo.Column("category", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCalendarNotes.put("isCompleted", new TableInfo.Column("isCompleted", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysCalendarNotes = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesCalendarNotes = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoCalendarNotes = new TableInfo("calendar_notes", _columnsCalendarNotes, _foreignKeysCalendarNotes, _indicesCalendarNotes);
+        final TableInfo _existingCalendarNotes = TableInfo.read(db, "calendar_notes");
+        if (!_infoCalendarNotes.equals(_existingCalendarNotes)) {
+          return new RoomOpenHelper.ValidationResult(false, "calendar_notes(ru.finpet.kids.core.data.local.entity.CalendarNoteEntity).\n"
+                  + " Expected:\n" + _infoCalendarNotes + "\n"
+                  + " Found:\n" + _existingCalendarNotes);
+        }
+        final HashMap<String, TableInfo.Column> _columnsRecurringExpenses = new HashMap<String, TableInfo.Column>(6);
+        _columnsRecurringExpenses.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsRecurringExpenses.put("title", new TableInfo.Column("title", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsRecurringExpenses.put("cost", new TableInfo.Column("cost", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsRecurringExpenses.put("frequencyDays", new TableInfo.Column("frequencyDays", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsRecurringExpenses.put("icon", new TableInfo.Column("icon", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsRecurringExpenses.put("category", new TableInfo.Column("category", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysRecurringExpenses = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesRecurringExpenses = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoRecurringExpenses = new TableInfo("recurring_expenses", _columnsRecurringExpenses, _foreignKeysRecurringExpenses, _indicesRecurringExpenses);
+        final TableInfo _existingRecurringExpenses = TableInfo.read(db, "recurring_expenses");
+        if (!_infoRecurringExpenses.equals(_existingRecurringExpenses)) {
+          return new RoomOpenHelper.ValidationResult(false, "recurring_expenses(ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity).\n"
+                  + " Expected:\n" + _infoRecurringExpenses + "\n"
+                  + " Found:\n" + _existingRecurringExpenses);
+        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "b813d7192eef66cd6e3b844dcf172bfc", "6cfb529baf871b9e2bb10b3f9f7d2975");
+    }, "c3b55b24b327db4871dfb806a5002aeb", "8c87daac516ab49b08a39ee2ea7899cc");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -218,7 +258,7 @@ public final class AppDatabase_Impl extends AppDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "profiles","periods","purchases","goals","quest_progress");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "profiles","periods","purchases","goals","quest_progress","calendar_notes","recurring_expenses");
   }
 
   @Override
@@ -232,6 +272,8 @@ public final class AppDatabase_Impl extends AppDatabase {
       _db.execSQL("DELETE FROM `purchases`");
       _db.execSQL("DELETE FROM `goals`");
       _db.execSQL("DELETE FROM `quest_progress`");
+      _db.execSQL("DELETE FROM `calendar_notes`");
+      _db.execSQL("DELETE FROM `recurring_expenses`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();
@@ -251,6 +293,7 @@ public final class AppDatabase_Impl extends AppDatabase {
     _typeConvertersMap.put(PurchaseDao.class, PurchaseDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(GoalDao.class, GoalDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(QuestProgressDao.class, QuestProgressDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(CalendarDao.class, CalendarDao_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -335,6 +378,20 @@ public final class AppDatabase_Impl extends AppDatabase {
           _questProgressDao = new QuestProgressDao_Impl(this);
         }
         return _questProgressDao;
+      }
+    }
+  }
+
+  @Override
+  public CalendarDao calendarDao() {
+    if (_calendarDao != null) {
+      return _calendarDao;
+    } else {
+      synchronized(this) {
+        if(_calendarDao == null) {
+          _calendarDao = new CalendarDao_Impl(this);
+        }
+        return _calendarDao;
       }
     }
   }
