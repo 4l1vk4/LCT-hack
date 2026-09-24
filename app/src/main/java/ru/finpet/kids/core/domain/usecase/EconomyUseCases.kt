@@ -115,7 +115,7 @@ class MakePurchaseUseCase @Inject constructor(
 }
 
 sealed interface GoalDepositResult {
-    data class Success(val newBalance: Int, val newSaved: Int, val isGoalReached: Boolean) : GoalDepositResult
+    data class Success(val newBalance: Int, val newSaved: Int, val isGoalReached: Boolean, val depositedAmount: Int) : GoalDepositResult
     data class NotEnoughMoney(val missingCoins: Int) : GoalDepositResult
     data object GoalNotFound : GoalDepositResult
 }
@@ -131,12 +131,19 @@ class DepositToGoalUseCase @Inject constructor(
 
         val goal = repository.getGoalByIdSync(goalId) ?: return GoalDepositResult.GoalNotFound
 
+        val remaining = (goal.targetCost - goal.savedAmount).coerceAtLeast(0)
+
+        val actualAmount = minOf(amount, remaining, profile.balance)
+        if (actualAmount <= 0) {
+            return GoalDepositResult.NotEnoughMoney(amount - profile.balance)
+        }
+
         // Списание с баланса
-        val newBalance = profile.balance - amount
+        val newBalance = profile.balance - actualAmount
         repository.updateBalance(newBalance)
 
         // Пополнение цели
-        val newSaved = goal.savedAmount + amount
+        val newSaved = goal.savedAmount + actualAmount
         val isReached = newSaved >= goal.targetCost
         repository.updateGoal(goal.copy(savedAmount = newSaved, isReached = isReached))
 
@@ -144,7 +151,7 @@ class DepositToGoalUseCase @Inject constructor(
         val period = repository.getPeriodSync(profile.currentPeriodIndex) ?: PeriodEntity(profile.currentPeriodIndex)
         repository.savePeriod(period.copy(actualSavings = period.actualSavings + amount))
 
-        return GoalDepositResult.Success(newBalance, newSaved, isReached)
+        return GoalDepositResult.Success(newBalance, newSaved, isReached, actualAmount)
     }
 }
 
