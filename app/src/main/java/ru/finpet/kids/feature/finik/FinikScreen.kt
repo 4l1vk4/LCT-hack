@@ -1,5 +1,7 @@
 package ru.finpet.kids.feature.finik
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,17 +29,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.SkyBlue
-import ru.finpet.kids.core.designsystem.StatBar
 import ru.finpet.kids.core.designsystem.TextPrimary
 
 data class ScriptedAdvice(
@@ -56,6 +60,18 @@ fun FinikScreen(
     val mood = profile?.mood ?: 80
     val health = profile?.health ?: 100
     val petName = profile?.petName ?: "Финни"
+
+    // Сытость и здоровье скрыто влияют на единый показатель настроения
+    val effectiveMood = remember(mood, satiety, health) {
+        var calculated = (mood * 0.60f + satiety * 0.20f + health * 0.20f)
+        if (satiety < 50) {
+            calculated -= (50 - satiety) * 0.5f
+        }
+        if (health < 60) {
+            calculated -= (60 - health) * 0.6f
+        }
+        calculated.roundToInt().coerceIn(0, 100)
+    }
 
     val defaultGreeting = "Привет! Я твой финансовый помощник $petName. Спрашивай меня обо всем — я помогу тебе стать мастером монет!"
     var currentSpeech by remember { mutableStateOf(defaultGreeting) }
@@ -129,8 +145,8 @@ fun FinikScreen(
                 modifier = Modifier.padding(vertical = 4.dp),
                 skinId = selectedSkin ?: "cat_black",
                 mood = when {
-                    satiety < 50 || mood < 40 -> "SAD"
-                    satiety >= 70 && mood >= 70 -> "HAPPY"
+                    effectiveMood < 40 -> "SAD"
+                    effectiveMood >= 70 -> "HAPPY"
                     else -> "NEUTRAL"
                 },
                 stage = profile?.growthStage ?: "BABY",
@@ -142,8 +158,8 @@ fun FinikScreen(
             )
         }
 
-        item(key = "status_panel") {
-            // Статус-панель питомца
+        item(key = "mood_bar") {
+            // Единый показатель настроения питомца (в 2 раза толще обычного бара — 24dp, сытость и здоровье влияют скрыто)
             FinCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -151,36 +167,69 @@ fun FinikScreen(
                 backgroundColor = Color.White
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Состояние $petName",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                    val animatedProgress by animateFloatAsState(
+                        targetValue = (effectiveMood.coerceIn(0, 100) / 100f),
+                        animationSpec = tween(durationMillis = 500),
+                        label = "mood_anim"
                     )
+                    val moodColor = remember(effectiveMood) {
+                        when {
+                            effectiveMood >= 70 -> FreshGreen
+                            effectiveMood >= 40 -> JoyOrange
+                            else -> Color(0xFFFF5252)
+                        }
+                    }
+                    val moodBrush = remember(moodColor) {
+                        Brush.horizontalGradient(
+                            listOf(moodColor.copy(alpha = 0.8f), moodColor)
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = when {
+                                    effectiveMood >= 70 -> "⚡"
+                                    effectiveMood >= 40 -> "🙂"
+                                    else -> "🥺"
+                                },
+                                fontSize = 18.sp
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Настроение $petName",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                        }
+                        Text(
+                            text = "$effectiveMood%",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = moodColor
+                        )
+                    }
                     Spacer(modifier = Modifier.height(10.dp))
-                    StatBar(
-                        label = "Сытость",
-                        icon = "🍎",
-                        value = satiety,
-                        barColor = JoyOrange,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    StatBar(
-                        label = "Настроение",
-                        icon = "⚡",
-                        value = mood,
-                        barColor = SkyBlue,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    StatBar(
-                        label = "Здоровье",
-                        icon = "❤️",
-                        value = health,
-                        barColor = FreshGreen,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(24.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFEEEEEE))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(animatedProgress)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(moodBrush)
+                        )
+                    }
                 }
             }
         }

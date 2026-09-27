@@ -15,10 +15,26 @@ import kotlin.math.roundToInt
 
 object PetEconomyCalculator {
 
-    const val STARTING_BALANCE = 50
-    const val PERIOD_INCOME = 100
+    const val STARTING_BALANCE = 200
+    const val WEEKLY_ALLOWANCE = 200
+    const val DAILY_INCOME = 0
     const val MIN_FOOD_COST = 30
     const val MIN_WATER_COST = 10
+
+    /**
+     * Понедельники в 28-дневном календаре (4 недели по 7 дней) — это дни 1, 8, 15, 22.
+     */
+    fun isMonday(dayIndex: Int): Boolean {
+        return (dayIndex - 1) % 7 == 0
+    }
+
+    /**
+     * Расчет начисления карманных денег при переходе на следующий день.
+     * Понедельник: +200 монет (на неделю), остальные дни: 0 монет.
+     */
+    fun calculateDayIncome(nextDayIndex: Int): Int {
+        return if (isMonday(nextDayIndex)) WEEKLY_ALLOWANCE else DAILY_INCOME
+    }
 
     /**
      * Рассчитывает сытость питомца (0..100) на основе обязательных расходов на питание.
@@ -166,7 +182,8 @@ object PetEconomyCalculator {
     fun resolvePeriod(
         currentStats: PetStats,
         plan: BudgetPlan,
-        actual: ActualExpenses
+        actual: ActualExpenses,
+        nextDayIndex: Int = 1
     ): PeriodResolution {
         val satiety = calculateSatiety(actual)
         val health = calculateHealth(satiety, plan, actual)
@@ -194,19 +211,25 @@ object PetEconomyCalculator {
             feedback = feedback
         )
 
+        val periodIncome = calculateDayIncome(nextDayIndex)
+
         val summaryFeedback = buildString {
             append("Итоги дня: получено +$carePointsEarned очков заботы. ")
             if (newStage != currentStats.stage) {
                 append("Ура! Питомец вырос до стадии «${newStage.title}»! ")
             }
-            append("Начислено +$PERIOD_INCOME монет на новый день.")
+            if (periodIncome > 0) {
+                append("🌅 Новый понедельник! Выданы карманные деньги на неделю: +$periodIncome монет.")
+            } else {
+                append("🌅 Наступил новый день. Карманные деньги выдаются раз в неделю по понедельникам.")
+            }
         }
 
         return PeriodResolution(
             newStats = newStats,
             compliance = compliance,
             carePointsEarned = carePointsEarned,
-            periodIncome = PERIOD_INCOME,
+            periodIncome = periodIncome,
             summaryFeedback = summaryFeedback
         )
     }

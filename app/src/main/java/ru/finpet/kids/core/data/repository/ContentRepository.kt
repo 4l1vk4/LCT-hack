@@ -126,7 +126,7 @@ class ContentRepository @Inject constructor(
                             bodyColor = 0xFFFFA726.toInt(),
                             eyesType = 1,
                             accessoryId = "none",
-                            balance = 50,
+                            balance = 200,
                             currentPeriodIndex = 1,
                             carePoints = 0,
                             growthStage = "BABY",

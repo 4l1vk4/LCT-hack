@@ -12,7 +12,7 @@ data class ProfileEntity(
     val bodyColor: Int = 0xFFFFA726.toInt(), // Orange
     val eyesType: Int = 1,                   // 1..3
     val accessoryId: String = "none",        // none, scarf, bow, cap
-    val balance: Int = 50,                   // Стартовый баланс
+    val balance: Int = 200,                  // Стартовый баланс (карманные деньги на 1-ю неделю)
     val currentPeriodIndex: Int = 1,         // 1..5+
     val carePoints: Int = 0,                 // Очки эволюции
     val growthStage: String = "BABY",        // BABY, TEEN, ADULT
