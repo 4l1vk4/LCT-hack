@@ -61,19 +61,7 @@ import ru.finpet.kids.feature.finik.FinikScreen
 import ru.finpet.kids.feature.map.MapScreen
 import ru.finpet.kids.feature.settings.SettingsScreen
 import androidx.compose.foundation.layout.WindowInsets
-
-data class NavItem(
-    val title: String,
-    val icon: String
-)
-
-private val NAV_ITEMS = listOf(
-    NavItem("Карта", "🗺️"),
-    NavItem("Календарь", "📅"),
-    NavItem("Финни", "🐱"),
-    NavItem("Родителям", "👨‍👩‍👦"),
-    NavItem("Настройки", "⚙️")
-)
+import ru.finpet.kids.R
 
 @Composable
 fun MainScreen(
@@ -198,10 +186,16 @@ fun MainScreen(
                 )
             }
             // Стеклянный док поверх контента: последний в Box = рисуется сверху
-            BottomBar(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                selectedTab = selectedTab,
-                onSelect = onSelectTab
+            NavBarWithHotspots(
+                navRes = R.drawable.menu,
+                imageAspectRatio = 1073f / 278f,
+                hotspots = DEFAULT_NAV_HOTSPOTS,
+                onSelectTab = onSelectTab,
+                debug = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
             )
         }
     }
@@ -264,143 +258,6 @@ private fun TopBar(
         ) {
             Text(text = "🐾", fontSize = 24.sp)
             CoinBadge(coins = balance)
-        }
-    }
-}
-
-/**
- * Селектор вкладок в стиле Liquid Glass: парящая пилюля из полупрозрачного
- * стекла поверх контента. Слои: мягкая тень -> полупрозрачная основа ->
- * зеркальный блик сверху -> светящаяся кромка. Выбранная вкладка подсвечена
- * «жидкой» капсулой, всплывающей с пружинной анимацией.
- */
-@Composable
-private fun BottomBar(
-    modifier: Modifier = Modifier,
-    selectedTab: Int,
-    onSelect: (Int) -> Unit
-) {
-    Box(
-        modifier = modifier.fillMaxWidth(),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(
-                    10.dp,
-                    RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                    ambientColor = Color(0x33000000),
-                    spotColor = Color(0x22000000)
-                )
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(Color.White.copy(alpha = 0.96f))
-                .border(
-                    1.dp,
-                    Brush.linearGradient(
-                        listOf(
-                            Color.White.copy(alpha = 0.95f),
-                            Color.White.copy(alpha = 0.25f),
-                            Color.White.copy(alpha = 0.55f)
-                        )
-                    ),
-                    RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                )
-        ) {
-            // Зеркальный блик: строго по фактическому размеру бара через matchParentSize()
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.verticalGradient(
-                            0f to Color.White.copy(alpha = 0.4f),
-                            0.45f to Color.Transparent
-                        )
-                    )
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(horizontal = 6.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                NAV_ITEMS.forEachIndexed { index, item ->
-                    DockItem(
-                        item = item,
-                        selected = selectedTab == index,
-                        onClick = { onSelect(index) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RowScope.DockItem(
-    item: NavItem,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    val pop by animateFloatAsState(
-        targetValue = if (selected) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMediumLow
-        ),
-        label = "dock_pop"
-    )
-    Box(
-        modifier = Modifier
-            .weight(1f)
-            .clip(RoundedCornerShape(18.dp))
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            )
-            .padding(vertical = 3.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        // «Жидкая» капсула-индикатор выбранной вкладки
-        Box(
-            modifier = Modifier
-                .height(46.dp)
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp)
-                .graphicsLayer {
-                    scaleX = 0.7f + 0.3f * pop
-                    scaleY = 0.7f + 0.3f * pop
-                    alpha = pop
-                }
-                .clip(RoundedCornerShape(14.dp))
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFFFFF3E0), Color(0xFFFFCC80))
-                    )
-                )
-                .border(1.dp, Color.White.copy(alpha = 0.85f), RoundedCornerShape(14.dp))
-        )
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(vertical = 2.dp)
-        ) {
-            Text(
-                text = item.icon,
-                fontSize = 21.sp,
-                modifier = Modifier.graphicsLayer {
-                    scaleX = 1f + 0.15f * pop
-                    scaleY = 1f + 0.15f * pop
-                }
-            )
-            Text(
-                text = item.title,
-                fontSize = 11.sp,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = if (selected) JoyOrange else TextSecondary
-            )
         }
     }
 }

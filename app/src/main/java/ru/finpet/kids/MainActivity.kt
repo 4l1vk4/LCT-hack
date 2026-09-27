@@ -14,6 +14,9 @@ import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.feature.main.MainScreen
 import ru.finpet.kids.feature.main.MainViewModel
 import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -23,6 +26,12 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
+
         setContent {
             FinPetTheme {
                 Surface(
