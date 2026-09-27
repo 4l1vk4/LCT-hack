@@ -1,10 +1,42 @@
 [
     {
+        "merged": "ru.finpet.kids.app-debug-65:/drawable-nodpi_cat_nlo.gif.flat",
+        "source": "ru.finpet.kids.app-main-67:/drawable-nodpi/cat_nlo.gif"
+    },
+    {
+        "merged": "ru.finpet.kids.app-debug-65:/drawable_day.png.flat",
+        "source": "ru.finpet.kids.app-main-67:/drawable/day.png"
+    },
+    {
+        "merged": "ru.finpet.kids.app-debug-65:/drawable-nodpi_cat_black.gif.flat",
+        "source": "ru.finpet.kids.app-main-67:/drawable-nodpi/cat_black.gif"
+    },
+    {
+        "merged": "ru.finpet.kids.app-debug-65:/drawable-nodpi_cat_orange.gif.flat",
+        "source": "ru.finpet.kids.app-main-67:/drawable-nodpi/cat_orange.gif"
+    },
+    {
+        "merged": "ru.finpet.kids.app-debug-65:/drawable-nodpi_location_shop_header.png.flat",
+        "source": "ru.finpet.kids.app-main-67:/drawable-nodpi/location_shop_header.png"
+    },
+    {
+        "merged": "ru.finpet.kids.app-debug-65:/drawable-nodpi_location_school_header.png.flat",
+        "source": "ru.finpet.kids.app-main-67:/drawable-nodpi/location_school_header.png"
+    },
+    {
+        "merged": "ru.finpet.kids.app-debug-65:/drawable-nodpi_location_bank_header.png.flat",
+        "source": "ru.finpet.kids.app-main-67:/drawable-nodpi/location_bank_header.png"
+    },
+    {
         "merged": "ru.finpet.kids.app-debug-65:/drawable_ic_coin.png.flat",
         "source": "ru.finpet.kids.app-main-67:/drawable/ic_coin.png"
     },
     {
         "merged": "ru.finpet.kids.app-debug-65:/drawable_ic_launcher.xml.flat",
         "source": "ru.finpet.kids.app-main-67:/drawable/ic_launcher.xml"
+    },
+    {
+        "merged": "ru.finpet.kids.app-debug-65:/drawable-nodpi_location_home_header.png.flat",
+        "source": "ru.finpet.kids.app-main-67:/drawable-nodpi/location_home_header.png"
     }
 ]

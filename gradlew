@@ -88,6 +88,24 @@ APP_BASE_NAME=${0##*/}
 # Discard cd standard output in case $CDPATH is set (https://github.com/gradle/gradle/issues/25036)
 APP_HOME=$( cd -P "${APP_HOME:-./}" > /dev/null && printf '%s\n' "$PWD" ) || exit
 
+# Load environment variables from .env if present
+if [ -f "$APP_HOME/.env" ]; then
+    while IFS='=' read -r key value || [ -n "$key" ]; do
+        case "$key" in
+            \#*|"") continue ;;
+            org.gradle.java.home|ORG_GRADLE_JAVA_HOME|JAVA_HOME)
+                clean_val=$(printf '%s\n' "$value" | tr -d '\r' | sed -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+                export JAVA_HOME="$clean_val"
+                GRADLE_OPTS="-Dorg.gradle.java.home=$clean_val $GRADLE_OPTS"
+                ;;
+            *)
+                clean_val=$(printf '%s\n' "$value" | tr -d '\r' | sed -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+                export "$key=$clean_val"
+                ;;
+        esac
+    done < "$APP_HOME/.env"
+fi
+
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD=maximum
 

@@ -2,8 +2,16 @@ R_DEF: Internal format may change without notice
 local
 color splash_background
 color window_background
+drawable cat_black
+drawable cat_nlo
+drawable cat_orange
+drawable day
 drawable ic_coin
 drawable ic_launcher
+drawable location_bank_header
+drawable location_home_header
+drawable location_school_header
+drawable location_shop_header
 string app_name
 style Theme.FinPet
 style Theme.FinPet.Splash

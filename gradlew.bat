@@ -35,6 +35,17 @@ set APP_HOME=%DIRNAME%
 @rem Resolve any "." and ".." in APP_HOME to make it shorter.
 for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 
+@rem Load .env variables if present
+@if exist "%APP_HOME%\.env" (
+    for /F "usebackq tokens=1* delims==" %%A in ("%APP_HOME%\.env") do (
+        if not "%%A"=="" if not "%%A:~0,1" == "#" (
+            if "%%A"=="org.gradle.java.home" set "JAVA_HOME=%%B" & set "GRADLE_OPTS=-Dorg.gradle.java.home=%%B %GRADLE_OPTS%"
+            if "%%A"=="ORG_GRADLE_JAVA_HOME" set "JAVA_HOME=%%B" & set "GRADLE_OPTS=-Dorg.gradle.java.home=%%B %GRADLE_OPTS%"
+            if "%%A"=="JAVA_HOME" set "JAVA_HOME=%%B"
+        )
+    )
+)
+
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
 
