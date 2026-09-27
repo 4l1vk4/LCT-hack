@@ -131,6 +131,7 @@ fun FinikScreen(
                     satiety >= 70 && mood >= 70 -> "HAPPY"
                     else -> "NEUTRAL"
                 },
+                stage = profile?.growthStage ?: "BABY",
                 enabled = animationsEnabled,
                 onClick = {
                     onPetTapped()
