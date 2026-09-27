@@ -164,11 +164,13 @@ fun MainScreen(
             KeepAliveTab(visible = selectedTab == 2, seen = seenTabs.contains(2), key = 2, stateHolder = stateHolder) {
                 FinikScreen(
                     profile = profile,
+                    goals = goals,
                     selectedSkin = (skinState as? SkinState.Selected)?.skinId,
                     // Анимации персонажа работают только на видимой вкладке —
                     // скрытый Финни не тратит CPU на бесконечные перерисовки
                     animationsEnabled = selectedTab == 2,
-                    onPetTapped = { /* Можно добавить звук мурлыканья */ }
+                    onPetTapped = { /* Можно добавить звук мурлыканья */ },
+                    onNavigateToGoals = { selectedTab = 0 }
                 )
             }
             KeepAliveTab(visible = selectedTab == 3, seen = seenTabs.contains(3), key = 3, stateHolder = stateHolder) {

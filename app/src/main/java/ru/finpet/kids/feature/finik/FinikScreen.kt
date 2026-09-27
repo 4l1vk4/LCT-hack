@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,12 +37,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
+import ru.finpet.kids.core.data.local.entity.GoalEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
+import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.TextPrimary
+import ru.finpet.kids.core.designsystem.TextSecondary
 
 data class ScriptedAdvice(
     val title: String,
@@ -52,9 +56,11 @@ data class ScriptedAdvice(
 @Composable
 fun FinikScreen(
     profile: ProfileEntity?,
+    goals: List<GoalEntity> = emptyList(),
     selectedSkin: String?,
     animationsEnabled: Boolean = true,
-    onPetTapped: () -> Unit = {}
+    onPetTapped: () -> Unit = {},
+    onNavigateToGoals: (() -> Unit)? = null
 ) {
     val satiety = profile?.satiety ?: 100
     val mood = profile?.mood ?: 80
@@ -75,6 +81,10 @@ fun FinikScreen(
 
     val defaultGreeting = "Привет! Я твой финансовый помощник $petName. Спрашивай меня обо всем — я помогу тебе стать мастером монет!"
     var currentSpeech by remember { mutableStateOf(defaultGreeting) }
+
+    val activeGoal = remember(goals, profile?.activeGoalId) {
+        goals.find { it.id == profile?.activeGoalId } ?: goals.firstOrNull()
+    }
 
     val adviceList = remember(satiety, mood, health) {
         listOf(
@@ -229,6 +239,102 @@ fun FinikScreen(
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(moodBrush)
                         )
+                    }
+                }
+            }
+        }
+
+        item(key = "goal_bar") {
+            // Планка прогресса по цели в копилке
+            if (activeGoal != null) {
+                val progress = (activeGoal.savedAmount.toFloat() / activeGoal.targetCost.toFloat()).coerceIn(0f, 1f)
+                val percent = (progress * 100).toInt()
+                val remaining = (activeGoal.targetCost - activeGoal.savedAmount).coerceAtLeast(0)
+                val goalEmoji = when (activeGoal.id) {
+                    "goal_ball" -> "⚽"
+                    "goal_headphones" -> "🎧"
+                    "goal_scooter" -> "🛴"
+                    else -> "🎯"
+                }
+                val animatedGoalProgress by animateFloatAsState(
+                    targetValue = progress,
+                    animationSpec = tween(durationMillis = 500),
+                    label = "goal_anim"
+                )
+                val goalBrush = remember {
+                    Brush.horizontalGradient(
+                        listOf(Color(0xFFFFB74D), JoyOrange)
+                    )
+                }
+
+                FinCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                        .then(if (onNavigateToGoals != null) Modifier.clickable { onNavigateToGoals() } else Modifier),
+                    backgroundColor = Color.White
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(text = goalEmoji, fontSize = 20.sp)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Цель: ${activeGoal.title}",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "${activeGoal.savedAmount} / ${activeGoal.targetCost} ",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = JoyOrange
+                                )
+                                CoinIcon(modifier = Modifier.size(16.dp))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(20.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color(0xFFEEEEEE))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .fillMaxWidth(animatedGoalProgress)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(goalBrush)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = if (activeGoal.isReached) "🎉 Мечта достигнута!" else "Осталось накопить: $remaining монет",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = if (activeGoal.isReached) FreshGreen else TextSecondary
+                            )
+                            Text(
+                                text = "$percent%",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = JoyOrange
+                            )
+                        }
                     }
                 }
             }

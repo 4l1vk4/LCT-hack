@@ -715,8 +715,8 @@ fun HomeGoalsBottomSheet(
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Button(
-                                onClick = { onDeposit(goal.id, 30) },
-                                enabled = balance >= 30,
+                                onClick = { onDeposit(goal.id, 10) },
+                                enabled = balance >= 10,
                                 colors = ButtonDefaults.buttonColors(containerColor = FreshGreen),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier
@@ -724,7 +724,7 @@ fun HomeGoalsBottomSheet(
                                     .height(44.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("+30 ", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                    Text("+10 ", fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                     CoinIcon(modifier = Modifier.size(14.dp))
                                 }
                             }
