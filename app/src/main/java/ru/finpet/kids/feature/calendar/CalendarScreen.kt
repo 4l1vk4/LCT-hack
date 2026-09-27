@@ -741,14 +741,32 @@ fun DayDetailsDialog(
                                 }
                             }
 
+                            val nextDayNumber = dayNumber + 1
+                            val isNextMonday = (nextDayNumber - 1) % 7 == 0
+                            val completeButtonText = if (isNextMonday) {
+                                "🌅 Завершить день (+200 монет на неделю!)"
+                            } else {
+                                "🌅 Завершить день"
+                            }
+
                             Spacer(modifier = Modifier.height(8.dp))
                             PixelButton(
-                                text = "🌅 Завершить день (+100 монет)",
+                                text = completeButtonText,
                                 onClick = onCompletePeriod,
                                 containerColor = PixelGreenCrop,
                                 textColor = Color.White,
                                 borderColor = Color(0xFF1B5E20),
                                 modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = if (isNextMonday) "🎉 Завтра понедельник: выплата 200 монет карманных денег!"
+                                else "💡 Карманные деньги (+200 монет) выдаются по понедельникам",
+                                fontSize = 11.sp,
+                                color = PixelTextMuted,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp)
                             )
                         }
                     }

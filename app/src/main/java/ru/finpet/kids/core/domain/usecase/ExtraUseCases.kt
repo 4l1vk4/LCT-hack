@@ -5,6 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.data.repository.ContentRepository
 import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
+import ru.finpet.kids.core.domain.model.GrowthStage
 import ru.finpet.kids.core.domain.repository.FinPetRepository
 import javax.inject.Inject
 import kotlin.math.ceil
@@ -63,8 +64,16 @@ class QuestEngineUseCase @Inject constructor(
         return repository.inTransaction<QuestExecutionResult?> {
             val profile = repository.getProfileSync() ?: return@inTransaction null
 
-            val newBalance = profile.balance + option.rewardCoins
-            repository.updateBalance(newBalance)
+            val careBonus = if (option.isRecommended) 1 else 0
+            val newCarePoints = profile.carePoints + careBonus
+            val newStage = GrowthStage.fromPoints(newCarePoints)
+
+            repository.saveProfile(
+                profile.copy(
+                    carePoints = newCarePoints,
+                    growthStage = newStage.name
+                )
+            )
 
             val progress = QuestProgressEntity(
                 questId = questId,
@@ -75,11 +84,12 @@ class QuestEngineUseCase @Inject constructor(
             )
             repository.saveQuestProgress(progress)
 
+            val bonusText = if (option.isRecommended) " (+1 ⭐ Очко Заботы питомцу)" else ""
             QuestExecutionResult(
-                coinsAwarded = option.rewardCoins,
-                feedback = option.feedback,
+                coinsAwarded = 0,
+                feedback = option.feedback + bonusText,
                 isRecommended = option.isRecommended,
-                newBalance = newBalance
+                newBalance = profile.balance
             )
         }
     }

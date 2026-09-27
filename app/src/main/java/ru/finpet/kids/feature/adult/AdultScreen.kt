@@ -361,13 +361,13 @@ fun AdultScreen(
                         scope.launch { delay(3000); bonusSuccessMessage = null }
                     }
                     BonusRewardButton(
-                        icon = "📚",
-                        label = "Чтение",
-                        coins = 30,
+                        icon = "🧽",
+                        label = "Посуда",
+                        coins = 20,
                         modifier = Modifier.weight(1f)
                     ) {
-                        onGrantBonus(30, "Чтение книги")
-                        bonusSuccessMessage = "✅ Ребенку начислено +30 монет за чтение!"
+                        onGrantBonus(20, "Мытьё посуды")
+                        bonusSuccessMessage = "✅ Ребенку начислено +20 монет за мытьё посуды!"
                         scope.launch { delay(3000); bonusSuccessMessage = null }
                     }
                 }
@@ -377,23 +377,23 @@ fun AdultScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     BonusRewardButton(
-                        icon = "📝",
-                        label = "Уроки",
-                        coins = 30,
+                        icon = "🗑️",
+                        label = "Мусор",
+                        coins = 15,
                         modifier = Modifier.weight(1f)
                     ) {
-                        onGrantBonus(30, "Выполненные уроки")
-                        bonusSuccessMessage = "✅ Ребенку начислено +30 монет за уроки!"
+                        onGrantBonus(15, "Вынос мусора / порядок")
+                        bonusSuccessMessage = "✅ Ребенку начислено +15 монет за вынос мусора!"
                         scope.launch { delay(3000); bonusSuccessMessage = null }
                     }
                     BonusRewardButton(
                         icon = "🤝",
                         label = "Помощь",
-                        coins = 20,
+                        coins = 25,
                         modifier = Modifier.weight(1f)
                     ) {
-                        onGrantBonus(20, "Помощь родителям")
-                        bonusSuccessMessage = "✅ Ребенку начислено +20 монет за помощь!"
+                        onGrantBonus(25, "Помощь родителям по дому")
+                        bonusSuccessMessage = "✅ Ребенку начислено +25 монет за помощь родителям!"
                         scope.launch { delay(3000); bonusSuccessMessage = null }
                     }
                 }

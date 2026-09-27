@@ -106,7 +106,7 @@ fun MapScreen(
                     when (spot.id) {
                         "shop" -> activeModal = "SHOP"
                         "quests" -> activeModal = "QUESTS"
-                        "home" -> onNavigateToFinik()
+                        "home", "bank" -> activeModal = "GOALS"
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -400,7 +400,7 @@ fun SchoolBottomSheet(
 
     PixelLocationModalSheet(
         title = "🏫 Школа Финни",
-        subtitle = "Уроки финансовой грамотности • Зарабатывай монетки!",
+        subtitle = "Уроки финансовой грамотности • Получай ⭐ Очки Заботы Финни",
         headerDrawableRes = R.drawable.location_school_header,
         badgeText = "🎯 $completedCount / ${quests.size} решено",
         onDismiss = onDismiss
@@ -479,12 +479,11 @@ fun SchoolBottomSheet(
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Text(
-                                                text = "+${opt.rewardCoins} ",
+                                                text = if (opt.isRecommended) "+1 ⭐" else "🎓",
                                                 fontWeight = FontWeight.Bold,
                                                 fontSize = 14.sp,
-                                                color = Color(0xFFE65100)
+                                                color = if (opt.isRecommended) Color(0xFFE65100) else TextPrimary
                                             )
-                                            CoinIcon(modifier = Modifier.size(16.dp))
                                         }
                                     }
                                 }

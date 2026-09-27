@@ -176,9 +176,19 @@ class EconomyUseCasesTest {
         assertTrue(resolution != null)
         val updatedProfile = repository.getProfileSync()
 
-        assertEquals(2, updatedProfile?.currentPeriodIndex) // Period 1 -> Period 2
-        assertEquals(370, updatedProfile?.balance) // 300 - 30 + 100 = 370
+        assertEquals(2, updatedProfile?.currentPeriodIndex) // Period 1 -> Period 2 (Tuesday)
+        assertEquals(270, updatedProfile?.balance) // 300 - 30 + 0 (вторник: 0 монет) = 270
+        assertEquals(0, resolution?.periodIncome)
         assertTrue(repository.getPeriodSync(1)?.isPeriodClosed == true)
+
+        // Теперь симулируем завершение воскресенья (период 7 -> 8, понедельник)
+        repository.saveProfile(updatedProfile!!.copy(currentPeriodIndex = 7))
+        val mondayResolution = completePeriodUseCase()
+        val mondayProfile = repository.getProfileSync()
+
+        assertEquals(8, mondayProfile?.currentPeriodIndex) // Period 7 -> Period 8 (Monday)
+        assertEquals(200, mondayResolution?.periodIncome) // Понедельник: +200 карманных денег
+        assertEquals(470, mondayProfile?.balance) // 270 + 200 = 470
     }
 
     @Test

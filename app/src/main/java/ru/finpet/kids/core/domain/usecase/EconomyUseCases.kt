@@ -188,7 +188,13 @@ class CompletePeriodUseCase @Inject constructor(
             feedback = ""
         )
 
-        val resolution = PetEconomyCalculator.resolvePeriod(currentStats, plan, actual)
+        val nextPeriodIndex = profile.currentPeriodIndex + 1
+        val resolution = PetEconomyCalculator.resolvePeriod(
+            currentStats = currentStats,
+            plan = plan,
+            actual = actual,
+            nextDayIndex = nextPeriodIndex
+        )
 
         // Закрываем текущий период
         repository.savePeriod(
@@ -200,7 +206,6 @@ class CompletePeriodUseCase @Inject constructor(
         )
 
         // Обновляем профиль на следующий период
-        val nextPeriodIndex = profile.currentPeriodIndex + 1
         repository.saveProfile(
             profile.copy(
                 balance = profile.balance + resolution.periodIncome,
