@@ -19,7 +19,7 @@ data class ProfileEntity(
     val satiety: Int = 100,                  // 0..100
     val health: Int = 100,                   // 0..100
     val mood: Int = 70,                      // 0..100
-    val activeGoalId: String? = "goal_house",
+    val activeGoalId: String? = "goal_ball",
     val isDemoMode: Boolean = false
 )
 

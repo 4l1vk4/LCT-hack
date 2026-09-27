@@ -1,23 +1,23 @@
 [
   {
-    "id": "goal_house",
-    "title": "Уютный домик",
-    "targetCost": 150,
-    "iconName": "ic_house",
-    "description": "Собственный деревянный домик с крышей, где питомцу будет тепло и безопасно."
+    "id": "goal_ball",
+    "title": "Футбольный мяч",
+    "targetCost": 400,
+    "iconName": "ic_ball",
+    "description": "Фирменный спортивный мяч для крутых игр во дворе с друзьями!"
+  },
+  {
+    "id": "goal_headphones",
+    "title": "Беспроводные наушники",
+    "targetCost": 700,
+    "iconName": "ic_headphones",
+    "description": "Стильные яркие наушники, чтобы слушать любимую музыку и аудиокниги!"
   },
   {
     "id": "goal_scooter",
-    "title": "Игрушечный самокат",
-    "targetCost": 350,
+    "title": "Городской самокат",
+    "targetCost": 1000,
     "iconName": "ic_scooter",
-    "description": "Быстрый детский самокат для веселых гонок по парку!"
-  },
-  {
-    "id": "goal_friend",
-    "title": "Робот-друг для питомца",
-    "targetCost": 600,
-    "iconName": "ic_robot",
-    "description": "Умный электронный компаньон, который играет и светится разными огоньками."
+    "description": "Быстрый и надежный самокат для прогулок по парку и поездок с ветерком!"
   }
 ]

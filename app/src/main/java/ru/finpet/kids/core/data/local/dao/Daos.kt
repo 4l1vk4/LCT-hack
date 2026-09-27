@@ -112,6 +112,9 @@ interface GoalDao {
     @Update
     suspend fun updateGoal(goal: GoalEntity)
 
+    @Query("DELETE FROM goals WHERE id NOT IN (:validIds)")
+    suspend fun deleteGoalsNotIn(validIds: List<String>)
+
     @Query("DELETE FROM goals")
     suspend fun clear()
 }

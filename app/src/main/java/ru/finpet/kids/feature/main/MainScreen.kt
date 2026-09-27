@@ -85,8 +85,8 @@ fun MainScreen(
     val ready = onboarding as? OnboardingState.Ready
 
     var selectedTab by rememberSaveable { mutableIntStateOf(2) } // По умолчанию вкладка 3: Финни в кресле
-    var navBarHeight by remember { mutableStateOf(140.dp) }   // ← НОВОЕ
-    val density = LocalDensity.current                          // ← НОВОЕ
+    var navBarHeight by remember { mutableStateOf(140.dp) }
+    val density = LocalDensity.current
 
     // Все подписки — один раз наверху и lifecycle-aware. Раньше collectAsState()
     // создавались внутри веток when(tab): каждое переключение открывало новых
@@ -209,12 +209,14 @@ fun MainScreen(
                 ) {
                     FinikScreen(
                         profile = profile,
+                        goals = goals,
                         selectedSkin = ready?.skinId,
                         petName = ready?.petName,
                         // Анимации персонажа работают только на видимой вкладке —
                         // скрытый Финни не тратит CPU на бесконечные перерисовки
                         animationsEnabled = selectedTab == 2,
-                        onPetTapped = { /* Можно добавить звук мурлыканья */ }
+                        onPetTapped = { /* Можно добавить звук мурлыканья */ },
+                        onNavigateToGoals = { selectedTab = 0 }
                     )
                 }
                 KeepAliveTab(

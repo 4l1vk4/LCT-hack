@@ -85,6 +85,8 @@ class FinPetRepositoryImpl @Inject constructor(
     }
 
     override suspend fun initDefaultGoals(goals: List<GoalEntity>) {
+        val validIds = goals.map { it.id }
+        goalDao.deleteGoalsNotIn(validIds)
         // IGNORE: существующие цели не перезаписываются — накопленные
         // savedAmount/isReached переживают перезапуск, новые id добавляются.
         goalDao.insertGoals(goals)
