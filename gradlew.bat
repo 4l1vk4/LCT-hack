@@ -16,6 +16,15 @@
 @rem SPDX-License-Identifier: Apache-2.0
 @rem
 
+@rem Считываем файл .env и ищем нужную переменную
+if exist .env (
+    for /f "tokens=1,2 delims==" %%i in (.env) do (
+        if "%%i"=="ORG_GRADLE_PROJECT_java_home" (
+            set "JAVA_HOME=%%j"
+        )
+    )
+)
+
 @if "%DEBUG%"=="" @echo off
 @rem ##########################################################################
 @rem
