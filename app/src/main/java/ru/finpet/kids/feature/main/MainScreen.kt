@@ -44,6 +44,12 @@ import androidx.compose.foundation.layout.WindowInsets
 import ru.finpet.kids.R
 import ru.finpet.kids.feature.onboarding.SkinPickerScreen
 import ru.finpet.kids.feature.onboarding.PetNameScreen
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
+import androidx.compose.runtime.mutableStateOf
 
 @Composable
 fun MainScreen(
@@ -79,6 +85,8 @@ fun MainScreen(
     val ready = onboarding as? OnboardingState.Ready
 
     var selectedTab by rememberSaveable { mutableIntStateOf(2) } // По умолчанию вкладка 3: Финни в кресле
+    var navBarHeight by remember { mutableStateOf(140.dp) }   // ← НОВОЕ
+    val density = LocalDensity.current                          // ← НОВОЕ
 
     // Все подписки — один раз наверху и lifecycle-aware. Раньше collectAsState()
     // создавались внутри веток when(tab): каждое переключение открывало новых
@@ -121,96 +129,144 @@ fun MainScreen(
     }
 
     val balance = profile?.balance ?: 50
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = SoftBackground,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            // Показываем топбар везде, кроме вкладки «Карта» (индекс 0)
-            if (selectedTab != 0) {
-                TopBar(balance = balance)
+    CompositionLocalProvider(LocalBottomBarHeight provides navBarHeight) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = SoftBackground,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {
+                // Показываем топбар везде, кроме вкладки «Карта» (индекс 0)
+                if (selectedTab != 0) {
+                    TopBar(balance = balance)
+                }
             }
-        }
-        // Нижнего бара в Scaffold нет: стеклянный док парит ПОВЕРХ контента,
-        // списки уже имеют нижний отступ 84dp и просвечивают сквозь стекло
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding())
-        ) {
-            KeepAliveTab(visible = selectedTab == 0, seen = seenTabs.contains(0), key = 0, stateHolder = stateHolder) {
-                MapScreen(
-                    profile = profile,
-                    purchases = purchases,
-                    quests = quests,
-                    questProgress = questProgress,
-                    goals = goals,
-                    onBuyItem = { viewModel.buyItem(it) },
-                    onAnswerQuest = { qId, optId -> viewModel.answerQuest(qId, optId) },
-                    onDepositGoal = { gId, amt -> viewModel.depositGoal(gId, amt) },
-                    onWithdrawGoal = { gId, amt -> viewModel.withdrawGoal(gId, amt) },
-                    onNavigateToFinik = { selectedTab = 2 }
-                )
-            }
-            KeepAliveTab(visible = selectedTab == 1, seen = seenTabs.contains(1), key = 1, stateHolder = stateHolder) {
-                CalendarScreen(
-                    profile = profile,
-                    currentPeriod = currentPeriod,
-                    calendarNotes = calendarNotes,
-                    recurringExpenses = recurringExpenses,
-                    onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
-                    onCompletePeriod = { viewModel.completePeriod() },
-                    onAddNote = { day, title, cost, cat -> viewModel.addCalendarNote(day, title, cost, cat) },
-                    onDeleteNote = { note -> viewModel.deleteCalendarNote(note) },
-                    onToggleNote = { note -> viewModel.toggleCalendarNote(note) },
-                    onAddRecurring = { title, cost, freq, icon -> viewModel.addRecurringExpense(title, cost, freq, icon) },
-                    onDeleteRecurring = { exp -> viewModel.deleteRecurringExpense(exp) }
-                )
-            }
-            KeepAliveTab(visible = selectedTab == 2, seen = seenTabs.contains(2), key = 2, stateHolder = stateHolder) {
-                FinikScreen(
-                    profile = profile,
-                    selectedSkin = ready?.skinId,
-                    petName = ready?.petName,
-                    // Анимации персонажа работают только на видимой вкладке —
-                    // скрытый Финни не тратит CPU на бесконечные перерисовки
-                    animationsEnabled = selectedTab == 2,
-                    onPetTapped = { /* Можно добавить звук мурлыканья */ }
-                )
-            }
-            KeepAliveTab(visible = selectedTab == 3, seen = seenTabs.contains(3), key = 3, stateHolder = stateHolder) {
-                AdultScreen(
-                    report = report,
-                    adultSectionUseCase = viewModel.adultSectionUseCase,
-                    onGrantBonus = { coins, reason -> viewModel.grantParentBonus(coins, reason) },
-                    onNextDemoPeriod = { viewModel.completePeriod() },
-                    onResetProfile = { viewModel.resetDemoProfile() }
-                )
-            }
-            KeepAliveTab(visible = selectedTab == 4, seen = seenTabs.contains(4), key = 4, stateHolder = stateHolder) {
-                SettingsScreen(
-                    soundEnabled = soundEnabled,
-                    musicEnabled = musicEnabled,
-                    musicVolume = musicVolume,
-                    onToggleSound = { viewModel.toggleSound(it) },
-                    onToggleMusic = { viewModel.toggleMusic(it) },
-                    onMusicVolumeChange = { viewModel.setMusicVolume(it) }
-                )
-            }
-            // Стеклянный док поверх контента: последний в Box = рисуется сверху
-            NavBarWithHotspots(
-                navRes = R.drawable.menu,
-                imageAspectRatio = 1073f / 278f,
-                hotspots = DEFAULT_NAV_HOTSPOTS,
-                onSelectTab = onSelectTab,
-                debug = false,
+            // Нижнего бара в Scaffold нет: стеклянный док парит ПОВЕРХ контента,
+            // списки уже имеют нижний отступ 84dp и просвечивают сквозь стекло
+        ) { innerPadding ->
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-            )
+                    .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding())
+            ) {
+                KeepAliveTab(
+                    visible = selectedTab == 0,
+                    seen = seenTabs.contains(0),
+                    key = 0,
+                    stateHolder = stateHolder
+                ) {
+                    MapScreen(
+                        profile = profile,
+                        purchases = purchases,
+                        quests = quests,
+                        questProgress = questProgress,
+                        goals = goals,
+                        onBuyItem = { viewModel.buyItem(it) },
+                        onAnswerQuest = { qId, optId -> viewModel.answerQuest(qId, optId) },
+                        onDepositGoal = { gId, amt -> viewModel.depositGoal(gId, amt) },
+                        onWithdrawGoal = { gId, amt -> viewModel.withdrawGoal(gId, amt) },
+                        onNavigateToFinik = { selectedTab = 2 }
+                    )
+                }
+                KeepAliveTab(
+                    visible = selectedTab == 1,
+                    seen = seenTabs.contains(1),
+                    key = 1,
+                    stateHolder = stateHolder
+                ) {
+                    CalendarScreen(
+                        profile = profile,
+                        currentPeriod = currentPeriod,
+                        calendarNotes = calendarNotes,
+                        recurringExpenses = recurringExpenses,
+                        onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
+                        onCompletePeriod = { viewModel.completePeriod() },
+                        onAddNote = { day, title, cost, cat ->
+                            viewModel.addCalendarNote(
+                                day,
+                                title,
+                                cost,
+                                cat
+                            )
+                        },
+                        onDeleteNote = { note -> viewModel.deleteCalendarNote(note) },
+                        onToggleNote = { note -> viewModel.toggleCalendarNote(note) },
+                        onAddRecurring = { title, cost, freq, icon ->
+                            viewModel.addRecurringExpense(
+                                title,
+                                cost,
+                                freq,
+                                icon
+                            )
+                        },
+                        onDeleteRecurring = { exp -> viewModel.deleteRecurringExpense(exp) }
+                    )
+                }
+                KeepAliveTab(
+                    visible = selectedTab == 2,
+                    seen = seenTabs.contains(2),
+                    key = 2,
+                    stateHolder = stateHolder
+                ) {
+                    FinikScreen(
+                        profile = profile,
+                        selectedSkin = ready?.skinId,
+                        petName = ready?.petName,
+                        // Анимации персонажа работают только на видимой вкладке —
+                        // скрытый Финни не тратит CPU на бесконечные перерисовки
+                        animationsEnabled = selectedTab == 2,
+                        onPetTapped = { /* Можно добавить звук мурлыканья */ }
+                    )
+                }
+                KeepAliveTab(
+                    visible = selectedTab == 3,
+                    seen = seenTabs.contains(3),
+                    key = 3,
+                    stateHolder = stateHolder
+                ) {
+                    AdultScreen(
+                        report = report,
+                        adultSectionUseCase = viewModel.adultSectionUseCase,
+                        onGrantBonus = { coins, reason ->
+                            viewModel.grantParentBonus(
+                                coins,
+                                reason
+                            )
+                        },
+                        onNextDemoPeriod = { viewModel.completePeriod() },
+                        onResetProfile = { viewModel.resetDemoProfile() }
+                    )
+                }
+                KeepAliveTab(
+                    visible = selectedTab == 4,
+                    seen = seenTabs.contains(4),
+                    key = 4,
+                    stateHolder = stateHolder
+                ) {
+                    SettingsScreen(
+                        soundEnabled = soundEnabled,
+                        musicEnabled = musicEnabled,
+                        musicVolume = musicVolume,
+                        onToggleSound = { viewModel.toggleSound(it) },
+                        onToggleMusic = { viewModel.toggleMusic(it) },
+                        onMusicVolumeChange = { viewModel.setMusicVolume(it) }
+                    )
+                }
+                // Стеклянный док поверх контента: последний в Box = рисуется сверху
+                NavBarWithHotspots(
+                    navRes = R.drawable.menu,
+                    imageAspectRatio = 1073f / 278f,
+                    hotspots = DEFAULT_NAV_HOTSPOTS,
+                    onSelectTab = onSelectTab,
+                    debug = false,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .navigationBarsPadding()
+                        .onGloballyPositioned { coords ->
+                            navBarHeight = with(density) { coords.size.height.toDp() }
+                        }
+                )
+            }
         }
     }
 }

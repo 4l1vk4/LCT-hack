@@ -54,6 +54,7 @@ import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.domain.usecase.AdultSectionUseCase
 import ru.finpet.kids.core.domain.usecase.CompetencyReport
 import ru.finpet.kids.core.domain.usecase.MathProblem
+import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
 
 @Composable
 fun AdultScreen(
@@ -211,13 +212,14 @@ fun AdultScreen(
             }
         }
     } else {
+        val bottomBarHeight = LocalBottomBarHeight.current
         // --- ОСНОВНОЙ РАЗДЕЛ ДЛЯ РОДИТЕЛЕЙ ---
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .navigationBarsPadding()
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(top = 12.dp, bottom = 84.dp)
+            contentPadding = PaddingValues(top = 12.dp, bottom = bottomBarHeight + 24.dp)
         ) {
             item {
                 Row(
@@ -404,7 +406,7 @@ fun AdultScreen(
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 FinButton(
-                    text = "Очистить все данные и начать заново",
+                    text = "Очистить все данные",
                     containerColor = Color(0xFFE53935),
                     onClick = { showResetDialog = true },
                     modifier = Modifier.fillMaxWidth()
