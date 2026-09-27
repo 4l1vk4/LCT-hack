@@ -697,7 +697,7 @@ public final class DaggerFinPetApp_HiltComponents_SingletonC {
           return (T) new ContentRepository(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule), singletonCImpl.finPetRepositoryImplProvider.get());
 
           case 2: // ru.finpet.kids.core.data.repository.FinPetRepositoryImpl 
-          return (T) new FinPetRepositoryImpl(singletonCImpl.profileDao(), singletonCImpl.periodDao(), singletonCImpl.purchaseDao(), singletonCImpl.goalDao(), singletonCImpl.questProgressDao());
+          return (T) new FinPetRepositoryImpl(singletonCImpl.provideAppDatabaseProvider.get(), singletonCImpl.profileDao(), singletonCImpl.periodDao(), singletonCImpl.purchaseDao(), singletonCImpl.goalDao(), singletonCImpl.questProgressDao());
 
           case 3: // ru.finpet.kids.core.data.repository.SettingsRepository 
           return (T) new SettingsRepository(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));

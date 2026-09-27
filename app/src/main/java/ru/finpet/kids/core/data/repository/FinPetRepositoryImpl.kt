@@ -1,6 +1,8 @@
 package ru.finpet.kids.core.data.repository
 
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
+import ru.finpet.kids.core.data.local.AppDatabase
 import ru.finpet.kids.core.data.local.dao.GoalDao
 import ru.finpet.kids.core.data.local.dao.PeriodDao
 import ru.finpet.kids.core.data.local.dao.ProfileDao
@@ -17,12 +19,16 @@ import javax.inject.Singleton
 
 @Singleton
 class FinPetRepositoryImpl @Inject constructor(
+    private val database: AppDatabase,
     private val profileDao: ProfileDao,
     private val periodDao: PeriodDao,
     private val purchaseDao: PurchaseDao,
     private val goalDao: GoalDao,
     private val questProgressDao: QuestProgressDao
 ) : FinPetRepository {
+
+    override suspend fun <T> inTransaction(block: suspend () -> T): T =
+        database.withTransaction(block)
 
     override fun getProfile(): Flow<ProfileEntity?> = profileDao.getProfile()
 
@@ -52,6 +58,18 @@ class FinPetRepositoryImpl @Inject constructor(
     override fun getAllPurchases(): Flow<List<PurchaseEntity>> =
         purchaseDao.getAllPurchases()
 
+    override suspend fun getAvgClosedCompliance(): Double? =
+        periodDao.getAvgClosedCompliance()
+
+    override suspend fun getCategorySpending(category: String): Int =
+        purchaseDao.getSpendingByCategory(category)
+
+    override suspend fun getTotalSavedAmount(): Int =
+        goalDao.getTotalSavedAmount()
+
+    override suspend fun getCompletedQuestCount(): Int =
+        questProgressDao.getCompletedCount()
+
     override suspend fun recordPurchase(purchase: PurchaseEntity) {
         purchaseDao.insertPurchase(purchase)
     }
@@ -67,7 +85,12 @@ class FinPetRepositoryImpl @Inject constructor(
     }
 
     override suspend fun initDefaultGoals(goals: List<GoalEntity>) {
+        // IGNORE: существующие цели не перезаписываются — накопленные
+        // savedAmount/isReached переживают перезапуск, новые id добавляются.
         goalDao.insertGoals(goals)
+        goals.forEach {
+            goalDao.updateGoalMeta(it.id, it.title, it.targetCost, it.iconName)
+        }
     }
 
     override fun getQuestProgress(): Flow<List<QuestProgressEntity>> =
@@ -77,7 +100,7 @@ class FinPetRepositoryImpl @Inject constructor(
         questProgressDao.insertOrUpdate(progress)
     }
 
-    override suspend fun resetAllData() {
+    override suspend fun resetAllData() = inTransaction {
         profileDao.clear()
         periodDao.clear()
         purchaseDao.clear()

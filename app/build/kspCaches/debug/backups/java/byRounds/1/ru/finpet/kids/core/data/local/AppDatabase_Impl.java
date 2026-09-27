@@ -16,6 +16,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.SuppressWarnings;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -53,18 +54,21 @@ public final class AppDatabase_Impl extends AppDatabase {
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(2) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(3) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `profiles` (`id` TEXT NOT NULL, `petName` TEXT NOT NULL, `petType` TEXT NOT NULL, `bodyColor` INTEGER NOT NULL, `eyesType` INTEGER NOT NULL, `accessoryId` TEXT NOT NULL, `balance` INTEGER NOT NULL, `currentPeriodIndex` INTEGER NOT NULL, `carePoints` INTEGER NOT NULL, `growthStage` TEXT NOT NULL, `satiety` INTEGER NOT NULL, `health` INTEGER NOT NULL, `mood` INTEGER NOT NULL, `activeGoalId` TEXT, `isDemoMode` INTEGER NOT NULL, PRIMARY KEY(`id`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS `periods` (`periodIndex` INTEGER NOT NULL, `plannedMandatory` INTEGER NOT NULL, `plannedOptional` INTEGER NOT NULL, `plannedSavings` INTEGER NOT NULL, `actualMandatory` INTEGER NOT NULL, `actualOptional` INTEGER NOT NULL, `actualSavings` INTEGER NOT NULL, `isBudgetConfirmed` INTEGER NOT NULL, `isPeriodClosed` INTEGER NOT NULL, `compliancePercent` INTEGER NOT NULL, `carePointsEarned` INTEGER NOT NULL, PRIMARY KEY(`periodIndex`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS `purchases` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `periodIndex` INTEGER NOT NULL, `itemId` TEXT NOT NULL, `itemName` TEXT NOT NULL, `category` TEXT NOT NULL, `price` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_purchases_periodIndex_timestamp` ON `purchases` (`periodIndex`, `timestamp`)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_purchases_timestamp` ON `purchases` (`timestamp`)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `goals` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `targetCost` INTEGER NOT NULL, `savedAmount` INTEGER NOT NULL, `isReached` INTEGER NOT NULL, `iconName` TEXT NOT NULL, PRIMARY KEY(`id`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS `quest_progress` (`questId` TEXT NOT NULL, `isCompleted` INTEGER NOT NULL, `selectedOptionId` TEXT, `rewardClaimed` INTEGER NOT NULL, `completedInPeriod` INTEGER NOT NULL, PRIMARY KEY(`questId`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS `calendar_notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `dayIndex` INTEGER NOT NULL, `title` TEXT NOT NULL, `cost` INTEGER NOT NULL, `category` TEXT NOT NULL, `isCompleted` INTEGER NOT NULL)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_calendar_notes_dayIndex` ON `calendar_notes` (`dayIndex`)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `recurring_expenses` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `cost` INTEGER NOT NULL, `frequencyDays` INTEGER NOT NULL, `icon` TEXT NOT NULL, `category` TEXT NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c3b55b24b327db4871dfb806a5002aeb')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fbd10f0f3a98ac68707df39a12c7c27b')");
       }
 
       @Override
@@ -174,7 +178,9 @@ public final class AppDatabase_Impl extends AppDatabase {
         _columnsPurchases.put("price", new TableInfo.Column("price", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsPurchases.put("timestamp", new TableInfo.Column("timestamp", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysPurchases = new HashSet<TableInfo.ForeignKey>(0);
-        final HashSet<TableInfo.Index> _indicesPurchases = new HashSet<TableInfo.Index>(0);
+        final HashSet<TableInfo.Index> _indicesPurchases = new HashSet<TableInfo.Index>(2);
+        _indicesPurchases.add(new TableInfo.Index("index_purchases_periodIndex_timestamp", false, Arrays.asList("periodIndex", "timestamp"), Arrays.asList("ASC", "ASC")));
+        _indicesPurchases.add(new TableInfo.Index("index_purchases_timestamp", false, Arrays.asList("timestamp"), Arrays.asList("ASC")));
         final TableInfo _infoPurchases = new TableInfo("purchases", _columnsPurchases, _foreignKeysPurchases, _indicesPurchases);
         final TableInfo _existingPurchases = TableInfo.read(db, "purchases");
         if (!_infoPurchases.equals(_existingPurchases)) {
@@ -221,7 +227,8 @@ public final class AppDatabase_Impl extends AppDatabase {
         _columnsCalendarNotes.put("category", new TableInfo.Column("category", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsCalendarNotes.put("isCompleted", new TableInfo.Column("isCompleted", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysCalendarNotes = new HashSet<TableInfo.ForeignKey>(0);
-        final HashSet<TableInfo.Index> _indicesCalendarNotes = new HashSet<TableInfo.Index>(0);
+        final HashSet<TableInfo.Index> _indicesCalendarNotes = new HashSet<TableInfo.Index>(1);
+        _indicesCalendarNotes.add(new TableInfo.Index("index_calendar_notes_dayIndex", false, Arrays.asList("dayIndex"), Arrays.asList("ASC")));
         final TableInfo _infoCalendarNotes = new TableInfo("calendar_notes", _columnsCalendarNotes, _foreignKeysCalendarNotes, _indicesCalendarNotes);
         final TableInfo _existingCalendarNotes = TableInfo.read(db, "calendar_notes");
         if (!_infoCalendarNotes.equals(_existingCalendarNotes)) {
@@ -247,7 +254,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "c3b55b24b327db4871dfb806a5002aeb", "8c87daac516ab49b08a39ee2ea7899cc");
+    }, "fbd10f0f3a98ac68707df39a12c7c27b", "b8da963e8b089b564f414875302a84dc");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;

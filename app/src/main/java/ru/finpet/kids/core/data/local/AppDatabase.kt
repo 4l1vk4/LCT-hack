@@ -26,7 +26,7 @@ import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
         CalendarNoteEntity::class,
         RecurringExpenseEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

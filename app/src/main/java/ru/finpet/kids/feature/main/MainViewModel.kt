@@ -147,7 +147,6 @@ class MainViewModel @Inject constructor(
             val prof = repository.getProfileSync() ?: return@launch
             confirmBudgetUseCase(prof.currentPeriodIndex, plan)
             loadCurrentPeriod()
-            refreshReport()
         }
     }
 
@@ -163,14 +162,12 @@ class MainViewModel @Inject constructor(
                 healthBonus = item.healthBonus
             )
             loadCurrentPeriod()
-            refreshReport()
         }
     }
 
     fun answerQuest(questId: String, optionId: String) {
         viewModelScope.launch {
             questEngineUseCase.executeOption(questId, optionId)
-            refreshReport()
         }
     }
 
@@ -178,7 +175,6 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             depositToGoalUseCase(goalId, amount)
             loadCurrentPeriod()
-            refreshReport()
         }
     }
 
@@ -186,7 +182,6 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             withdrawFromGoalUseCase(goalId, amount)
             loadCurrentPeriod()
-            refreshReport()
         }
     }
 
@@ -194,14 +189,12 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             completePeriodUseCase()
             loadCurrentPeriod()
-            refreshReport()
         }
     }
 
     fun grantParentBonus(coins: Int, reason: String) {
         viewModelScope.launch {
             adultSectionUseCase.grantParentBonus(coins, reason)
-            refreshReport()
         }
     }
 
@@ -261,13 +254,18 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Пересчёт отчёта для вкладки «Родителям».
+     * Вызывается при открытии вкладки, а не после каждого действия:
+     * раньше каждый тап (покупка/квест/взнос) платил 4 полных чтения таблиц.
+     */
     fun refreshReport() {
         viewModelScope.launch(Dispatchers.IO) {
             refreshReportSync()
         }
     }
 
-    // generateReport делает 4 последовательных чтения Room — только вне главного потока
+    // generateReport — 5 параллельных SQL-агрегатов, только вне главного потока
     private suspend fun refreshReportSync() {
         _competencyReport.value = competencyTracker.generateReport()
     }

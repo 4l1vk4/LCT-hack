@@ -15,6 +15,7 @@ import androidx.room.util.DBUtil;
 import androidx.sqlite.db.SupportSQLiteStatement;
 import java.lang.Class;
 import java.lang.Exception;
+import java.lang.Integer;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
@@ -38,6 +39,8 @@ public final class GoalDao_Impl implements GoalDao {
 
   private final EntityDeletionOrUpdateAdapter<GoalEntity> __updateAdapterOfGoalEntity;
 
+  private final SharedSQLiteStatement __preparedStmtOfUpdateGoalMeta;
+
   private final SharedSQLiteStatement __preparedStmtOfClear;
 
   public GoalDao_Impl(@NonNull final RoomDatabase __db) {
@@ -46,7 +49,7 @@ public final class GoalDao_Impl implements GoalDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `goals` (`id`,`title`,`targetCost`,`savedAmount`,`isReached`,`iconName`) VALUES (?,?,?,?,?,?)";
+        return "INSERT OR IGNORE INTO `goals` (`id`,`title`,`targetCost`,`savedAmount`,`isReached`,`iconName`) VALUES (?,?,?,?,?,?)";
       }
 
       @Override
@@ -79,6 +82,14 @@ public final class GoalDao_Impl implements GoalDao {
         statement.bindLong(5, _tmp);
         statement.bindString(6, entity.getIconName());
         statement.bindString(7, entity.getId());
+      }
+    };
+    this.__preparedStmtOfUpdateGoalMeta = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "UPDATE goals SET title = ?, targetCost = ?, iconName = ? WHERE id = ? AND (title != ? OR targetCost != ? OR iconName != ?)";
+        return _query;
       }
     };
     this.__preparedStmtOfClear = new SharedSQLiteStatement(__db) {
@@ -123,6 +134,44 @@ public final class GoalDao_Impl implements GoalDao {
           return Unit.INSTANCE;
         } finally {
           __db.endTransaction();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object updateGoalMeta(final String id, final String title, final int targetCost,
+      final String iconName, final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfUpdateGoalMeta.acquire();
+        int _argIndex = 1;
+        _stmt.bindString(_argIndex, title);
+        _argIndex = 2;
+        _stmt.bindLong(_argIndex, targetCost);
+        _argIndex = 3;
+        _stmt.bindString(_argIndex, iconName);
+        _argIndex = 4;
+        _stmt.bindString(_argIndex, id);
+        _argIndex = 5;
+        _stmt.bindString(_argIndex, title);
+        _argIndex = 6;
+        _stmt.bindLong(_argIndex, targetCost);
+        _argIndex = 7;
+        _stmt.bindString(_argIndex, iconName);
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfUpdateGoalMeta.release(_stmt);
         }
       }
     }, $completion);
@@ -290,6 +339,34 @@ public final class GoalDao_Impl implements GoalDao {
             _result = new GoalEntity(_tmpId,_tmpTitle,_tmpTargetCost,_tmpSavedAmount,_tmpIsReached,_tmpIconName);
           } else {
             _result = null;
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+          _statement.release();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object getTotalSavedAmount(final Continuation<? super Integer> $completion) {
+    final String _sql = "SELECT COALESCE(SUM(savedAmount), 0) FROM goals";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
+    return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<Integer>() {
+      @Override
+      @NonNull
+      public Integer call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final Integer _result;
+          if (_cursor.moveToFirst()) {
+            final int _tmp;
+            _tmp = _cursor.getInt(0);
+            _result = _tmp;
+          } else {
+            _result = 0;
           }
           return _result;
         } finally {

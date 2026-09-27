@@ -1,7 +1,7 @@
 package ru.finpet.kids.core.domain.usecase
 
-import kotlinx.coroutines.flow.first
-import ru.finpet.kids.core.data.local.entity.PeriodEntity
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.data.repository.ContentRepository
 import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
@@ -20,24 +20,25 @@ sealed interface GoalWithdrawResult {
 class WithdrawFromGoalUseCase @Inject constructor(
     private val repository: FinPetRepository
 ) {
-    suspend operator fun invoke(goalId: String, amount: Int): GoalWithdrawResult {
-        val profile = repository.getProfileSync() ?: return GoalWithdrawResult.GoalNotFound
-        val goal = repository.getGoalByIdSync(goalId) ?: return GoalWithdrawResult.GoalNotFound
+    suspend operator fun invoke(goalId: String, amount: Int): GoalWithdrawResult =
+        repository.inTransaction<GoalWithdrawResult> {
+            val profile = repository.getProfileSync() ?: return@inTransaction GoalWithdrawResult.GoalNotFound
+            val goal = repository.getGoalByIdSync(goalId) ?: return@inTransaction GoalWithdrawResult.GoalNotFound
 
-        if (goal.savedAmount < amount) {
-            return GoalWithdrawResult.NotEnoughSaved(goal.savedAmount)
+            if (goal.savedAmount < amount) {
+                return@inTransaction GoalWithdrawResult.NotEnoughSaved(goal.savedAmount)
+            }
+
+            val newSaved = goal.savedAmount - amount
+            val newBalance = profile.balance + amount
+
+            repository.updateGoal(goal.copy(savedAmount = newSaved, isReached = false))
+            repository.updateBalance(newBalance)
+
+            val delayPeriods = ceil(amount.toDouble() / 50.0).toInt().coerceAtLeast(1)
+
+            GoalWithdrawResult.Success(newBalance, newSaved, delayPeriods)
         }
-
-        val newSaved = goal.savedAmount - amount
-        val newBalance = profile.balance + amount
-
-        repository.updateGoal(goal.copy(savedAmount = newSaved, isReached = false))
-        repository.updateBalance(newBalance)
-
-        val delayPeriods = ceil(amount.toDouble() / 50.0).toInt().coerceAtLeast(1)
-
-        return GoalWithdrawResult.Success(newBalance, newSaved, delayPeriods)
-    }
 }
 
 // --- 2. Движок квестов ---
@@ -53,29 +54,34 @@ class QuestEngineUseCase @Inject constructor(
     private val contentRepository: ContentRepository
 ) {
     suspend fun executeOption(questId: String, optionId: String): QuestExecutionResult? {
-        val profile = repository.getProfileSync() ?: return null
+        // JSON-кэш читаем до транзакции: внутри транзакции нельзя уходить
+        // на другой диспетчер (это разорвало бы привязку к транзакционному потоку).
         val quests = contentRepository.getQuests()
         val quest = quests.find { it.id == questId } ?: return null
         val option = quest.options.find { it.id == optionId } ?: return null
 
-        val newBalance = profile.balance + option.rewardCoins
-        repository.updateBalance(newBalance)
+        return repository.inTransaction<QuestExecutionResult?> {
+            val profile = repository.getProfileSync() ?: return@inTransaction null
 
-        val progress = QuestProgressEntity(
-            questId = questId,
-            isCompleted = true,
-            selectedOptionId = optionId,
-            rewardClaimed = true,
-            completedInPeriod = profile.currentPeriodIndex
-        )
-        repository.saveQuestProgress(progress)
+            val newBalance = profile.balance + option.rewardCoins
+            repository.updateBalance(newBalance)
 
-        return QuestExecutionResult(
-            coinsAwarded = option.rewardCoins,
-            feedback = option.feedback,
-            isRecommended = option.isRecommended,
-            newBalance = newBalance
-        )
+            val progress = QuestProgressEntity(
+                questId = questId,
+                isCompleted = true,
+                selectedOptionId = optionId,
+                rewardClaimed = true,
+                completedInPeriod = profile.currentPeriodIndex
+            )
+            repository.saveQuestProgress(progress)
+
+            QuestExecutionResult(
+                coinsAwarded = option.rewardCoins,
+                feedback = option.feedback,
+                isRecommended = option.isRecommended,
+                newBalance = newBalance
+            )
+        }
     }
 }
 
@@ -172,13 +178,14 @@ class AdultSectionUseCase @Inject constructor(
         return MathProblem("$a + $b", a + b, listOf(a + b, a + b - 3, a + b + 4).shuffled())
     }
 
-    suspend fun grantParentBonus(coins: Int, reason: String): Int {
-        val profile = repository.getProfileSync() ?: return 0
-        val newBalance = profile.balance + coins
-        val newMood = (profile.mood + 15).coerceAtMost(100)
-        repository.saveProfile(profile.copy(balance = newBalance, mood = newMood))
-        return newBalance
-    }
+    suspend fun grantParentBonus(coins: Int, reason: String): Int =
+        repository.inTransaction {
+            val profile = repository.getProfileSync() ?: return@inTransaction 0
+            val newBalance = profile.balance + coins
+            val newMood = (profile.mood + 15).coerceAtMost(100)
+            repository.saveProfile(profile.copy(balance = newBalance, mood = newMood))
+            newBalance
+        }
 }
 
 // --- 4. Аналитика компетенций (Минфин РФ) ---
@@ -201,19 +208,20 @@ class CompetencyTracker @Inject constructor(
     private val repository: FinPetRepository,
     private val contentRepository: ContentRepository
 ) {
-    suspend fun generateReport(): CompetencyReport {
-        val periods = repository.getAllPeriods().first()
-        val closedPeriods = periods.filter { it.isPeriodClosed }
-        
-        val avgCompliance = if (closedPeriods.isNotEmpty()) {
-            closedPeriods.map { it.compliancePercent }.average().toInt()
-        } else {
-            80 // Базовый прогноз
-        }
+    /**
+     * Отчёт считается агрегатами SQL (SUM/COUNT/AVG) параллельно:
+     * 5 лёгких запросов вместо 4 последовательных выборок всей таблицы в память.
+     */
+    suspend fun generateReport(): CompetencyReport = coroutineScope {
+        val avgComplianceDeferred = async { repository.getAvgClosedCompliance() }
+        val mandatoryDeferred = async { repository.getCategorySpending("MANDATORY") }
+        val optionalDeferred = async { repository.getCategorySpending("OPTIONAL") }
+        val savedDeferred = async { repository.getTotalSavedAmount() }
+        val questsDeferred = async { repository.getCompletedQuestCount() }
 
-        val purchases = repository.getAllPurchases().first()
-        val mandatorySum = purchases.filter { it.category == "MANDATORY" }.sumOf { it.price }
-        val optionalSum = purchases.filter { it.category == "OPTIONAL" }.sumOf { it.price }
+        val avgCompliance = avgComplianceDeferred.await()?.toInt() ?: 80 // Базовый прогноз
+        val mandatorySum = mandatoryDeferred.await()
+        val optionalSum = optionalDeferred.await()
         val totalPurchases = mandatorySum + optionalSum
         val essentialRatio = if (totalPurchases > 0) {
             ((mandatorySum.toDouble() / totalPurchases) * 100).toInt()
@@ -221,11 +229,8 @@ class CompetencyTracker @Inject constructor(
             65 // Рекомендованный баланс по умолчанию
         }
 
-        val goals = repository.getAllGoals().first()
-        val totalSaved = goals.sumOf { it.savedAmount }
-
-        val questProgress = repository.getQuestProgress().first()
-        val completedQuests = questProgress.filter { it.isCompleted }.size
+        val totalSaved = savedDeferred.await()
+        val completedQuests = questsDeferred.await()
 
         val competencies = listOf(
             CompetencyItem(
@@ -254,7 +259,7 @@ class CompetencyTracker @Inject constructor(
             )
         )
 
-        return CompetencyReport(
+        CompetencyReport(
             budgetDisciplinePercent = avgCompliance,
             essentialSpendingRatio = essentialRatio,
             totalSavedCoins = totalSaved,
