@@ -1,9 +1,0 @@
-R_DEF: Internal format may change without notice
-local
-color splash_background
-color window_background
-drawable ic_coin
-drawable ic_launcher
-string app_name
-style Theme.FinPet
-style Theme.FinPet.Splash
