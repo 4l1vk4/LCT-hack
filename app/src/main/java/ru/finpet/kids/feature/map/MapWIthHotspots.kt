@@ -2,11 +2,13 @@ package ru.finpet.kids.feature.map
 
 import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
@@ -22,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -49,14 +52,14 @@ data class MapHotspot(
 // Координаты зданий на карте
 val DEFAULT_MAP_HOTSPOTS: List<MapHotspot> = listOf(
     MapHotspot(id = "shop",   left = 0.7222f, top = 0.5852f, right = 0.9463f, bottom = 0.6955f, label = "Лавка"),
-    MapHotspot(id = "quests", left = 0.0787f, top = 0.4377f, right = 0.4324f, bottom = 0.6232f, label = "Шатёр"),
-    MapHotspot(id = "home",   left = 0.6343f, top = 0.7540f, right = 0.8611f, bottom = 0.9206f, label = "Домик")
+    MapHotspot(id = "quests", left = 0.0787f, top = 0.4377f, right = 0.4324f, bottom = 0.6232f, label = "Школа"),
+    MapHotspot(id = "home",   left = 0.6343f, top = 0.7540f, right = 0.8611f, bottom = 0.9206f, label = "Дом")
 )
 
 /**
- * Карта-картинка с невидимыми кликабельными зонами поверх.
+ * Карта-картинка с кликабельными зонами поверх (Школа, Дом, Лавка).
  *
- * @param mapRes            R.drawable.day
+ * @param mapRes            Ресурс карты (R.drawable.day)
  * @param imageAspectRatio  ширина / высота картинки
  * @param hotspots          список зон
  * @param onClickHotspot    что вызвать при тапе по зоне
@@ -94,20 +97,31 @@ fun MapWithHotspots(
             val offsetX    = w * spot.left
             val offsetY    = h * spot.top
 
+            val interactionSource = remember { MutableInteractionSource() }
+            val isPressed by interactionSource.collectIsPressedAsState()
+            val scale by animateFloatAsState(targetValue = if (isPressed) 0.96f else 1f, label = "spot_scale")
+
             Box(
                 modifier = Modifier
                     .offset(x = offsetX, y = offsetY)
                     .size(width = spotWidth, height = spotHeight)
+                    .scale(scale)
                     .then(
                         if (debug) {
                             Modifier
                                 .background(Color.Red.copy(alpha = 0.25f))
                                 .border(2.dp, Color.Red)
-                        } else Modifier
+                        } else if (isPressed) {
+                            Modifier
+                                .background(Color(0xFFFFD54F).copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+                                .border(2.dp, Color(0xFFFF9800), RoundedCornerShape(12.dp))
+                        } else {
+                            Modifier
+                        }
                     )
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
+                        interactionSource = interactionSource,
                         indication = null
                     ) { onClickHotspot(spot) }
             )
