@@ -36,6 +36,7 @@ import ru.finpet.kids.core.domain.usecase.QuestEngineUseCase
 import ru.finpet.kids.core.domain.usecase.ResetDemoProfileUseCase
 import ru.finpet.kids.core.domain.usecase.WithdrawFromGoalUseCase
 import javax.inject.Inject
+import kotlinx.coroutines.flow.map
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -95,6 +96,17 @@ class MainViewModel @Inject constructor(
 
     val demoMode: StateFlow<Boolean> = settingsRepository.isDemoMode
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val skinState: StateFlow<SkinState> = settingsRepository.selectedSkin
+        .map { skin ->
+            if (skin.isNullOrBlank()) SkinState.NotSelected
+            else SkinState.Selected(skin)
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, SkinState.Loading)
+
+    fun setSkin(skinId: String) {
+        viewModelScope.launch { settingsRepository.setSelectedSkin(skinId) }
+    }
 
     init {
         // Вся инициализация — на IO-пуле и максимально параллельно:
@@ -285,4 +297,10 @@ class MainViewModel @Inject constructor(
     fun toggleDemo(enabled: Boolean) {
         viewModelScope.launch { settingsRepository.setDemoMode(enabled) }
     }
+}
+
+sealed interface SkinState {
+    data object Loading : SkinState
+    data object NotSelected : SkinState
+    data class Selected(val skinId: String) : SkinState
 }

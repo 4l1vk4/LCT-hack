@@ -29,12 +29,13 @@ import ru.finpet.kids.R
 @Composable
 fun FinikInArmchair(
     modifier: Modifier = Modifier,
+    skinId: String = "cat_black",
     mood: String = "HAPPY",
     stage: String = "BABY",
     enabled: Boolean = true,
     onClick: () -> Unit = {}
 ) {
-    val res = petDrawableFor(stage, mood)
+    val res = petDrawableFor(skinId, stage, mood)
 
     Box(
         modifier = modifier
@@ -61,21 +62,60 @@ fun FinikInArmchair(
 /**
  * Выбор GIF по стадии и настроению.
  */
-private fun petDrawableFor(stage: String, mood: String): Int = when (stage) {
-    "BABY" -> when (mood) {
-        "HAPPY" -> R.drawable.cat_black
-        "SAD"   -> R.drawable.cat_black
-        else    -> R.drawable.cat_black
+private fun petDrawableFor(skinId: String, stage: String, mood: String): Int = when (skinId) {
+    "cat_black" -> when(stage) {
+        "BABY" -> when (mood) {
+            "HAPPY" -> R.drawable.cat_black_happy
+            "SAD"   -> R.drawable.cat_black_sad
+            else    -> R.drawable.cat_black_neutral
+        }
+        "TEEN" -> when (mood) {
+            "HAPPY" -> R.drawable.cat_black_happy
+            "SAD"   -> R.drawable.cat_black_sad
+            else    -> R.drawable.cat_black_neutral
+        }
+        "ADULT" -> when (mood) {
+            "HAPPY" -> R.drawable.cat_black_happy
+            "SAD"   -> R.drawable.cat_black_sad
+            else    -> R.drawable.cat_black_neutral
+        }
+        else -> R.drawable.cat_black_neutral
     }
-    "TEEN" -> when (mood) {
-        "HAPPY" -> R.drawable.cat_black
-        "SAD"   -> R.drawable.cat_black
-        else    -> R.drawable.cat_black
+    "cat_orange" -> when(stage) {
+        "BABY" -> when (mood) {
+            "HAPPY" -> R.drawable.cat_orange
+            "SAD"   -> R.drawable.cat_orange
+            else    -> R.drawable.cat_orange
+        }
+        "TEEN" -> when (mood) {
+            "HAPPY" -> R.drawable.cat_orange
+            "SAD"   -> R.drawable.cat_orange
+            else    -> R.drawable.cat_orange
+        }
+        "ADULT" -> when (mood) {
+            "HAPPY" -> R.drawable.cat_orange
+            "SAD"   -> R.drawable.cat_orange
+            else    -> R.drawable.cat_orange
+        }
+        else -> R.drawable.cat_orange
     }
-    "ADULT" -> when (mood) {
-        "HAPPY" -> R.drawable.cat_black
-        "SAD"   -> R.drawable.cat_black
-        else    -> R.drawable.cat_black
+    "cat_nlo" -> when(stage) {
+        "BABY" -> when (mood) {
+            "HAPPY" -> R.drawable.cat_nlo
+            "SAD"   -> R.drawable.cat_nlo
+            else    -> R.drawable.cat_nlo
+        }
+        "TEEN" -> when (mood) {
+            "HAPPY" -> R.drawable.cat_nlo
+            "SAD"   -> R.drawable.cat_nlo
+            else    -> R.drawable.cat_nlo
+        }
+        "ADULT" -> when (mood) {
+            "HAPPY" -> R.drawable.cat_nlo
+            "SAD"   -> R.drawable.cat_nlo
+            else    -> R.drawable.cat_nlo
+        }
+        else -> R.drawable.cat_nlo
     }
     else -> R.drawable.cat_nlo
 }

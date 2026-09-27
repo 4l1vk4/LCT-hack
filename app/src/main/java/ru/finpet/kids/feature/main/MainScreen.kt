@@ -1,26 +1,14 @@
 package ru.finpet.kids.feature.main
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -37,24 +25,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import ru.finpet.kids.core.designsystem.CoinBadge
-import ru.finpet.kids.core.designsystem.FreshGreen
-import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.SoftBackground
-import ru.finpet.kids.core.designsystem.TextPrimary
-import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.feature.adult.AdultScreen
 import ru.finpet.kids.feature.calendar.CalendarScreen
 import ru.finpet.kids.feature.finik.FinikScreen
@@ -62,11 +42,34 @@ import ru.finpet.kids.feature.map.MapScreen
 import ru.finpet.kids.feature.settings.SettingsScreen
 import androidx.compose.foundation.layout.WindowInsets
 import ru.finpet.kids.R
+import ru.finpet.kids.feature.onboarding.SkinPickerScreen
 
 @Composable
 fun MainScreen(
     viewModel: MainViewModel
 ) {
+    val skinState by viewModel.skinState.collectAsStateWithLifecycle()
+
+    when (val state = skinState) {
+        is SkinState.Loading -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFFFA726))   // цвет сплэша
+            )
+            return
+        }
+        is SkinState.NotSelected -> {
+            SkinPickerScreen(
+                onSkinSelected = { skinId -> viewModel.setSkin(skinId) }
+            )
+            return
+        }
+        is SkinState.Selected -> {
+        }
+    }
+
+
     var selectedTab by rememberSaveable { mutableIntStateOf(2) } // По умолчанию вкладка 3: Финни в кресле
 
     // Все подписки — один раз наверху и lifecycle-aware. Раньше collectAsState()
@@ -160,6 +163,7 @@ fun MainScreen(
             KeepAliveTab(visible = selectedTab == 2, seen = seenTabs.contains(2), key = 2, stateHolder = stateHolder) {
                 FinikScreen(
                     profile = profile,
+                    selectedSkin = (skinState as? SkinState.Selected)?.skinId,
                     // Анимации персонажа работают только на видимой вкладке —
                     // скрытый Финни не тратит CPU на бесконечные перерисовки
                     animationsEnabled = selectedTab == 2,

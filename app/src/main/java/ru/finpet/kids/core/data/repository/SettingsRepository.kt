@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.datastore.preferences.core.stringPreferencesKey
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "finpet_settings")
 
@@ -25,6 +26,7 @@ class SettingsRepository @Inject constructor(
         val MUSIC_VOLUME = floatPreferencesKey("music_volume")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val DEMO_MODE = booleanPreferencesKey("demo_mode")
+        val SELECTED_SKIN = stringPreferencesKey("selected_skin")
     }
 
     val isSoundEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -74,6 +76,16 @@ class SettingsRepository @Inject constructor(
     suspend fun setDemoMode(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.DEMO_MODE] = enabled
+        }
+    }
+
+    val selectedSkin: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.SELECTED_SKIN]
+    }
+
+    suspend fun setSelectedSkin(skinId: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.SELECTED_SKIN] = skinId
         }
     }
 }

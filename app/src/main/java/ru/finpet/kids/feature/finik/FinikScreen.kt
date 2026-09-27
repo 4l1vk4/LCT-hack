@@ -48,6 +48,7 @@ data class ScriptedAdvice(
 @Composable
 fun FinikScreen(
     profile: ProfileEntity?,
+    selectedSkin: String?,
     animationsEnabled: Boolean = true,
     onPetTapped: () -> Unit = {}
 ) {
@@ -126,6 +127,7 @@ fun FinikScreen(
             // Финни в кресле
             FinikInArmchair(
                 modifier = Modifier.padding(vertical = 4.dp),
+                skinId = selectedSkin ?: "cat_black",
                 mood = when {
                     satiety < 50 || mood < 40 -> "SAD"
                     satiety >= 70 && mood >= 70 -> "HAPPY"
