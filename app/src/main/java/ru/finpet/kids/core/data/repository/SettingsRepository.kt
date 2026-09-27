@@ -27,6 +27,7 @@ class SettingsRepository @Inject constructor(
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val DEMO_MODE = booleanPreferencesKey("demo_mode")
         val SELECTED_SKIN = stringPreferencesKey("selected_skin")
+        val PET_NAME = stringPreferencesKey("pet_name")
     }
 
     val isSoundEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -86,6 +87,16 @@ class SettingsRepository @Inject constructor(
     suspend fun setSelectedSkin(skinId: String) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.SELECTED_SKIN] = skinId
+        }
+    }
+
+    val petName: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.PET_NAME]
+    }
+
+    suspend fun setPetName(name: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.PET_NAME] = name
         }
     }
 }

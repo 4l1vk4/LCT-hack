@@ -43,32 +43,40 @@ import ru.finpet.kids.feature.settings.SettingsScreen
 import androidx.compose.foundation.layout.WindowInsets
 import ru.finpet.kids.R
 import ru.finpet.kids.feature.onboarding.SkinPickerScreen
+import ru.finpet.kids.feature.onboarding.PetNameScreen
 
 @Composable
 fun MainScreen(
     viewModel: MainViewModel
 ) {
-    val skinState by viewModel.skinState.collectAsStateWithLifecycle()
+    val onboarding by viewModel.onboardingState.collectAsStateWithLifecycle()
 
-    when (val state = skinState) {
-        is SkinState.Loading -> {
+    when (val state = onboarding) {
+        is OnboardingState.Loading -> {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFFFA726))   // цвет сплэша
+                    .background(Color(0xFFFFA726))
             )
             return
         }
-        is SkinState.NotSelected -> {
+        is OnboardingState.NeedSkin -> {
             SkinPickerScreen(
                 onSkinSelected = { skinId -> viewModel.setSkin(skinId) }
             )
             return
         }
-        is SkinState.Selected -> {
+        is OnboardingState.NeedName -> {
+            PetNameScreen(
+                onNameConfirmed = { name -> viewModel.setPetName(name) }
+            )
+            return
+        }
+        is OnboardingState.Ready -> {
         }
     }
 
+    val ready = onboarding as? OnboardingState.Ready
 
     var selectedTab by rememberSaveable { mutableIntStateOf(2) } // По умолчанию вкладка 3: Финни в кресле
 
@@ -164,7 +172,8 @@ fun MainScreen(
             KeepAliveTab(visible = selectedTab == 2, seen = seenTabs.contains(2), key = 2, stateHolder = stateHolder) {
                 FinikScreen(
                     profile = profile,
-                    selectedSkin = (skinState as? SkinState.Selected)?.skinId,
+                    selectedSkin = ready?.skinId,
+                    petName = ready?.petName,
                     // Анимации персонажа работают только на видимой вкладке —
                     // скрытый Финни не тратит CPU на бесконечные перерисовки
                     animationsEnabled = selectedTab == 2,

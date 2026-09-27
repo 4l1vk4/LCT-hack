@@ -42,6 +42,22 @@ import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.TextPrimary
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.ui.graphics.graphicsLayer
+import ru.finpet.kids.core.designsystem.TextSecondary
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 data class ScriptedAdvice(
     val title: String,
@@ -53,13 +69,14 @@ data class ScriptedAdvice(
 fun FinikScreen(
     profile: ProfileEntity?,
     selectedSkin: String?,
+    petName: String?,
     animationsEnabled: Boolean = true,
     onPetTapped: () -> Unit = {}
 ) {
     val satiety = profile?.satiety ?: 100
     val mood = profile?.mood ?: 80
     val health = profile?.health ?: 100
-    val petName = profile?.petName ?: "Финни"
+    val displayName = petName ?: profile?.petName ?: "Финни"
 
     // Сытость и здоровье скрыто влияют на единый показатель настроения
     val effectiveMood = remember(mood, satiety, health) {
@@ -73,8 +90,9 @@ fun FinikScreen(
         calculated.roundToInt().coerceIn(0, 100)
     }
 
-    val defaultGreeting = "Привет! Я твой финансовый помощник $petName. Спрашивай меня обо всем — я помогу тебе стать мастером монет!"
+    val defaultGreeting = "Привет! Я твой финансовый помощник $displayName. Спрашивай меня обо всем — я помогу тебе стать мастером монет!"
     var currentSpeech by remember { mutableStateOf(defaultGreeting) }
+    var panelOpen by remember { mutableStateOf(false) }
 
     val adviceList = remember(satiety, mood, health) {
         listOf(
@@ -111,169 +129,252 @@ fun FinikScreen(
         )
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        contentPadding = PaddingValues(top = 12.dp, bottom = 84.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        item(key = "speech_bubble") {
-            // Облачко диалога Финни
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(top = 12.dp, bottom = 84.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item(key = "speech_bubble") {
+                // Облачко диалога Финни
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(Color(0xFFFFF9E6))
+                        .border(2.dp, Color(0xFFFFE082), RoundedCornerShape(22.dp))
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "💬 $currentSpeech",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextPrimary,
+                        lineHeight = 22.sp
+                    )
+                }
+            }
+
+            item(key = "finik_character") {
+                FinikInArmchair(
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    skinId = selectedSkin ?: "cat_black",
+                    mood = when {
+                        effectiveMood < 40 -> "SAD"
+                        effectiveMood >= 70 -> "HAPPY"
+                        else -> "NEUTRAL"
+                    },
+                    stage = profile?.growthStage ?: "BABY",
+                    enabled = animationsEnabled,
+                    onClick = {
+                        onPetTapped()
+                        panelOpen = true
+                    }
+                )
+            }
+
+            item(key = "mood_bar") {
+                // Единый показатель настроения питомца (в 2 раза толще обычного бара — 24dp, сытость и здоровье влияют скрыто)
+                FinCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    backgroundColor = Color.White
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        val animatedProgress by animateFloatAsState(
+                            targetValue = (effectiveMood.coerceIn(0, 100) / 100f),
+                            animationSpec = tween(durationMillis = 500),
+                            label = "mood_anim"
+                        )
+                        val moodColor = remember(effectiveMood) {
+                            when {
+                                effectiveMood >= 70 -> FreshGreen
+                                effectiveMood >= 40 -> JoyOrange
+                                else -> Color(0xFFFF5252)
+                            }
+                        }
+                        val moodBrush = remember(moodColor) {
+                            Brush.horizontalGradient(
+                                listOf(moodColor.copy(alpha = 0.8f), moodColor)
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = when {
+                                        effectiveMood >= 70 -> "⚡"
+                                        effectiveMood >= 40 -> "🙂"
+                                        else -> "🥺"
+                                    },
+                                    fontSize = 18.sp
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Настроение $displayName",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                            }
+                            Text(
+                                text = "$effectiveMood%",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = moodColor
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(24.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFEEEEEE))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .fillMaxWidth(animatedProgress)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(moodBrush)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        AnimatedVisibility(
+            visible = panelOpen,
+            enter = fadeIn(tween(200)),
+            exit = fadeOut(tween(200))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { panelOpen = false }
+            )
+        }
+
+        // ─── Нижняя панель с вопросами ───
+        AnimatedVisibility(
+            visible = panelOpen,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(280)
+            ) + fadeIn(tween(200)),
+            exit = slideOutVertically(
+                targetOffsetY = { it },
+                animationSpec = tween(220)
+            ) + fadeOut(tween(160)),
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(Color(0xFFFFF9E6))
-                    .border(2.dp, Color(0xFFFFE082), RoundedCornerShape(22.dp))
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "💬 $currentSpeech",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
-                    lineHeight = 22.sp
-                )
-            }
-        }
-
-        item(key = "finik_character") {
-            // Финни в кресле
-            FinikInArmchair(
-                modifier = Modifier.padding(vertical = 4.dp),
-                skinId = selectedSkin ?: "cat_black",
-                mood = when {
-                    effectiveMood < 40 -> "SAD"
-                    effectiveMood >= 70 -> "HAPPY"
-                    else -> "NEUTRAL"
-                },
-                stage = profile?.growthStage ?: "BABY",
-                enabled = animationsEnabled,
-                onClick = {
-                    onPetTapped()
-                    currentSpeech = "Муррр! Я люблю, когда мы вместе учимся беречь монетки!"
-                }
-            )
-        }
-
-        item(key = "mood_bar") {
-            // Единый показатель настроения питомца (в 2 раза толще обычного бара — 24dp, сытость и здоровье влияют скрыто)
-            FinCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                backgroundColor = Color.White
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    val animatedProgress by animateFloatAsState(
-                        targetValue = (effectiveMood.coerceIn(0, 100) / 100f),
-                        animationSpec = tween(durationMillis = 500),
-                        label = "mood_anim"
+                    .fillMaxHeight(0.7f)
+                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                    .background(Color(0xFFFFFDF7).copy(alpha = 0.94f))
+                    .border(
+                        width = 2.dp,
+                        color = Color(0xFFFFE082),
+                        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
                     )
-                    val moodColor = remember(effectiveMood) {
-                        when {
-                            effectiveMood >= 70 -> FreshGreen
-                            effectiveMood >= 40 -> JoyOrange
-                            else -> Color(0xFFFF5252)
-                        }
-                    }
-                    val moodBrush = remember(moodColor) {
-                        Brush.horizontalGradient(
-                            listOf(moodColor.copy(alpha = 0.8f), moodColor)
-                        )
-                    }
+                    .padding(horizontal = 18.dp, vertical = 14.dp)
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = when {
-                                    effectiveMood >= 70 -> "⚡"
-                                    effectiveMood >= 40 -> "🙂"
-                                    else -> "🥺"
-                                },
-                                fontSize = 18.sp
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "Настроение $petName",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
-                            )
-                        }
-                        Text(
-                            text = "$effectiveMood%",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = moodColor
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
+                    // Ручка-«полоска» сверху (визуально намекает, что можно тащить вниз)
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(24.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFEEEEEE))
+                            .align(Alignment.CenterHorizontally)
+                            .width(48.dp)
+                            .height(5.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(Color(0xFFD0D0D0))
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Заголовок
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
+                        Text(text = "💬", fontSize = 22.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Спроси у $displayName",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "✕",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextSecondary,
                             modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(animatedProgress)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(moodBrush)
+                                .clip(CircleShape)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) { panelOpen = false }
+                                .padding(6.dp)
                         )
                     }
-                }
-            }
-        }
 
-        item(key = "advice_header") {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Спроси у $petName:",
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-            )
-        }
+                    Spacer(modifier = Modifier.height(14.dp))
 
-        items(adviceList.size, key = { index -> "advice_$index" }) { index ->
-            val advice = adviceList[index]
-            FinCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .clickable {
-                        currentSpeech = advice.response
-                    },
-                backgroundColor = Color(0xFFFBFBFB)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = advice.icon, fontSize = 22.sp)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = advice.title,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(text = "👉", fontSize = 16.sp)
+                    // Список вопросов — листается
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        items(adviceList, key = { it.title }) { advice ->
+                            FinCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        currentSpeech = advice.response
+                                        panelOpen = false
+                                    },
+                                backgroundColor = Color(0xFFFBFBFB)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 14.dp, vertical = 14.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(text = advice.icon, fontSize = 22.sp)
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = advice.title,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = TextPrimary,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Text(text = "👉", fontSize = 16.sp)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -37,6 +37,14 @@ import ru.finpet.kids.core.domain.usecase.ResetDemoProfileUseCase
 import ru.finpet.kids.core.domain.usecase.WithdrawFromGoalUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+
+sealed interface OnboardingState {
+    data object Loading : OnboardingState
+    data object NeedSkin : OnboardingState
+    data object NeedName : OnboardingState
+    data class Ready(val skinId: String, val petName: String) : OnboardingState
+}
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -97,15 +105,32 @@ class MainViewModel @Inject constructor(
     val demoMode: StateFlow<Boolean> = settingsRepository.isDemoMode
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val skinState: StateFlow<SkinState> = settingsRepository.selectedSkin
-        .map { skin ->
-            if (skin.isNullOrBlank()) SkinState.NotSelected
-            else SkinState.Selected(skin)
+    val onboardingState: StateFlow<OnboardingState> = combine(
+        settingsRepository.selectedSkin,
+        settingsRepository.petName
+    ) { skin, name ->
+        val s = skin?.takeIf { it.isNotBlank() }
+        val n = name?.takeIf { it.isNotBlank() }
+        when {
+            s == null -> OnboardingState.NeedSkin
+            n == null -> OnboardingState.NeedName
+            else      -> OnboardingState.Ready(s, n)
         }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, SkinState.Loading)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, OnboardingState.Loading)
 
     fun setSkin(skinId: String) {
         viewModelScope.launch { settingsRepository.setSelectedSkin(skinId) }
+    }
+
+    fun setPetName(name: String) {
+        viewModelScope.launch {
+            settingsRepository.setPetName(name)
+            // Также обновляем Room, чтобы FinikScreen показывал актуальное имя
+            val profile = repository.getProfileSync()
+            if (profile != null) {
+                repository.saveProfile(profile.copy(petName = name))
+            }
+        }
     }
 
     init {
@@ -213,6 +238,9 @@ class MainViewModel @Inject constructor(
     fun resetDemoProfile() {
         viewModelScope.launch {
             resetDemoProfileUseCase()
+            settingsRepository.setSelectedSkin("")
+            settingsRepository.setPetName("")
+            settingsRepository.setOnboardingCompleted(false)
             calendarDao.clearAllNotes()
             calendarDao.clearAllRecurringExpenses()
             ensureCalendarDataInitialized()
@@ -299,8 +327,3 @@ class MainViewModel @Inject constructor(
     }
 }
 
-sealed interface SkinState {
-    data object Loading : SkinState
-    data object NotSelected : SkinState
-    data class Selected(val skinId: String) : SkinState
-}
