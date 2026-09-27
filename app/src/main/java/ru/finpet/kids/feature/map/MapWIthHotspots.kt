@@ -50,7 +50,7 @@ data class MapHotspot(
 val DEFAULT_MAP_HOTSPOTS: List<MapHotspot> = listOf(
     MapHotspot(id = "shop",   left = 0.7222f, top = 0.5852f, right = 0.9463f, bottom = 0.6955f, label = "Лавка"),
     MapHotspot(id = "quests", left = 0.0787f, top = 0.4377f, right = 0.4324f, bottom = 0.6232f, label = "Шатёр"),
-    MapHotspot(id = "bank",   left = 0.6343f, top = 0.7540f, right = 0.8611f, bottom = 0.9206f, label = "Копилка")
+    MapHotspot(id = "home",   left = 0.6343f, top = 0.7540f, right = 0.8611f, bottom = 0.9206f, label = "Домик")
 )
 
 /**

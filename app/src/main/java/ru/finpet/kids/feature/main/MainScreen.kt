@@ -142,7 +142,8 @@ fun MainScreen(
                     onBuyItem = { viewModel.buyItem(it) },
                     onAnswerQuest = { qId, optId -> viewModel.answerQuest(qId, optId) },
                     onDepositGoal = { gId, amt -> viewModel.depositGoal(gId, amt) },
-                    onWithdrawGoal = { gId, amt -> viewModel.withdrawGoal(gId, amt) }
+                    onWithdrawGoal = { gId, amt -> viewModel.withdrawGoal(gId, amt) },
+                    onNavigateToFinik = { selectedTab = 2 }
                 )
             }
             KeepAliveTab(visible = selectedTab == 1, seen = seenTabs.contains(1), key = 1, stateHolder = stateHolder) {

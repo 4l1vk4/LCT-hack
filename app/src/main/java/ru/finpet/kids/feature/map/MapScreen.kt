@@ -66,7 +66,8 @@ fun MapScreen(
     onBuyItem: (PurchaseItem) -> Unit,
     onAnswerQuest: (questId: String, optionId: String) -> Unit,
     onDepositGoal: (goalId: String, amount: Int) -> Unit,
-    onWithdrawGoal: (goalId: String, amount: Int) -> Unit
+    onWithdrawGoal: (goalId: String, amount: Int) -> Unit,
+    onNavigateToFinik: () -> Unit = {}
 ) {
     var activeModal by remember { mutableStateOf<String?>(null) } // "SHOP", "QUESTS", "GOALS"
     var notEnoughMoneyInfo by remember { mutableStateOf<Pair<Int, Int>?>(null) } // missing, price
@@ -90,7 +91,7 @@ fun MapScreen(
                     when (spot.id) {
                         "shop" -> activeModal = "SHOP"
                         "quests" -> activeModal = "QUESTS"
-                        "bank" -> activeModal = "GOALS"
+                        "home" -> onNavigateToFinik()
                     }
                 },
                 modifier = Modifier
@@ -186,23 +187,6 @@ fun MapScreen(
                 ) {
                     Text("Спасибо, понятно! 👍")
                 }
-            }
-        )
-    }
-
-    // --- МОДАЛКА КОПИЛКИ И ЦЕЛЕЙ ---
-    if (activeModal == "GOALS") {
-        GoalsDialog(
-            balance = balance,
-            goals = goals,
-            onDismiss = { activeModal = null },
-            onDeposit = { goalId, amount ->
-                if (balance >= amount) {
-                    onDepositGoal(goalId, amount)
-                }
-            },
-            onWithdraw = { goalId, amount ->
-                onWithdrawGoal(goalId, amount)
             }
         )
     }
@@ -484,160 +468,4 @@ fun QuestsDialog(
             }
         }
     )
-}
-
-// --- ДИАЛОГ КОПИЛКИ И ЦЕЛЕЙ ---
-@Composable
-fun GoalsDialog(
-    balance: Int,
-    goals: List<GoalEntity>,
-    onDismiss: () -> Unit,
-    onDeposit: (goalId: String, amount: Int) -> Unit,
-    onWithdraw: (goalId: String, amount: Int) -> Unit
-) {
-    var withdrawWarningGoal by remember { mutableStateOf<GoalEntity?>(null) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Column {
-                Text(text = "🏦 Копилка целей", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Доступно монет: ", fontSize = 14.sp, color = FreshGreen)
-                    CoinIcon(modifier = Modifier.size(15.dp))
-                    Text(text = " $balance", fontSize = 14.sp, color = FreshGreen, fontWeight = FontWeight.Bold)
-                }
-            }
-        },
-        text = {
-            LazyColumn(modifier = Modifier.height(380.dp)) {
-                items(goals, key = { it.id }) { goal ->
-                    val progress = (goal.savedAmount.toFloat() / goal.targetCost.toFloat()).coerceIn(0f, 1f)
-                    val percent = (progress * 100).toInt()
-                    val remaining = (goal.targetCost - goal.savedAmount).coerceAtLeast(0)
-
-                    FinCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        backgroundColor = Color(0xFFFBFBFB)
-                    ) {
-                        Column(modifier = Modifier.padding(14.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = goal.title,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
-                                )
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "${goal.savedAmount} / ${goal.targetCost} ",
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = JoyOrange
-                                    )
-                                    CoinIcon(modifier = Modifier.size(13.dp))
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(6.dp))
-                            LinearProgressIndicator(
-                                progress = { progress },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(10.dp)
-                                    .clip(RoundedCornerShape(5.dp)),
-                                color = FreshGreen,
-                                trackColor = Color(0xFFEEEEEE)
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = if (goal.isReached) "🎉 Цель достигнута!" else "Осталось накопить: $remaining монет ($percent%)",
-                                fontSize = 12.sp,
-                                color = TextSecondary
-                            )
-
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Button(
-                                    onClick = { onDeposit(goal.id, 30) },
-                                    enabled = balance >= 30,
-                                    colors = ButtonDefaults.buttonColors(containerColor = FreshGreen),
-                                    shape = RoundedCornerShape(12.dp),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text("+30 ", fontSize = 12.sp)
-                                        CoinIcon(modifier = Modifier.size(13.dp))
-                                    }
-                                }
-                                Button(
-                                    onClick = { onDeposit(goal.id, 50) },
-                                    enabled = balance >= 50,
-                                    colors = ButtonDefaults.buttonColors(containerColor = FreshGreen),
-                                    shape = RoundedCornerShape(12.dp),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text("+50 ", fontSize = 12.sp)
-                                        CoinIcon(modifier = Modifier.size(13.dp))
-                                    }
-                                }
-                                if (goal.savedAmount >= 20) {
-                                    Button(
-                                        onClick = { withdrawWarningGoal = goal },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350)),
-                                        shape = RoundedCornerShape(12.dp),
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Text("Забрать", fontSize = 11.sp)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Закрыть")
-            }
-        }
-    )
-
-    // Предупреждение при снятии монет из копилки
-    withdrawWarningGoal?.let { goal ->
-        AlertDialog(
-            onDismissRequest = { withdrawWarningGoal = null },
-            title = { Text(text = "⚠️ Забрать монеты из копилки?", fontWeight = FontWeight.Bold) },
-            text = {
-                Text(
-                    text = "Если забрать 50 монет, покупка «${goal.title}» отложится на 1 день!\n\nТочно хочешь забрать монеты обратно в кошелек?",
-                    fontSize = 14.sp
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val toWithdraw = 50.coerceAtMost(goal.savedAmount)
-                        onWithdraw(goal.id, toWithdraw)
-                        withdrawWarningGoal = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
-                ) {
-                    Text("Да, забрать")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { withdrawWarningGoal = null }) {
-                    Text("Оставить в копилке")
-                }
-            }
-        )
-    }
 }
