@@ -667,12 +667,22 @@ fun HomeGoalsBottomSheet(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = goal.title,
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
-                            )
+                            val goalEmoji = when (goal.id) {
+                                "goal_ball" -> "⚽"
+                                "goal_headphones" -> "🎧"
+                                "goal_scooter" -> "🛴"
+                                else -> "🎯"
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(text = goalEmoji, fontSize = 22.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = goal.title,
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                            }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "${goal.savedAmount} / ${goal.targetCost} ",

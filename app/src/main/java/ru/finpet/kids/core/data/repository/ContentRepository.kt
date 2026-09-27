@@ -133,7 +133,7 @@ class ContentRepository @Inject constructor(
                             satiety = 100,
                             health = 100,
                             mood = 80,
-                            activeGoalId = "goal_house",
+                            activeGoalId = "goal_ball",
                             isDemoMode = false
                         )
                         finPetRepository.saveProfile(defaultProfile)
