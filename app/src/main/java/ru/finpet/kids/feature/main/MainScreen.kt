@@ -60,6 +60,7 @@ import ru.finpet.kids.feature.calendar.CalendarScreen
 import ru.finpet.kids.feature.finik.FinikScreen
 import ru.finpet.kids.feature.map.MapScreen
 import ru.finpet.kids.feature.settings.SettingsScreen
+import androidx.compose.foundation.layout.WindowInsets
 
 data class NavItem(
     val title: String,
@@ -125,8 +126,12 @@ fun MainScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = SoftBackground,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            TopBar(balance = balance)
+            // Показываем топбар везде, кроме вкладки «Карта» (индекс 0)
+            if (selectedTab != 0) {
+                TopBar(balance = balance)
+            }
         }
         // Нижнего бара в Scaffold нет: стеклянный док парит ПОВЕРХ контента,
         // списки уже имеют нижний отступ 84dp и просвечивают сквозь стекло

@@ -13,6 +13,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.feature.main.MainScreen
 import ru.finpet.kids.feature.main.MainViewModel
+import androidx.activity.enableEdgeToEdge
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
         // До super.onCreate: система продолжает рисовать иконку сплэша,
         // пока не будет готов первый кадр Compose. Белого экрана нет.
         installSplashScreen()
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             FinPetTheme {

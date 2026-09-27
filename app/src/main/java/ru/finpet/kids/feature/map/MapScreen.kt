@@ -45,7 +45,6 @@ import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.data.repository.PurchaseItem
 import ru.finpet.kids.core.data.repository.QuestItem
-import ru.finpet.kids.core.designsystem.FinButton
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
@@ -53,6 +52,9 @@ import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.R
+
+private const val DEBUG_HOTSPOTS = false // отражение кликов для дебага хитбоксов
 
 @Composable
 fun MapScreen(
@@ -71,68 +73,28 @@ fun MapScreen(
     var questFeedback by remember { mutableStateOf<String?>(null) }
 
     val balance = profile?.balance ?: 50
-    // Производные счётчики — remember, чтобы не пересчитывать и не перекомпоновать
-    // карточки локаций при каждой рекомпозиции экрана
-    val completedCount = remember(questProgress) { questProgress.count { it.isCompleted } }
-    val questsSize = quests.size
-    val totalSaved = remember(goals) { goals.sumOf { it.savedAmount } }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        contentPadding = PaddingValues(top = 12.dp, bottom = 84.dp)
+            .padding(horizontal = 0.dp),
+        contentPadding = PaddingValues(top = 0.dp, bottom = 84.dp)
     ) {
-        item(key = "map_header") {
-            Text(
-                text = "🗺️ Карта Приключений",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = TextPrimary
-            )
-            Text(
-                text = "Выбирай место на карте и развивай своего питомца!",
-                fontSize = 14.sp,
-                color = TextSecondary
-            )
-            Spacer(modifier = Modifier.height(14.dp))
-        }
-
-        // 1. Локация: Лавка товаров (Магазин)
-        item(key = "shop_location") {
-            MapLocationCard(
-                title = "🏪 Лавка товаров",
-                subtitle = "Сытная еда, чистая вода, мыло и игрушки",
-                badge = "8 товаров",
-                gradientColors = listOf(Color(0xFFFFECB3), Color(0xFFFFCC80)),
-                iconEmoji = "🛒",
-                onClick = { activeModal = "SHOP" }
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-
-        // 2. Локация: Шатер заданий (Квесты)
-        item(key = "quests_location") {
-            MapLocationCard(
-                title = "📜 Шатер мудрых историй",
-                subtitle = "Интерактивные задачки и награда до +50 монет!",
-                badge = "$completedCount / $questsSize решено",
-                gradientColors = listOf(Color(0xFFE1F5FE), Color(0xFF81D4FA)),
-                iconEmoji = "🎪",
-                onClick = { activeModal = "QUESTS" }
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-
-        // 3. Локация: Банк-Копилка (Цели)
-        item(key = "goals_location") {
-            MapLocationCard(
-                title = "🏦 Банк-Копилка",
-                subtitle = "Накопи на Уютный домик или Игрушечный самокат",
-                badge = "$totalSaved накоплено",
-                gradientColors = listOf(Color(0xFFE8F5E9), Color(0xFFA5D6A7)),
-                iconEmoji = "💰",
-                onClick = { activeModal = "GOALS" }
+        item(key = "map_image") {
+            MapWithHotspots(
+                mapRes = R.drawable.day,
+                imageAspectRatio = 185f / 360f,
+                hotspots = DEFAULT_MAP_HOTSPOTS,
+                debug = DEBUG_HOTSPOTS,     // ← рамки видны прямо здесь
+                onClickHotspot = { spot ->
+                    when (spot.id) {
+                        "shop" -> activeModal = "SHOP"
+                        "quests" -> activeModal = "QUESTS"
+                        "bank" -> activeModal = "GOALS"
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
             )
         }
     }
