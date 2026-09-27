@@ -55,6 +55,9 @@ interface PeriodDao {
     @Query("SELECT * FROM periods ORDER BY periodIndex ASC")
     fun getAllPeriods(): Flow<List<PeriodEntity>>
 
+    @Query("SELECT AVG(compliancePercent) FROM periods WHERE isPeriodClosed = 1")
+    suspend fun getAvgClosedCompliance(): Double?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(period: PeriodEntity)
 
@@ -69,6 +72,9 @@ interface PurchaseDao {
 
     @Query("SELECT * FROM purchases ORDER BY timestamp DESC")
     fun getAllPurchases(): Flow<List<PurchaseEntity>>
+
+    @Query("SELECT COALESCE(SUM(price), 0) FROM purchases WHERE category = :category")
+    suspend fun getSpendingByCategory(category: String): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPurchase(purchase: PurchaseEntity)
@@ -88,8 +94,20 @@ interface GoalDao {
     @Query("SELECT * FROM goals WHERE id = :id LIMIT 1")
     suspend fun getGoalByIdSync(id: String): GoalEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertGoals(goals: List<GoalEntity>)
+
+    // Метаданные цели (название/цена/иконка) обновляются только если реально
+    // изменились: условие WHERE не матчится → ноль записей, ноль перезаписей.
+    // savedAmount/isReached при этом никогда не трогаются.
+    @Query(
+        "UPDATE goals SET title = :title, targetCost = :targetCost, iconName = :iconName " +
+            "WHERE id = :id AND (title != :title OR targetCost != :targetCost OR iconName != :iconName)"
+    )
+    suspend fun updateGoalMeta(id: String, title: String, targetCost: Int, iconName: String)
+
+    @Query("SELECT COALESCE(SUM(savedAmount), 0) FROM goals")
+    suspend fun getTotalSavedAmount(): Int
 
     @Update
     suspend fun updateGoal(goal: GoalEntity)
@@ -108,6 +126,9 @@ interface QuestProgressDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(progress: QuestProgressEntity)
+
+    @Query("SELECT COUNT(*) FROM quest_progress WHERE isCompleted = 1")
+    suspend fun getCompletedCount(): Int
 
     @Query("DELETE FROM quest_progress")
     suspend fun clear()

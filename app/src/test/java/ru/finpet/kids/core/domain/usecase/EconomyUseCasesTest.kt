@@ -29,6 +29,9 @@ class FakeFinPetRepository : FinPetRepository {
     val goals = mutableMapOf<String, GoalEntity>()
     val quests = mutableMapOf<String, QuestProgressEntity>()
 
+    // В тестах транзакция вырождается в обычное последовательное выполнение блока
+    override suspend fun <T> inTransaction(block: suspend () -> T): T = block()
+
     override fun getProfile(): Flow<ProfileEntity?> = flowOf(profile)
     override suspend fun getProfileSync(): ProfileEntity? = profile
     override suspend fun saveProfile(profile: ProfileEntity) {
@@ -48,6 +51,19 @@ class FakeFinPetRepository : FinPetRepository {
     override fun getPurchasesForPeriod(periodIndex: Int): Flow<List<PurchaseEntity>> =
         flowOf(purchases.filter { it.periodIndex == periodIndex })
     override fun getAllPurchases(): Flow<List<PurchaseEntity>> = flowOf(purchases.toList())
+
+    override suspend fun getAvgClosedCompliance(): Double? =
+        periods.values.filter { it.isPeriodClosed }
+            .takeIf { it.isNotEmpty() }
+            ?.map { it.compliancePercent }
+            ?.average()
+
+    override suspend fun getCategorySpending(category: String): Int =
+        purchases.filter { it.category == category }.sumOf { it.price }
+
+    override suspend fun getTotalSavedAmount(): Int = goals.values.sumOf { it.savedAmount }
+
+    override suspend fun getCompletedQuestCount(): Int = quests.values.count { it.isCompleted }
 
     override suspend fun recordPurchase(purchase: PurchaseEntity) {
         purchases.add(purchase)

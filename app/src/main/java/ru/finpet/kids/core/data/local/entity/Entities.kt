@@ -1,6 +1,7 @@
 package ru.finpet.kids.core.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "profiles")
@@ -37,7 +38,15 @@ data class PeriodEntity(
     val carePointsEarned: Int = 0
 )
 
-@Entity(tableName = "purchases")
+// Индексы: выборки по периоду с сортировкой по времени и сортировка всей
+// таблицы по timestamp идут по B-tree, а не полным сканом растущей таблицы.
+@Entity(
+    tableName = "purchases",
+    indices = [
+        Index(value = ["periodIndex", "timestamp"]),
+        Index(value = ["timestamp"])
+    ]
+)
 data class PurchaseEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val periodIndex: Int,

@@ -114,6 +114,12 @@ fun MainScreen(
     val stateHolder = rememberSaveableStateHolder()
     val onSelectTab: (Int) -> Unit = remember { { selectedTab = it } }
 
+    // Отчёт компетенций пересчитывается только когда вкладка «Родителям»
+    // действительно открыта, а не после каждого действия в других вкладках.
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == 3) viewModel.refreshReport()
+    }
+
     val balance = profile?.balance ?: 50
 
     Scaffold(

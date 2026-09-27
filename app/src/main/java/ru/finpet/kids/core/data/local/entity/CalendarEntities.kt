@@ -1,9 +1,10 @@
 package ru.finpet.kids.core.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "calendar_notes")
+@Entity(tableName = "calendar_notes", indices = [Index(value = ["dayIndex"])])
 data class CalendarNoteEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

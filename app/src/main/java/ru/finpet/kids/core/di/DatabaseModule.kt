@@ -2,6 +2,8 @@ package ru.finpet.kids.core.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -22,6 +24,17 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    // v2 → v3: добавлены индексы для purchases и calendar_notes.
+    // Без миграции Room не найдёт их в ожидаемой схеме и без
+    // fallbackToDestructiveMigration стёр бы данные пользователя.
+    private val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_purchases_periodIndex_timestamp` ON `purchases` (`periodIndex`, `timestamp`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_purchases_timestamp` ON `purchases` (`timestamp`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_calendar_notes_dayIndex` ON `calendar_notes` (`dayIndex`)")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -29,7 +42,10 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
-        ).fallbackToDestructiveMigration().build()
+        )
+            .addMigrations(MIGRATION_2_3)
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides

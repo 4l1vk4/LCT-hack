@@ -20,32 +20,34 @@ sealed interface BudgetValidationResult {
 class ConfirmBudgetUseCase @Inject constructor(
     private val repository: FinPetRepository
 ) {
-    suspend operator fun invoke(periodIndex: Int, plan: BudgetPlan): BudgetValidationResult {
-        val profile = repository.getProfileSync() ?: return BudgetValidationResult.NegativeValues
-        if (plan.plannedMandatory < 0 || plan.plannedOptional < 0 || plan.plannedSavings < 0) {
-            return BudgetValidationResult.NegativeValues
-        }
-        if (plan.totalPlanned > profile.balance) {
-            return BudgetValidationResult.ExceedsBalance(plan.totalPlanned, profile.balance)
-        }
+    suspend operator fun invoke(periodIndex: Int, plan: BudgetPlan): BudgetValidationResult =
+        repository.inTransaction<BudgetValidationResult> {
+            val profile = repository.getProfileSync()
+                ?: return@inTransaction BudgetValidationResult.NegativeValues
+            if (plan.plannedMandatory < 0 || plan.plannedOptional < 0 || plan.plannedSavings < 0) {
+                return@inTransaction BudgetValidationResult.NegativeValues
+            }
+            if (plan.totalPlanned > profile.balance) {
+                return@inTransaction BudgetValidationResult.ExceedsBalance(plan.totalPlanned, profile.balance)
+            }
 
-        val existingPeriod = repository.getPeriodSync(periodIndex)
-        val updatedPeriod = existingPeriod?.copy(
-            plannedMandatory = plan.plannedMandatory,
-            plannedOptional = plan.plannedOptional,
-            plannedSavings = plan.plannedSavings,
-            isBudgetConfirmed = true
-        ) ?: PeriodEntity(
-            periodIndex = periodIndex,
-            plannedMandatory = plan.plannedMandatory,
-            plannedOptional = plan.plannedOptional,
-            plannedSavings = plan.plannedSavings,
-            isBudgetConfirmed = true
-        )
+            val existingPeriod = repository.getPeriodSync(periodIndex)
+            val updatedPeriod = existingPeriod?.copy(
+                plannedMandatory = plan.plannedMandatory,
+                plannedOptional = plan.plannedOptional,
+                plannedSavings = plan.plannedSavings,
+                isBudgetConfirmed = true
+            ) ?: PeriodEntity(
+                periodIndex = periodIndex,
+                plannedMandatory = plan.plannedMandatory,
+                plannedOptional = plan.plannedOptional,
+                plannedSavings = plan.plannedSavings,
+                isBudgetConfirmed = true
+            )
 
-        repository.savePeriod(updatedPeriod)
-        return BudgetValidationResult.Success
-    }
+            repository.savePeriod(updatedPeriod)
+            BudgetValidationResult.Success
+        }
 }
 
 sealed interface PurchaseResult {
@@ -65,10 +67,10 @@ class MakePurchaseUseCase @Inject constructor(
         satietyBonus: Int = 0,
         moodBonus: Int = 0,
         healthBonus: Int = 0
-    ): PurchaseResult {
-        val profile = repository.getProfileSync() ?: return PurchaseResult.ProfileNotFound
+    ): PurchaseResult = repository.inTransaction<PurchaseResult> {
+        val profile = repository.getProfileSync() ?: return@inTransaction PurchaseResult.ProfileNotFound
         if (profile.balance < price) {
-            return PurchaseResult.NotEnoughMoney(
+            return@inTransaction PurchaseResult.NotEnoughMoney(
                 missingCoins = price - profile.balance,
                 available = profile.balance,
                 price = price
@@ -76,7 +78,6 @@ class MakePurchaseUseCase @Inject constructor(
         }
 
         val newBalance = profile.balance - price
-        repository.updateBalance(newBalance)
 
         val purchase = PurchaseEntity(
             periodIndex = profile.currentPeriodIndex,
@@ -96,7 +97,8 @@ class MakePurchaseUseCase @Inject constructor(
         }
         repository.savePeriod(updatedPeriod)
 
-        // Обновление статов питомца
+        // Обновление статов питомца. Баланс пишется один раз здесь —
+        // отдельный updateBalance ниже был бы второй перезаписью той же строки.
         val newSatiety = (profile.satiety + satietyBonus).coerceIn(0, 100)
         val newMood = (profile.mood + moodBonus).coerceIn(0, 100)
         val newHealth = (profile.health + healthBonus).coerceIn(0, 100)
@@ -110,7 +112,7 @@ class MakePurchaseUseCase @Inject constructor(
             )
         )
 
-        return PurchaseResult.Success(newBalance, itemName)
+        PurchaseResult.Success(newBalance, itemName)
     }
 }
 
@@ -123,43 +125,44 @@ sealed interface GoalDepositResult {
 class DepositToGoalUseCase @Inject constructor(
     private val repository: FinPetRepository
 ) {
-    suspend operator fun invoke(goalId: String, amount: Int): GoalDepositResult {
-        val profile = repository.getProfileSync() ?: return GoalDepositResult.GoalNotFound
-        if (profile.balance < amount) {
-            return GoalDepositResult.NotEnoughMoney(amount - profile.balance)
+    suspend operator fun invoke(goalId: String, amount: Int): GoalDepositResult =
+        repository.inTransaction<GoalDepositResult> {
+            val profile = repository.getProfileSync() ?: return@inTransaction GoalDepositResult.GoalNotFound
+            if (profile.balance < amount) {
+                return@inTransaction GoalDepositResult.NotEnoughMoney(amount - profile.balance)
+            }
+
+            val goal = repository.getGoalByIdSync(goalId) ?: return@inTransaction GoalDepositResult.GoalNotFound
+
+            val remaining = (goal.targetCost - goal.savedAmount).coerceAtLeast(0)
+
+            val actualAmount = minOf(amount, remaining, profile.balance)
+            if (actualAmount <= 0) {
+                return@inTransaction GoalDepositResult.NotEnoughMoney(amount - profile.balance)
+            }
+
+            // Списание с баланса
+            val newBalance = profile.balance - actualAmount
+            repository.updateBalance(newBalance)
+
+            // Пополнение цели
+            val newSaved = goal.savedAmount + actualAmount
+            val isReached = newSaved >= goal.targetCost
+            repository.updateGoal(goal.copy(savedAmount = newSaved, isReached = isReached))
+
+            // Учет в периоде
+            val period = repository.getPeriodSync(profile.currentPeriodIndex) ?: PeriodEntity(profile.currentPeriodIndex)
+            repository.savePeriod(period.copy(actualSavings = period.actualSavings + amount))
+
+            GoalDepositResult.Success(newBalance, newSaved, isReached, actualAmount)
         }
-
-        val goal = repository.getGoalByIdSync(goalId) ?: return GoalDepositResult.GoalNotFound
-
-        val remaining = (goal.targetCost - goal.savedAmount).coerceAtLeast(0)
-
-        val actualAmount = minOf(amount, remaining, profile.balance)
-        if (actualAmount <= 0) {
-            return GoalDepositResult.NotEnoughMoney(amount - profile.balance)
-        }
-
-        // Списание с баланса
-        val newBalance = profile.balance - actualAmount
-        repository.updateBalance(newBalance)
-
-        // Пополнение цели
-        val newSaved = goal.savedAmount + actualAmount
-        val isReached = newSaved >= goal.targetCost
-        repository.updateGoal(goal.copy(savedAmount = newSaved, isReached = isReached))
-
-        // Учет в периоде
-        val period = repository.getPeriodSync(profile.currentPeriodIndex) ?: PeriodEntity(profile.currentPeriodIndex)
-        repository.savePeriod(period.copy(actualSavings = period.actualSavings + amount))
-
-        return GoalDepositResult.Success(newBalance, newSaved, isReached, actualAmount)
-    }
 }
 
 class CompletePeriodUseCase @Inject constructor(
     private val repository: FinPetRepository
 ) {
-    suspend operator fun invoke(): PeriodResolution? {
-        val profile = repository.getProfileSync() ?: return null
+    suspend operator fun invoke(): PeriodResolution? = repository.inTransaction<PeriodResolution?> {
+        val profile = repository.getProfileSync() ?: return@inTransaction null
         val period = repository.getPeriodSync(profile.currentPeriodIndex) ?: PeriodEntity(profile.currentPeriodIndex)
 
         val plan = BudgetPlan(
@@ -213,6 +216,6 @@ class CompletePeriodUseCase @Inject constructor(
         // Инициализируем новый период
         repository.savePeriod(PeriodEntity(periodIndex = nextPeriodIndex))
 
-        return resolution
+        resolution
     }
 }
