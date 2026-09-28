@@ -38,6 +38,7 @@ import ru.finpet.kids.core.domain.usecase.WithdrawFromGoalUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 
 sealed interface OnboardingState {
     data object Loading : OnboardingState
@@ -155,21 +156,61 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun ensureCalendarDataInitialized() {
-        if (calendarDao.getRecurringExpensesSync().isEmpty()) {
-            calendarDao.insertRecurringExpenses(
-                listOf(
-                    RecurringExpenseEntity(title = "Сытный корм", cost = 30, frequencyDays = 1, icon = "🍲", category = "MANDATORY"),
-                    RecurringExpenseEntity(title = "Чистая вода", cost = 10, frequencyDays = 1, icon = "💧", category = "MANDATORY"),
-                    RecurringExpenseEntity(title = "Витамины и уход", cost = 20, frequencyDays = 3, icon = "💊", category = "MANDATORY")
+        calendarDao.clearAllRecurringExpenses()
+        val petName = repository.getProfileSync()?.petName ?: "Финни"
+        if (calendarDao.getPetQuestionNotesCount() == 0) {
+            calendarDao.clearAllNotes()
+            val allNotes = mutableListOf<CalendarNoteEntity>()
+            for (day in 1..28) {
+                // 1. Ежедневный сытный корм для питомца
+                allNotes.add(
+                    CalendarNoteEntity(
+                        dayIndex = day,
+                        title = "Купить корм для питомца в Лавке",
+                        cost = 30,
+                        category = "PET_FOOD",
+                        isCompleted = false
+                    )
                 )
-            )
-            calendarDao.insertNotes(
-                listOf(
-                    CalendarNoteEntity(dayIndex = 1, title = "Купить корм для Финни", cost = 30, category = "MANDATORY", isCompleted = true),
-                    CalendarNoteEntity(dayIndex = 3, title = "Отложить 50 монет на домик", cost = 50, category = "SAVINGS", isCompleted = false),
-                    CalendarNoteEntity(dayIndex = 5, title = "Купить мячик для игры", cost = 40, category = "OPTIONAL", isCompleted = false)
-                )
-            )
+
+                // 2. В будни — 2 урока в Школе; в выходные (сб-вс: 6, 7, 13, 14, 20, 21, 27, 28) — спросить вопросы у питомца
+                val isWeekend = (day % 7) in listOf(6, 0)
+                if (isWeekend) {
+                    allNotes.add(
+                        CalendarNoteEntity(
+                            dayIndex = day,
+                            title = "Спросить вопросы у $petName",
+                            cost = 0,
+                            category = "PET_QUESTION",
+                            isCompleted = false
+                        )
+                    )
+                } else {
+                    allNotes.add(
+                        CalendarNoteEntity(
+                            dayIndex = day,
+                            title = "Сделать 2 урока в Школе",
+                            cost = 0,
+                            category = "SCHOOL",
+                            isCompleted = false
+                        )
+                    )
+                }
+
+                // 3. Продукты по поручению родителей (спавнится ровно 3 раза в неделю: дни 2, 4, 6 в каждой семидневке)
+                if ((day % 7) in listOf(2, 4, 6)) {
+                    allNotes.add(
+                        CalendarNoteEntity(
+                            dayIndex = day,
+                            title = "Купить продукты по поручению родителей",
+                            cost = 0,
+                            category = "GROCERIES",
+                            isCompleted = false
+                        )
+                    )
+                }
+            }
+            calendarDao.insertNotes(allNotes)
         }
     }
 
@@ -189,6 +230,19 @@ class MainViewModel @Inject constructor(
 
     fun buyItem(item: PurchaseItem) {
         viewModelScope.launch {
+            val prof = repository.getProfileSync() ?: return@launch
+            val currentDay = prof.currentPeriodIndex
+
+            if (item.id == "groceries_parents") {
+                // По поручению родителей: деньги дают родители (цена 0),
+                // а сдача (5, 10 или 15 монет) с рандомным шансом остаётся ребёнку!
+                val change = listOf(5, 10, 15).random()
+                repository.saveProfile(prof.copy(balance = prof.balance + change))
+                calendarDao.updateChecklistNoteByCategory(currentDay, "GROCERIES", isCompleted = true, cost = change)
+                loadCurrentPeriod()
+                return@launch
+            }
+
             makePurchaseUseCase(
                 itemId = item.id,
                 itemName = item.name,
@@ -198,6 +252,12 @@ class MainViewModel @Inject constructor(
                 moodBonus = item.moodBonus,
                 healthBonus = item.healthBonus
             )
+
+            // Если куплен корм для питомца — автоматически отмечаем сегодняшнее задание
+            if (item.id == "food_basic" || (item.category == "MANDATORY" && item.id.contains("food"))) {
+                calendarDao.completeChecklistTaskByCategory(currentDay, "PET_FOOD")
+            }
+
             loadCurrentPeriod()
         }
     }
@@ -205,6 +265,41 @@ class MainViewModel @Inject constructor(
     fun answerQuest(questId: String, optionId: String) {
         viewModelScope.launch {
             questEngineUseCase.executeOption(questId, optionId)
+            val prof = repository.getProfileSync() ?: return@launch
+            val currentDay = prof.currentPeriodIndex
+            val completedToday = repository.getQuestProgress().first().count {
+                it.completedInPeriod == currentDay && it.isCompleted
+            }
+            if (completedToday >= 2) {
+                calendarDao.completeChecklistTaskByCategory(currentDay, "SCHOOL")
+            }
+        }
+    }
+
+    fun onPetAskedQuestion() {
+        viewModelScope.launch {
+            val prof = repository.getProfileSync() ?: return@launch
+            calendarDao.completeChecklistTaskByCategory(prof.currentPeriodIndex, "PET_QUESTION")
+        }
+    }
+
+    fun placeFoodBowl() {
+        viewModelScope.launch {
+            val prof = repository.getProfileSync() ?: return@launch
+            if (prof.bowlPlacedToday) return@launch
+            val bowlPrice = 60 // x2 от стоимости обычного корма (30 * 2)
+            if (prof.balance < bowlPrice) return@launch
+
+            val daysLeft = if (prof.runawayDaysLeft <= 0) (1..3).random() else prof.runawayDaysLeft
+            repository.saveProfile(
+                prof.copy(
+                    balance = prof.balance - bowlPrice,
+                    isPetRunaway = true,
+                    bowlPlacedToday = true,
+                    runawayDaysLeft = daysLeft
+                )
+            )
+            loadCurrentPeriod()
         }
     }
 
@@ -218,6 +313,43 @@ class MainViewModel @Inject constructor(
     fun withdrawGoal(goalId: String, amount: Int) {
         viewModelScope.launch {
             withdrawFromGoalUseCase(goalId, amount)
+            loadCurrentPeriod()
+        }
+    }
+
+    fun selectActiveGoal(goalId: String) {
+        viewModelScope.launch {
+            val prof = repository.getProfileSync() ?: return@launch
+            repository.saveProfile(prof.copy(activeGoalId = goalId))
+        }
+    }
+
+    fun completeHomeChore(choreId: String, rewardCoins: Int) {
+        viewModelScope.launch {
+            val prof = repository.getProfileSync() ?: return@launch
+            val currentDay = prof.currentPeriodIndex
+            val existing = questProgress.value.find { it.questId == choreId }
+            val isAlreadyDone = if (existing != null && existing.isCompleted) {
+                when (choreId) {
+                    "chore_dishes" -> existing.completedInPeriod >= currentDay
+                    "chore_trash" -> (currentDay - existing.completedInPeriod) < 2
+                    "chore_floor" -> (currentDay - existing.completedInPeriod) < 3
+                    else -> existing.completedInPeriod >= currentDay
+                }
+            } else false
+            if (isAlreadyDone) return@launch
+
+            repository.inTransaction {
+                repository.saveProfile(prof.copy(balance = prof.balance + rewardCoins))
+                repository.saveQuestProgress(
+                    QuestProgressEntity(
+                        questId = choreId,
+                        isCompleted = true,
+                        rewardClaimed = true,
+                        completedInPeriod = currentDay
+                    )
+                )
+            }
             loadCurrentPeriod()
         }
     }
@@ -271,6 +403,17 @@ class MainViewModel @Inject constructor(
     fun toggleCalendarNote(note: CalendarNoteEntity) {
         viewModelScope.launch {
             calendarDao.updateNoteCompleted(note.id, !note.isCompleted)
+        }
+    }
+
+    fun completeChecklistTask(note: CalendarNoteEntity, rewardCoins: Int) {
+        viewModelScope.launch {
+            if (note.isCompleted) return@launch
+            calendarDao.updateNoteStatus(note.id, true, if (rewardCoins > 0) rewardCoins else note.cost)
+            if (rewardCoins > 0) {
+                val prof = repository.getProfileSync() ?: return@launch
+                repository.saveProfile(prof.copy(balance = prof.balance + rewardCoins))
+            }
         }
     }
 

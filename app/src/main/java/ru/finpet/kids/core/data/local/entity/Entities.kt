@@ -20,7 +20,10 @@ data class ProfileEntity(
     val health: Int = 100,                   // 0..100
     val mood: Int = 70,                      // 0..100
     val activeGoalId: String? = "goal_ball",
-    val isDemoMode: Boolean = false
+    val isDemoMode: Boolean = false,
+    val isPetRunaway: Boolean = false,
+    val runawayDaysLeft: Int = 0,
+    val bowlPlacedToday: Boolean = false
 )
 
 @Entity(tableName = "periods")

@@ -64,17 +64,6 @@ class QuestEngineUseCase @Inject constructor(
         return repository.inTransaction<QuestExecutionResult?> {
             val profile = repository.getProfileSync() ?: return@inTransaction null
 
-            val careBonus = if (option.isRecommended) 1 else 0
-            val newCarePoints = profile.carePoints + careBonus
-            val newStage = GrowthStage.fromPoints(newCarePoints)
-
-            repository.saveProfile(
-                profile.copy(
-                    carePoints = newCarePoints,
-                    growthStage = newStage.name
-                )
-            )
-
             val progress = QuestProgressEntity(
                 questId = questId,
                 isCompleted = true,
@@ -84,10 +73,9 @@ class QuestEngineUseCase @Inject constructor(
             )
             repository.saveQuestProgress(progress)
 
-            val bonusText = if (option.isRecommended) " (+1 ⭐ Очко Заботы питомцу)" else ""
             QuestExecutionResult(
                 coinsAwarded = 0,
-                feedback = option.feedback + bonusText,
+                feedback = option.feedback,
                 isRecommended = option.isRecommended,
                 newBalance = profile.balance
             )

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -26,6 +27,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -70,6 +72,7 @@ import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.PixelWoodDark
+import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.StardewBoard
 import ru.finpet.kids.core.domain.model.BudgetPlan
@@ -80,13 +83,14 @@ fun CalendarScreen(
     currentPeriod: PeriodEntity?,
     calendarNotes: List<CalendarNoteEntity>,
     recurringExpenses: List<RecurringExpenseEntity>,
-    onConfirmBudget: (BudgetPlan) -> Unit,
+    onConfirmBudget: (BudgetPlan) -> Unit = {},
     onCompletePeriod: () -> Unit,
     onAddNote: (dayIndex: Int, title: String, cost: Int, category: String) -> Unit,
     onDeleteNote: (CalendarNoteEntity) -> Unit,
     onToggleNote: (CalendarNoteEntity) -> Unit,
-    onAddRecurring: (title: String, cost: Int, frequencyDays: Int, icon: String) -> Unit,
-    onDeleteRecurring: (RecurringExpenseEntity) -> Unit
+    onCompleteChecklistTask: (note: CalendarNoteEntity, rewardCoins: Int) -> Unit = { _, _ -> },
+    onAddRecurring: (title: String, cost: Int, frequencyDays: Int, icon: String) -> Unit = { _, _, _, _ -> },
+    onDeleteRecurring: (RecurringExpenseEntity) -> Unit = {}
 ) {
     val balance = profile?.balance ?: 50
     val currentDayIndex = profile?.currentPeriodIndex ?: 1
@@ -96,16 +100,7 @@ fun CalendarScreen(
     var showRecurringDialog by remember { mutableStateOf(false) }
     var showAddNoteDialogForDay by remember { mutableStateOf<Int?>(null) }
     var showAddRecurringDialog by remember { mutableStateOf(false) }
-
-    var plannedMandatory by remember(currentPeriod) {
-        mutableIntStateOf(currentPeriod?.plannedMandatory ?: 60)
-    }
-    var plannedOptional by remember(currentPeriod) {
-        mutableIntStateOf(currentPeriod?.plannedOptional ?: 40)
-    }
-    var plannedSavings by remember(currentPeriod) {
-        mutableIntStateOf(currentPeriod?.plannedSavings ?: 50)
-    }
+    var showNextDayConfirmDialog by remember { mutableStateOf(false) }
 
     // Оптимизация: кешируем распределение постоянных трат и заметок по дням
     val recurringDayMap = remember(recurringExpenses) {
@@ -219,7 +214,6 @@ fun CalendarScreen(
                             val isSelected = dayNum == inspectedDay
                             val isPast = dayNum < currentDayIndex
 
-                            val hasRecurring = recurringDayMap[dayNum]?.isNotEmpty() == true
                             val hasNotes = notesByDay.containsKey(dayNum)
 
                             StardewDayCell(
@@ -227,7 +221,7 @@ fun CalendarScreen(
                                 isToday = isToday,
                                 isSelected = isSelected,
                                 isPast = isPast,
-                                hasRecurring = hasRecurring,
+                                hasRecurring = false,
                                 hasNotes = hasNotes,
                                 modifier = Modifier
                                     .weight(1f)
@@ -256,50 +250,40 @@ fun CalendarScreen(
                         Text("Сегодня", fontSize = 10.sp, fontFamily = FontFamily.Monospace, color = PixelTextDark)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        CoinIcon(modifier = Modifier.size(11.dp))
+                        Text(text = "📋", fontSize = 11.sp)
                         Spacer(modifier = Modifier.width(3.dp))
-                        Text("Постоянная трата", fontSize = 10.sp, fontFamily = FontFamily.Monospace, color = PixelTextDark)
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "📝", fontSize = 11.sp)
-                        Spacer(modifier = Modifier.width(3.dp))
-                        Text("Заметка", fontSize = 10.sp, fontFamily = FontFamily.Monospace, color = PixelTextDark)
+                        Text("Чек-лист дня", fontSize = 10.sp, fontFamily = FontFamily.Monospace, color = PixelTextDark)
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // --- 3. ПОДСКАЗКА И КНОПКА ПОСТОЯННЫХ РАСХОДОВ ---
-        item(key = "calendar_hint") {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(PixelParchmentMedium)
-                    .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
-                    .padding(12.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "📌", fontSize = 18.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Нажмите на любой день календаря, чтобы открыть заметки, список покупок и распределить бюджет!",
-                        fontSize = 12.sp,
-                        color = PixelTextDark,
-                        lineHeight = 17.sp
-                    )
-                }
+        // --- 3. КНОПКА «СЛЕДУЮЩИЙ ДЕНЬ» ПОД КАЛЕНДАРЕМ ---
+        item(key = "next_day_action") {
+            Spacer(modifier = Modifier.height(14.dp))
+            val nextDayNumber = currentDayIndex + 1
+            val isNextMonday = (nextDayNumber - 1) % 7 == 0
+            val completeButtonText = if (isNextMonday) {
+                "🌅 Следующий день (День $nextDayNumber • +200 🪙!)"
+            } else {
+                "🌅 Следующий день (День $nextDayNumber)"
             }
-            Spacer(modifier = Modifier.height(10.dp))
-        }
 
-        item(key = "recurring_button") {
             PixelButton(
-                text = "🔄 Постоянные расходы питомца (${recurringExpenses.size})",
-                onClick = { showRecurringDialog = true },
-                containerColor = PixelWoodDark,
-                textColor = PixelParchmentLight,
+                text = completeButtonText,
+                onClick = { showNextDayConfirmDialog = true },
+                containerColor = PixelGreenCrop,
+                textColor = Color.White,
+                borderColor = Color(0xFF1B5E20),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = if (isNextMonday) "🎉 Завтра понедельник: выплата 200 монет карманных денег!"
+                else "💡 Карманные деньги (+200 монет) выдаются по понедельникам",
+                fontSize = 11.sp,
+                color = PixelTextMuted,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -316,24 +300,15 @@ fun CalendarScreen(
             isToday = isSelectedToday,
             balance = balance,
             notes = selectedDayNotes,
-            dayRecurring = selectedDayRecurring,
-            currentPeriod = currentPeriod,
-            plannedMandatory = plannedMandatory,
-            plannedOptional = plannedOptional,
-            plannedSavings = plannedSavings,
-            onMandatoryChange = { plannedMandatory = it },
-            onOptionalChange = { plannedOptional = it },
-            onSavingsChange = { plannedSavings = it },
-            onConfirmBudget = onConfirmBudget,
-            onCompletePeriod = {
-                onCompletePeriod()
-                inspectedDay = null
-            },
-            onDismiss = { inspectedDay = null },
+            onToggleNote = onToggleNote,
+            onCompleteChecklistTask = onCompleteChecklistTask,
             onOpenAddNote = { showAddNoteDialogForDay = dayNum },
             onDeleteNote = onDeleteNote,
-            onToggleNote = onToggleNote,
-            onManageRecurring = { showRecurringDialog = true }
+            onCompletePeriod = {
+                inspectedDay = null
+                showNextDayConfirmDialog = true
+            },
+            onDismiss = { inspectedDay = null }
         )
     }
 
@@ -369,10 +344,29 @@ fun CalendarScreen(
             }
         )
     }
+
+    // --- ДИАЛОГ ПОДТВЕРЖДЕНИЯ ПЕРЕХОДА НА СЛЕДУЮЩИЙ ДЕНЬ ---
+    if (showNextDayConfirmDialog) {
+        val nextDayNumber = currentDayIndex + 1
+        NextDayConfirmDialog(
+            currentDay = currentDayIndex,
+            nextDay = nextDayNumber,
+            onConfirm = {
+                showNextDayConfirmDialog = false
+                onCompletePeriod()
+            },
+            onDismiss = {
+                showNextDayConfirmDialog = false
+            }
+        )
+    }
 }
 
 /**
  * Модальная доска деталей выбранного дня (Stardew Valley Day Inspector)
+ */
+/**
+ * Модальная доска чек-листа выбранного дня (Daily Checklist)
  */
 @Composable
 fun DayDetailsDialog(
@@ -380,25 +374,15 @@ fun DayDetailsDialog(
     isToday: Boolean,
     balance: Int,
     notes: List<CalendarNoteEntity>,
-    dayRecurring: List<RecurringExpenseEntity>,
-    currentPeriod: PeriodEntity?,
-    plannedMandatory: Int,
-    plannedOptional: Int,
-    plannedSavings: Int,
-    onMandatoryChange: (Int) -> Unit,
-    onOptionalChange: (Int) -> Unit,
-    onSavingsChange: (Int) -> Unit,
-    onConfirmBudget: (BudgetPlan) -> Unit,
-    onCompletePeriod: () -> Unit,
-    onDismiss: () -> Unit,
+    onToggleNote: (CalendarNoteEntity) -> Unit,
+    onCompleteChecklistTask: (note: CalendarNoteEntity, rewardCoins: Int) -> Unit,
     onOpenAddNote: () -> Unit,
     onDeleteNote: (CalendarNoteEntity) -> Unit,
-    onToggleNote: (CalendarNoteEntity) -> Unit,
-    onManageRecurring: () -> Unit
+    onCompletePeriod: () -> Unit,
+    onDismiss: () -> Unit
 ) {
-    val totalPlanned = plannedMandatory + plannedOptional + plannedSavings
-    val remainder = balance - totalPlanned
-    val isConfirmed = currentPeriod?.isBudgetConfirmed == true
+    val completedCount = notes.count { it.isCompleted }
+    val totalCount = notes.size
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -411,8 +395,8 @@ fun DayDetailsDialog(
                 .clip(RoundedCornerShape(8.dp))
         ) {
             StardewBoard(
-                headerTitle = "ДЕНЬ $dayNumber" + if (isToday) " • СЕГОДНЯ" else " • ПЛАНЫ ДНЯ",
-                headerIcon = if (isToday) "🐾" else "📜"
+                headerTitle = "ЧЕК-ЛИСТ ДНЯ $dayNumber" + if (isToday) " • СЕГОДНЯ" else "",
+                headerIcon = if (isToday) "🐾" else "📋"
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -433,13 +417,13 @@ fun DayDetailsDialog(
                         ) {
                             Column {
                                 Text(
-                                    text = if (isToday) "🌟 Текущий игровой день" else "Календарный день месяца",
+                                    text = if (isToday) "🌟 Сегодняшние задачи" else "🗓️ Задачи на День $dayNumber",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isToday) PixelGoldDark else PixelTextDark
                                 )
                                 Text(
-                                    text = if (isToday) "День Финни в игре" else "День $dayNumber из 28",
+                                    text = "Выполнено: $completedCount из $totalCount",
                                     fontSize = 11.sp,
                                     color = PixelTextMuted
                                 )
@@ -456,291 +440,169 @@ fun DayDetailsDialog(
                                 )
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+                        // Шкала прогресса выполнения чек-листа дня
+                        LinearProgressIndicator(
+                            progress = { if (totalCount > 0) completedCount.toFloat() / totalCount else 0f },
+                            color = PixelGreenCrop,
+                            trackColor = PixelParchmentBorder,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                        )
                     }
 
-                    // 2. Заметки и запланированные покупки
-                    item {
-                        Text(
-                            text = "📝 ЗАМЕТКИ И ПОКУПКИ НА ДЕНЬ $dayNumber",
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
-                            color = PixelTextDark
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        if (notes.isEmpty()) {
+                    // 2. Список задач чек-листа
+                    if (notes.isEmpty()) {
+                        item {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(4.dp))
                                     .background(PixelParchmentMedium)
-                                    .padding(10.dp)
+                                    .padding(12.dp)
                             ) {
                                 Text(
-                                    text = "На этот день еще нет покупок или заметок. Нажмите кнопку ниже, чтобы спланировать трату!",
+                                    text = "На этот день нет задач. Нажмите кнопку ниже, чтобы добавить свою заметку!",
                                     fontSize = 12.sp,
-                                    color = PixelTextMuted,
-                                    lineHeight = 16.sp
+                                    color = PixelTextMuted
                                 )
                             }
-                        } else {
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                notes.forEach { note ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(PixelParchmentMedium)
-                                            .border(1.dp, PixelParchmentBorder, RoundedCornerShape(4.dp))
-                                            .padding(horizontal = 8.dp, vertical = 6.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Checkbox(
-                                                checked = note.isCompleted,
-                                                onCheckedChange = { onToggleNote(note) },
-                                                colors = CheckboxDefaults.colors(
-                                                    checkedColor = PixelGreenCrop,
-                                                    uncheckedColor = PixelTextMuted
-                                                ),
-                                                modifier = Modifier.size(26.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(6.dp))
-                                            Column {
-                                                Text(
-                                                    text = note.title,
-                                                    fontSize = 13.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = if (note.isCompleted) PixelTextMuted else PixelTextDark,
-                                                    textDecoration = if (note.isCompleted) TextDecoration.LineThrough else TextDecoration.None
-                                                )
-                                                Text(
-                                                    text = when (note.category) {
-                                                        "MANDATORY" -> "Обязательное"
-                                                        "SAVINGS" -> "В копилку"
-                                                        else -> "Желаемое"
-                                                    },
-                                                    fontSize = 10.sp,
-                                                    color = when (note.category) {
-                                                        "MANDATORY" -> PixelGreenCrop
-                                                        "SAVINGS" -> PixelGoldDark
-                                                        else -> PixelBlueWater
-                                                    }
-                                                )
-                                            }
-                                        }
+                        }
+                    } else {
+                        items(notes, key = { it.id }) { note ->
+                            val isSystemTask = note.category in listOf("PET_FOOD", "SCHOOL", "GROCERIES", "PET_QUESTION")
+                            val taskIcon = when (note.category) {
+                                "PET_FOOD" -> "🍲"
+                                "SCHOOL" -> "📚"
+                                "GROCERIES" -> "🛒"
+                                "PET_QUESTION" -> "🐱"
+                                else -> "📝"
+                            }
 
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            if (note.cost > 0) {
-                                                CoinIcon(modifier = Modifier.size(13.dp))
-                                                Spacer(modifier = Modifier.width(3.dp))
-                                                Text(
-                                                    text = "${note.cost}",
-                                                    fontFamily = FontFamily.Monospace,
-                                                    fontWeight = FontWeight.ExtraBold,
-                                                    fontSize = 12.sp,
-                                                    color = PixelGoldDark
-                                                )
-                                                Spacer(modifier = Modifier.width(8.dp))
-                                            }
-                                            Text(
-                                                text = "✕",
-                                                fontWeight = FontWeight.Bold,
-                                                color = PixelRedBerry,
-                                                fontSize = 14.sp,
-                                                modifier = Modifier
-                                                    .clip(CircleShape)
-                                                    .clickable { onDeleteNote(note) }
-                                                    .padding(4.dp)
-                                            )
-                                        }
+                            val taskBadge = when (note.category) {
+                                "PET_FOOD" -> "Лавка • 30 🪙"
+                                "SCHOOL" -> "Школа"
+                                "GROCERIES" -> if (note.isCompleted && note.cost > 0) "+${note.cost} 🪙" else "Лавка • Сдача"
+                                "PET_QUESTION" -> "У питомца"
+                                else -> if (note.cost > 0) "${note.cost} 🪙" else "Заметка"
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (note.isCompleted) Color(0xFFF1F8E9) else PixelParchmentMedium)
+                                    .border(
+                                        1.dp,
+                                        if (note.isCompleted) Color(0xFFAED581) else PixelParchmentBorder,
+                                        RoundedCornerShape(6.dp)
+                                    )
+                                    .padding(horizontal = 10.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    // Чекбокс: системные задачи выполняются только через реальные действия в игре (Лавка, Школа, общение)
+                                    Checkbox(
+                                        checked = note.isCompleted,
+                                        onCheckedChange = if (isSystemTask) null else { { onToggleNote(note) } },
+                                        enabled = !isSystemTask,
+                                        colors = CheckboxDefaults.colors(
+                                            checkedColor = PixelGreenCrop,
+                                            uncheckedColor = PixelTextMuted,
+                                            disabledCheckedColor = PixelGreenCrop,
+                                            disabledUncheckedColor = PixelParchmentBorder
+                                        ),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(text = taskIcon, fontSize = 20.sp)
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    // Только название задания, без описания (по запросу)
+                                    Text(
+                                        text = note.title,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (note.isCompleted) PixelTextMuted else PixelTextDark,
+                                        textDecoration = if (note.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
+                                        modifier = Modifier.weight(1f, fill = false)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                // Статус-бейдж
+                                if (note.isCompleted) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(Color(0xFFDCEDC8))
+                                            .padding(horizontal = 6.dp, vertical = 3.dp)
+                                    ) {
+                                        Text(
+                                            text = if (note.category == "GROCERIES" && note.cost > 0) "✅ Сдача +${note.cost} 🪙" else "✅ Готово",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = PixelGreenCrop
+                                        )
                                     }
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(PixelWoodDark)
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = taskBadge,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = PixelGoldBright
+                                        )
+                                    }
+                                }
+
+                                // Кнопка удаления только для пользовательских заметок
+                                if (!isSystemTask) {
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "✕",
+                                        fontWeight = FontWeight.Bold,
+                                        color = PixelRedBerry,
+                                        fontSize = 14.sp,
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .clickable { onDeleteNote(note) }
+                                            .padding(4.dp)
+                                    )
                                 }
                             }
                         }
+                    }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                    // 3. Кнопка добавления своей заметки
+                    item {
+                        Spacer(modifier = Modifier.height(4.dp))
                         PixelButton(
-                            text = "➕ Добавить заметку / покупку",
+                            text = "➕ Добавить свою заметку",
                             onClick = onOpenAddNote,
                             containerColor = PixelGoldBright,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
 
-                    // 3. Цикличные расходы, приходящиеся на этот день
-                    item {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "🔄 ПОСТОЯННЫЕ ТРАТЫ В ЭТОТ ДЕНЬ",
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = PixelTextDark
-                            )
-                            Text(
-                                text = "Все (${dayRecurring.size})",
-                                fontSize = 11.sp,
-                                color = PixelBlueWater,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .clickable(onClick = onManageRecurring)
-                                    .padding(2.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        if (dayRecurring.isEmpty()) {
-                            Text(
-                                text = "В этот день нет постоянных расходов.",
-                                fontSize = 11.sp,
-                                color = PixelTextMuted
-                            )
-                        } else {
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                dayRecurring.forEach { expense ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(PixelParchmentMedium)
-                                            .border(1.dp, PixelParchmentBorder, RoundedCornerShape(4.dp))
-                                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(text = expense.icon, fontSize = 16.sp)
-                                            Spacer(modifier = Modifier.width(6.dp))
-                                            Text(text = expense.title, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PixelTextDark)
-                                        }
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            CoinIcon(modifier = Modifier.size(13.dp))
-                                            Spacer(modifier = Modifier.width(3.dp))
-                                            Text(
-                                                text = "${expense.cost}",
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = PixelGoldDark,
-                                                fontFamily = FontFamily.Monospace
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // 4. Блок бюджета и завершения дня (только если день — СЕГОДНЯ)
+                    // 4. Завершение дня (только если день — СЕГОДНЯ)
                     if (isToday) {
                         item {
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "🧺 РАСПРЕДЕЛЕНИЕ БЮДЖЕТА НА СЕГОДНЯ",
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = PixelTextDark
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-
-                            BudgetCounterRow(
-                                title = "1. Обязательное (еда, вода)",
-                                amount = plannedMandatory,
-                                color = FreshGreen,
-                                onMinus = { if (!isConfirmed && plannedMandatory >= 10) onMandatoryChange(plannedMandatory - 10) },
-                                onPlus = { if (!isConfirmed) onMandatoryChange(plannedMandatory + 10) },
-                                enabled = !isConfirmed
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-
-                            BudgetCounterRow(
-                                title = "2. Желаемое (игрушки, сладости)",
-                                amount = plannedOptional,
-                                color = SkyBlue,
-                                onMinus = { if (!isConfirmed && plannedOptional >= 10) onOptionalChange(plannedOptional - 10) },
-                                onPlus = { if (!isConfirmed) onOptionalChange(plannedOptional + 10) },
-                                enabled = !isConfirmed
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-
-                            BudgetCounterRow(
-                                title = "3. В копилку на мечту",
-                                amount = plannedSavings,
-                                color = JoyOrange,
-                                onMinus = { if (!isConfirmed && plannedSavings >= 10) onSavingsChange(plannedSavings - 10) },
-                                onPlus = { if (!isConfirmed) onSavingsChange(plannedSavings + 10) },
-                                enabled = !isConfirmed
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // Сводка плана
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(PixelParchmentMedium)
-                                    .padding(8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Column {
-                                    Text(text = "План: $totalPlanned монет", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PixelTextDark)
-                                }
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text(
-                                        text = "Остаток: $remainder монет",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (remainder >= 0) PixelGreenCrop else PixelRedBerry
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            if (!isConfirmed) {
-                                PixelButton(
-                                    text = if (remainder >= 0) "Утвердить план на день" else "Не хватает монет!",
-                                    enabled = remainder >= 0,
-                                    onClick = {
-                                        onConfirmBudget(
-                                            BudgetPlan(
-                                                plannedMandatory = plannedMandatory,
-                                                plannedOptional = plannedOptional,
-                                                plannedSavings = plannedSavings
-                                            )
-                                        )
-                                    },
-                                    containerColor = PixelGoldBright,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            } else {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(Color(0xFFE8F5E9))
-                                        .padding(8.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "✅ План на день утвержден!",
-                                        fontWeight = FontWeight.Bold,
-                                        color = PixelGreenCrop,
-                                        fontSize = 13.sp
-                                    )
-                                }
-                            }
-
                             val nextDayNumber = dayNumber + 1
                             val isNextMonday = (nextDayNumber - 1) % 7 == 0
                             val completeButtonText = if (isNextMonday) {
@@ -749,7 +611,6 @@ fun DayDetailsDialog(
                                 "🌅 Завершить день"
                             }
 
-                            Spacer(modifier = Modifier.height(8.dp))
                             PixelButton(
                                 text = completeButtonText,
                                 onClick = onCompletePeriod,
@@ -758,28 +619,17 @@ fun DayDetailsDialog(
                                 borderColor = Color(0xFF1B5E20),
                                 modifier = Modifier.fillMaxWidth()
                             )
-                            Text(
-                                text = if (isNextMonday) "🎉 Завтра понедельник: выплата 200 монет карманных денег!"
-                                else "💡 Карманные деньги (+200 монет) выдаются по понедельникам",
-                                fontSize = 11.sp,
-                                color = PixelTextMuted,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 4.dp)
-                            )
                         }
                     }
 
                     // 5. Кнопка закрытия
                     item {
-                        Spacer(modifier = Modifier.height(4.dp))
                         PixelButton(
                             text = "✕ Закрыть",
                             onClick = onDismiss,
-                            containerColor = PixelParchmentDark,
-                            textColor = PixelTextDark,
-                            borderColor = PixelParchmentBorder,
+                            containerColor = PixelWoodMedium,
+                            textColor = PixelParchmentLight,
+                            borderColor = PixelWoodDark,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -1241,6 +1091,109 @@ fun BudgetCounterRow(
                         textColor = Color.White,
                         borderColor = PixelWoodDark
                     )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Всплывающее окно подтверждения перехода на следующий день
+ */
+@Composable
+fun NextDayConfirmDialog(
+    currentDay: Int,
+    nextDay: Int,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val isNextMonday = (nextDay - 1) % 7 == 0
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.90f)
+                .wrapContentHeight()
+                .clip(RoundedCornerShape(8.dp))
+        ) {
+            StardewBoard(
+                headerTitle = "НОВЫЙ ДЕНЬ",
+                headerIcon = "🌅"
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Перейти на День $nextDay?",
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 17.sp,
+                        color = PixelTextDark,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(PixelParchmentMedium)
+                            .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
+                            .padding(12.dp)
+                    ) {
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(text = if (isNextMonday) "🎉" else "🐾", fontSize = 20.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if (isNextMonday) "Понедельник — выплата карманных!" else "Завершение Дня $currentDay",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = PixelTextDark
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = if (isNextMonday) {
+                                    "Наступает новая неделя! При переходе на День $nextDay тебе будет начислено 200 монет 🪙 карманных денег."
+                                } else {
+                                    "Все заметки и траты за сегодня сохранятся в календаре, а питомец перейдет на следующий день."
+                                },
+                                fontSize = 12.sp,
+                                color = PixelTextDark,
+                                lineHeight = 17.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        PixelButton(
+                            text = "✕ Отмена",
+                            onClick = onDismiss,
+                            containerColor = PixelWoodMedium,
+                            textColor = PixelParchmentLight,
+                            borderColor = PixelWoodDark,
+                            modifier = Modifier.weight(1f)
+                        )
+                        PixelButton(
+                            text = "🌅 Перейти",
+                            onClick = onConfirm,
+                            containerColor = PixelGreenCrop,
+                            textColor = Color.White,
+                            borderColor = Color(0xFF1B5E20),
+                            modifier = Modifier.weight(1.3f)
+                        )
+                    }
                 }
             }
         }

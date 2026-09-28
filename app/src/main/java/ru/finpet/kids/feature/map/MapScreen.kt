@@ -1,5 +1,6 @@
 package ru.finpet.kids.feature.map
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -82,6 +83,8 @@ fun MapScreen(
     onAnswerQuest: (questId: String, optionId: String) -> Unit,
     onDepositGoal: (goalId: String, amount: Int) -> Unit,
     onWithdrawGoal: (goalId: String, amount: Int) -> Unit,
+    onSelectActiveGoal: (goalId: String) -> Unit = {},
+    onCompleteHomeChore: (choreId: String, rewardCoins: Int) -> Unit = { _, _ -> },
     onNavigateToFinik: () -> Unit = {}
 ) {
     var activeModal by remember { mutableStateOf<String?>(null) } // "SHOP", "QUESTS", "GOALS"
@@ -150,6 +153,11 @@ fun MapScreen(
         HomeGoalsBottomSheet(
             balance = balance,
             goals = goals,
+            activeGoalId = profile?.activeGoalId,
+            currentPeriodIndex = profile?.currentPeriodIndex ?: 1,
+            questProgress = questProgress,
+            onSelectActiveGoal = onSelectActiveGoal,
+            onCompleteHomeChore = onCompleteHomeChore,
             onDismiss = { activeModal = null },
             onDeposit = { goalId, amount ->
                 if (balance >= amount) {
@@ -357,29 +365,6 @@ private fun PixelLocationModalSheet(
                 item(key = "location_main_content") {
                     content()
                 }
-
-                // Большая кнопка «Закрыть» внизу
-                item(key = "close_button_bottom") {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.5.dp, PixelWoodMedium),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color.White.copy(alpha = 0.85f),
-                            contentColor = PixelDarkBrown
-                        )
-                    ) {
-                        Text(
-                            text = "Закрыть окно",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
             }
         }
     }
@@ -400,9 +385,9 @@ fun SchoolBottomSheet(
 
     PixelLocationModalSheet(
         title = "🏫 Школа Финни",
-        subtitle = "Уроки финансовой грамотности • Получай ⭐ Очки Заботы Финни",
+        subtitle = "Уроки финансовой грамотности • Полезные советы для жизни",
         headerDrawableRes = R.drawable.location_school_header,
-        badgeText = "🎯 $completedCount / ${quests.size} решено",
+        badgeText = "$completedCount / ${quests.size} решено",
         onDismiss = onDismiss
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -464,28 +449,13 @@ fun SchoolBottomSheet(
                                         .border(1.5.dp, JoyOrange, RoundedCornerShape(14.dp)),
                                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp)
                                 ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                    Text(
+                                        text = opt.text,
+                                        color = TextPrimary,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
                                         modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Text(
-                                            text = opt.text,
-                                            color = TextPrimary,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                text = if (opt.isRecommended) "+1 ⭐" else "🎓",
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 14.sp,
-                                                color = if (opt.isRecommended) Color(0xFFE65100) else TextPrimary
-                                            )
-                                        }
-                                    }
+                                    )
                                 }
                             }
                         }
@@ -609,149 +579,420 @@ fun ShopBottomSheet(
 // 3. ВСПЛЫВАШКА ДОМА (КОПИЛКА И ЦЕЛИ)
 // ====================================================================
 
+data class HomeChoreItem(
+    val id: String,
+    val title: String,
+    val description: String,
+    val icon: String,
+    val rewardCoins: Int
+)
+
+val DEFAULT_HOME_CHORES = listOf(
+    HomeChoreItem(
+        id = "chore_floor",
+        title = "Мытье полов",
+        description = "Помыть полы в комнатах для чистоты (раз в 3 суток)",
+        icon = "🧹",
+        rewardCoins = 50
+    ),
+    HomeChoreItem(
+        id = "chore_trash",
+        title = "Вынос мусора",
+        description = "Собрать мусорный пакет и вынести в уличный контейнер (раз в 2 суток)",
+        icon = "🗑️",
+        rewardCoins = 25
+    ),
+    HomeChoreItem(
+        id = "chore_dishes",
+        title = "Мытье посуды",
+        description = "Помыть за собой тарелку, ложку и кружку после еды (каждый день)",
+        icon = "🍽️",
+        rewardCoins = 20
+    )
+)
+
 @Composable
 fun HomeGoalsBottomSheet(
     balance: Int,
     goals: List<GoalEntity>,
+    activeGoalId: String?,
+    currentPeriodIndex: Int = 1,
+    questProgress: List<QuestProgressEntity>,
+    onSelectActiveGoal: (goalId: String) -> Unit,
+    onCompleteHomeChore: (choreId: String, rewardCoins: Int) -> Unit,
     onDismiss: () -> Unit,
     onDeposit: (goalId: String, amount: Int) -> Unit,
     onWithdraw: (goalId: String, amount: Int) -> Unit
 ) {
     var withdrawWarningGoal by remember { mutableStateOf<GoalEntity?>(null) }
+    var completedChoreRewardInfo by remember { mutableStateOf<Pair<String, Int>?>(null) }
+    var isPiggyBankExpanded by remember { mutableStateOf(false) }
     val totalSaved = goals.sumOf { it.savedAmount }
+
+    fun checkChoreDone(choreId: String): Boolean {
+        val choreProgress = questProgress.find { it.questId == choreId } ?: return false
+        if (!choreProgress.isCompleted) return false
+        return when (choreId) {
+            "chore_dishes" -> choreProgress.completedInPeriod >= currentPeriodIndex
+            "chore_trash" -> (currentPeriodIndex - choreProgress.completedInPeriod) < 2
+            "chore_floor" -> (currentPeriodIndex - choreProgress.completedInPeriod) < 3
+            else -> choreProgress.completedInPeriod >= currentPeriodIndex
+        }
+    }
+
+    val completedChoresCount = DEFAULT_HOME_CHORES.count { chore -> checkChoreDone(chore.id) }
 
     PixelLocationModalSheet(
         title = "🏡 Уютный домик и Копилка",
-        subtitle = "Копи монеты на мечту и обустраивай домик для Финни",
+        subtitle = "Выполняй домашние дела, зарабатывай монеты и копи на мечту",
         headerDrawableRes = R.drawable.location_home_header,
         badgeText = "💰 $totalSaved накоплено",
         onDismiss = onDismiss
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            // Индикатор доступных монет
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = Color(0xFFE8F5E9),
-                border = BorderStroke(1.5.dp, Color(0xFFA5D6A7)),
-                modifier = Modifier.fillMaxWidth()
+            // Кнопка перехода в копилку (сверху над задачами)
+            FinCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isPiggyBankExpanded = !isPiggyBankExpanded },
+                backgroundColor = if (isPiggyBankExpanded) Color(0xFFFFF3E0) else Color.White,
+                borderColor = if (isPiggyBankExpanded) JoyOrange else Color(0xFFFFD54F)
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    CoinIcon(modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (isPiggyBankExpanded) JoyOrange else Color(0xFFFFE082)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "🐷", fontSize = 22.sp)
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Копилка на мечту",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = if (isPiggyBankExpanded) "Нажми, чтобы скрыть цели ▲" else "Накоплено $totalSaved монет • Нажми, чтобы открыть ▼",
+                                fontSize = 12.sp,
+                                color = TextSecondary
+                            )
+                        }
+                    }
                     Text(
-                        text = "Доступно для накоплений: $balance монет",
-                        fontSize = 15.sp,
+                        text = if (isPiggyBankExpanded) "▲" else "▼",
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = FreshGreen
+                        color = JoyOrange
                     )
                 }
             }
 
-            // Список целей
-            goals.forEach { goal ->
-                val progress = (goal.savedAmount.toFloat() / goal.targetCost.toFloat()).coerceIn(0f, 1f)
-                val percent = (progress * 100).toInt()
-                val remaining = (goal.targetCost - goal.savedAmount).coerceAtLeast(0)
-
-                FinCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    backgroundColor = Color.White,
-                    borderColor = Color(0xFFFFD54F)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+            // Раскрывающийся вниз список целей в копилке
+            AnimatedVisibility(visible = isPiggyBankExpanded) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // Индикатор доступных монет
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color(0xFFE8F5E9),
+                        border = BorderStroke(1.5.dp, Color(0xFFA5D6A7)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val goalEmoji = when (goal.id) {
-                                "goal_ball" -> "⚽"
-                                "goal_headphones" -> "🎧"
-                                "goal_scooter" -> "🛴"
-                                else -> "🎯"
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = goalEmoji, fontSize = 22.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = goal.title,
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
+                            CoinIcon(modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Доступно для накоплений: $balance монет",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = FreshGreen
+                            )
+                        }
+                    }
+
+                    // Список целей (без надписи про квадратик)
+                    goals.forEach { goal ->
+                        val isSelected = goal.id == (activeGoalId ?: goals.firstOrNull()?.id)
+                        val progress = (goal.savedAmount.toFloat() / goal.targetCost.toFloat()).coerceIn(0f, 1f)
+                        val percent = (progress * 100).toInt()
+                        val remaining = (goal.targetCost - goal.savedAmount).coerceAtLeast(0)
+
+                        FinCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            backgroundColor = Color.White,
+                            borderColor = if (isSelected) JoyOrange else Color(0xFFFFD54F)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    val goalEmoji = when (goal.id) {
+                                        "goal_ball" -> "⚽"
+                                        "goal_headphones" -> "🎧"
+                                        "goal_scooter" -> "🛴"
+                                        else -> "🎯"
+                                    }
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable { onSelectActiveGoal(goal.id) }
+                                            .padding(vertical = 2.dp)
+                                    ) {
+                                        // Квадрат с галочкой выбора главной цели
+                                        Box(
+                                            modifier = Modifier
+                                                .size(28.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(if (isSelected) JoyOrange else Color(0xFFF5F5F5))
+                                                .border(
+                                                    width = 2.dp,
+                                                    color = if (isSelected) JoyOrange else Color(0xFFBDBDBD),
+                                                    shape = RoundedCornerShape(8.dp)
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (isSelected) {
+                                                Text(
+                                                    text = "✓",
+                                                    color = Color.White,
+                                                    fontSize = 18.sp,
+                                                    fontWeight = FontWeight.Black
+                                                )
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text(text = goalEmoji, fontSize = 22.sp)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(
+                                                text = goal.title,
+                                                fontSize = 17.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextPrimary
+                                            )
+                                            if (isSelected) {
+                                                Text(
+                                                    text = "⭐ Главная цель",
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = JoyOrange
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "${goal.savedAmount} / ${goal.targetCost} ",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = JoyOrange
+                                        )
+                                        CoinIcon(modifier = Modifier.size(15.dp))
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+                                LinearProgressIndicator(
+                                    progress = { progress },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(12.dp)
+                                        .clip(RoundedCornerShape(6.dp)),
+                                    color = FreshGreen,
+                                    trackColor = Color(0xFFEEEEEE)
                                 )
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                                Spacer(modifier = Modifier.height(6.dp))
                                 Text(
-                                    text = "${goal.savedAmount} / ${goal.targetCost} ",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = JoyOrange
+                                    text = if (goal.isReached) "🎉 Мечта достигнута!" else "Осталось накопить: $remaining монет ($percent%)",
+                                    fontSize = 13.sp,
+                                    color = TextSecondary
                                 )
-                                CoinIcon(modifier = Modifier.size(15.dp))
+
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Button(
+                                        onClick = { onDeposit(goal.id, 10) },
+                                        enabled = balance >= 10,
+                                        colors = ButtonDefaults.buttonColors(containerColor = FreshGreen),
+                                        shape = RoundedCornerShape(12.dp),
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(44.dp)
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text("+10 ", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                            CoinIcon(modifier = Modifier.size(14.dp))
+                                        }
+                                    }
+                                    Button(
+                                        onClick = { onDeposit(goal.id, 50) },
+                                        enabled = balance >= 50,
+                                        colors = ButtonDefaults.buttonColors(containerColor = FreshGreen),
+                                        shape = RoundedCornerShape(12.dp),
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(44.dp)
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text("+50 ", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                            CoinIcon(modifier = Modifier.size(14.dp))
+                                        }
+                                    }
+                                    if (goal.savedAmount >= 20) {
+                                        Button(
+                                            onClick = { withdrawWarningGoal = goal },
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350)),
+                                            shape = RoundedCornerShape(12.dp),
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(44.dp)
+                                        ) {
+                                            Text("Забрать", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
                             }
                         }
+                    }
+                }
+            }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = { progress },
+            // Домашние дела (изначально видны в домике)
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "🧹", fontSize = 20.sp)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Домашние дела",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = TextPrimary
+                        )
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (completedChoresCount == DEFAULT_HOME_CHORES.size) Color(0xFFE8F5E9) else Color(0xFFFFF3E0)
+                    ) {
+                        Text(
+                            text = "$completedChoresCount / ${DEFAULT_HOME_CHORES.size} сделано",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (completedChoresCount == DEFAULT_HOME_CHORES.size) FreshGreen else JoyOrange,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                Text(
+                    text = "Помогай по дому и получай монеты в награду:",
+                    fontSize = 13.sp,
+                    color = TextSecondary
+                )
+
+                DEFAULT_HOME_CHORES.forEach { chore ->
+                    val isDone = checkChoreDone(chore.id)
+
+                    FinCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        backgroundColor = if (isDone) Color(0xFFF9FBE7) else Color.White,
+                        borderColor = if (isDone) Color(0xFFAED581) else Color(0xFFE0E0E0)
+                    ) {
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(12.dp)
-                                .clip(RoundedCornerShape(6.dp)),
-                            color = FreshGreen,
-                            trackColor = Color(0xFFEEEEEE)
-                        )
-
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = if (goal.isReached) "🎉 Мечта достигнута!" else "Осталось накопить: $remaining монет ($percent%)",
-                            fontSize = 13.sp,
-                            color = TextSecondary
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Button(
-                                onClick = { onDeposit(goal.id, 10) },
-                                enabled = balance >= 10,
-                                colors = ButtonDefaults.buttonColors(containerColor = FreshGreen),
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(44.dp)
+                                .padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("+10 ", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                    CoinIcon(modifier = Modifier.size(14.dp))
-                                }
-                            }
-                            Button(
-                                onClick = { onDeposit(goal.id, 50) },
-                                enabled = balance >= 50,
-                                colors = ButtonDefaults.buttonColors(containerColor = FreshGreen),
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(44.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("+50 ", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                    CoinIcon(modifier = Modifier.size(14.dp))
-                                }
-                            }
-                            if (goal.savedAmount >= 20) {
-                                Button(
-                                    onClick = { withdrawWarningGoal = goal },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350)),
-                                    shape = RoundedCornerShape(12.dp),
+                                Box(
                                     modifier = Modifier
-                                        .weight(1f)
-                                        .height(44.dp)
+                                        .size(44.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(if (isDone) Color(0xFFDCEDC8) else Color(0xFFF5F5F5)),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Text("Забрать", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text(text = chore.icon, fontSize = 22.sp)
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = chore.title,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = chore.description,
+                                        fontSize = 12.sp,
+                                        color = TextSecondary,
+                                        lineHeight = 16.sp
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(10.dp))
+
+                            if (isDone) {
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = Color(0xFFE8F5E9)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
+                                    ) {
+                                        Text(text = "✅ +${chore.rewardCoins}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = FreshGreen)
+                                        Spacer(modifier = Modifier.width(3.dp))
+                                        CoinIcon(modifier = Modifier.size(13.dp))
+                                    }
+                                }
+                            } else {
+                                Button(
+                                    onClick = {
+                                        onCompleteHomeChore(chore.id, chore.rewardCoins)
+                                        completedChoreRewardInfo = chore.title to chore.rewardCoins
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = FreshGreen),
+                                    shape = RoundedCornerShape(10.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(text = "+${chore.rewardCoins}", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        CoinIcon(modifier = Modifier.size(14.dp))
+                                    }
                                 }
                             }
                         }
@@ -759,6 +1000,35 @@ fun HomeGoalsBottomSheet(
                 }
             }
         }
+    }
+
+    // Сообщение об успешном выполнении домашнего дела
+    completedChoreRewardInfo?.let { (title, reward) ->
+        AlertDialog(
+            onDismissRequest = { completedChoreRewardInfo = null },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "🎉", fontSize = 22.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "Дело сделано!", fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Text(
+                    text = "Ты выполнил дело «$title» и заработал $reward монет в копилку и кошелек!",
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { completedChoreRewardInfo = null },
+                    colors = ButtonDefaults.buttonColors(containerColor = FreshGreen)
+                ) {
+                    Text("Ура! 🪙")
+                }
+            }
+        )
     }
 
     // Предупреждение при снятии монет из копилки

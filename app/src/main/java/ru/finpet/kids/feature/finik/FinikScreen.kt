@@ -31,7 +31,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,15 +77,21 @@ data class ScriptedAdvice(
     val response: String
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FinikScreen(
     profile: ProfileEntity?,
     goals: List<GoalEntity> = emptyList(),
+    todayNotes: List<CalendarNoteEntity> = emptyList(),
     selectedSkin: String? = null,
     petName: String? = null,
     animationsEnabled: Boolean = true,
     onPetTapped: () -> Unit = {},
-    onNavigateToGoals: (() -> Unit)? = null
+    onNavigateToGoals: (() -> Unit)? = null,
+    onNavigateToMap: (() -> Unit)? = null,
+    onAskQuestion: () -> Unit = {},
+    onPlaceFoodBowl: () -> Unit = {},
+    onToggleNote: (CalendarNoteEntity) -> Unit = {}
 ) {
     val satiety = profile?.satiety ?: 100
     val mood = profile?.mood ?: 80
@@ -91,9 +110,20 @@ fun FinikScreen(
         calculated.roundToInt().coerceIn(0, 100)
     }
 
-    val defaultGreeting = "Привет! Я твой финансовый помощник $displayName. Нажми на меня, чтобы задать вопрос!"
+    val isPetRunaway = (profile?.isPetRunaway == true) || (effectiveMood <= 0)
+
+    val defaultGreeting = if (isPetRunaway) {
+        if (profile?.bowlPlacedToday == true) {
+            "Миска с кормом стоит у двери! Котик чувствует заботу и скоро вернётся (через 1–3 дня)."
+        } else {
+            "Кот убежал! Настроение упало до 0%. Скорее поставь миску с кормом у двери, чтобы вернуть питомца!"
+        }
+    } else {
+        "Привет! Я твой финансовый помощник $displayName. Нажми на меня, чтобы задать вопрос!"
+    }
     var currentSpeech by remember { mutableStateOf(defaultGreeting) }
     var panelOpen by remember { mutableStateOf(false) }
+    var showTasksMenu by remember { mutableStateOf(false) }
 
     val activeGoal = remember(goals, profile?.activeGoalId) {
         goals.find { it.id == profile?.activeGoalId } ?: goals.firstOrNull()
@@ -139,7 +169,7 @@ fun FinikScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(top = 12.dp, bottom = 84.dp),
+            contentPadding = PaddingValues(top = 10.dp, bottom = 104.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item(key = "speech_bubble") {
@@ -149,12 +179,12 @@ fun FinikScreen(
                         .fillMaxWidth()
                         .padding(bottom = 8.dp)
                         .clip(RoundedCornerShape(22.dp))
-                        .background(Color(0xFFFFF9E6))
-                        .border(2.dp, Color(0xFFFFE082), RoundedCornerShape(22.dp))
+                        .background(if (isPetRunaway) Color(0xFFFFEBEE) else Color(0xFFFFF9E6))
+                        .border(2.dp, if (isPetRunaway) Color(0xFFFFCDD2) else Color(0xFFFFE082), RoundedCornerShape(22.dp))
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "💬 $currentSpeech",
+                        text = if (isPetRunaway) "😿 $currentSpeech" else "💬 $currentSpeech",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = TextPrimary,
@@ -164,32 +194,138 @@ fun FinikScreen(
             }
 
             item(key = "finik_character") {
-                FinikInArmchair(
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    skinId = selectedSkin ?: "cat_black",
-                    mood = when {
-                        effectiveMood < 40 -> "SAD"
-                        effectiveMood >= 70 -> "HAPPY"
-                        else -> "NEUTRAL"
-                    },
-                    stage = profile?.growthStage ?: "BABY",
-                    enabled = animationsEnabled,
-                    onClick = {
-                        onPetTapped()
-                        panelOpen = true
+                if (isPetRunaway) {
+                    // Состояние «Кот убежал» при достижении 0% настроения
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(150.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFEBEE))
+                                .border(3.dp, Color(0xFFFFCDD2), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "😿", fontSize = 68.sp)
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Text(
+                            text = "Кот убежал!",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFFC62828)
+                        )
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = "Настроение упало до 0%. Поставь миску корма у двери (цена x2 от обычного корма: 60 🪙). Питомец вернётся через 1–3 дня, если ставить миску каждый день!",
+                            fontSize = 13.sp,
+                            color = TextSecondary,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 18.sp,
+                            modifier = Modifier.padding(horizontal = 20.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        if (profile?.bowlPlacedToday == true) {
+                            FinCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp),
+                                backgroundColor = Color(0xFFE8F5E9),
+                                borderColor = Color(0xFFAED581)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(14.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(text = "🥣", fontSize = 28.sp)
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            text = "Миска с кормом стоит у двери!",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp,
+                                            color = FreshGreen
+                                        )
+                                        Text(
+                                            text = "Кот чувствует заботу. Проверь завтра, вернулся ли он!",
+                                            fontSize = 12.sp,
+                                            color = TextSecondary
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            val canAffordBowl = (profile?.balance ?: 0) >= 60
+                            Button(
+                                onClick = onPlaceFoodBowl,
+                                enabled = canAffordBowl,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = JoyOrange,
+                                    disabledContainerColor = Color(0xFFCCCCCC)
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(50.dp)
+                                    .padding(horizontal = 8.dp)
+                            ) {
+                                Text(
+                                    text = "🥣 Поставить миску корма (60 🪙)",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = Color.White
+                                )
+                            }
+
+                            if (!canAffordBowl) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "Не хватает монет (нужно 60 🪙). Загляни в Школу или выполни дела по дому!",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFFD32F2F),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
                     }
-                )
+                } else {
+                    FinikInArmchair(
+                        modifier = Modifier.padding(vertical = 4.dp),
+                        skinId = selectedSkin ?: "cat_black",
+                        mood = when {
+                            effectiveMood < 40 -> "SAD"
+                            effectiveMood >= 70 -> "HAPPY"
+                            else -> "NEUTRAL"
+                        },
+                        stage = profile?.growthStage ?: "BABY",
+                        enabled = animationsEnabled,
+                        onClick = {
+                            onPetTapped()
+                            panelOpen = true
+                        }
+                    )
+                }
             }
 
             item(key = "mood_bar") {
-                // Единый показатель настроения питомца (в 2 раза толще обычного бара — 24dp, сытость и здоровье влияют скрыто)
+                // Единый показатель настроения питомца
                 FinCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
+                        .padding(top = 4.dp, bottom = 6.dp),
                     backgroundColor = Color.White
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                         val animatedProgress by animateFloatAsState(
                             targetValue = (effectiveMood.coerceIn(0, 100) / 100f),
                             animationSpec = tween(durationMillis = 500),
@@ -220,36 +356,36 @@ fun FinikScreen(
                                         effectiveMood >= 40 -> "🙂"
                                         else -> "🥺"
                                     },
-                                    fontSize = 18.sp
+                                    fontSize = 17.sp
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "Настроение $displayName",
-                                    fontSize = 16.sp,
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimary
                                 )
                             }
                             Text(
                                 text = "$effectiveMood%",
-                                fontSize = 16.sp,
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = moodColor
                             )
                         }
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(24.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .height(20.dp)
+                                .clip(RoundedCornerShape(10.dp))
                                 .background(Color(0xFFEEEEEE))
                         ) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .fillMaxWidth(animatedProgress)
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(10.dp))
                                     .background(moodBrush)
                             )
                         }
@@ -258,11 +394,10 @@ fun FinikScreen(
             }
 
             item(key = "goal_bar") {
-                // Планка прогресса по цели в копилке
+                // Компактная планка прогресса по цели в копилке
                 if (activeGoal != null) {
                     val progress = (activeGoal.savedAmount.toFloat() / activeGoal.targetCost.toFloat()).coerceIn(0f, 1f)
                     val percent = (progress * 100).toInt()
-                    val remaining = (activeGoal.targetCost - activeGoal.savedAmount).coerceAtLeast(0)
                     val goalEmoji = when (activeGoal.id) {
                         "goal_ball" -> "⚽"
                         "goal_headphones" -> "🎧"
@@ -283,69 +418,199 @@ fun FinikScreen(
                     FinCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp)
+                            .padding(bottom = 6.dp)
                             .then(if (onNavigateToGoals != null) Modifier.clickable { onNavigateToGoals() } else Modifier),
                         backgroundColor = Color.White
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(text = goalEmoji, fontSize = 20.sp)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f, fill = false)
+                                ) {
+                                    Text(text = goalEmoji, fontSize = 17.sp)
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "Цель: ${activeGoal.title}",
-                                        fontSize = 16.sp,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = TextPrimary
+                                        color = TextPrimary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text = "${activeGoal.savedAmount} / ${activeGoal.targetCost} ",
-                                        fontSize = 15.sp,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.ExtraBold,
                                         color = JoyOrange
                                     )
-                                    CoinIcon(modifier = Modifier.size(16.dp))
+                                    CoinIcon(modifier = Modifier.size(15.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "($percent%)",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (activeGoal.isReached) FreshGreen else TextSecondary
+                                    )
                                 }
                             }
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(7.dp))
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(20.dp)
-                                    .clip(RoundedCornerShape(10.dp))
+                                    .height(13.dp)
+                                    .clip(RoundedCornerShape(7.dp))
                                     .background(Color(0xFFEEEEEE))
                             ) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxHeight()
                                         .fillMaxWidth(animatedGoalProgress)
-                                        .clip(RoundedCornerShape(10.dp))
+                                        .clip(RoundedCornerShape(7.dp))
                                         .background(goalBrush)
                                 )
                             }
-                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+                    }
+                }
+            }
+
+            item(key = "daily_task_card") {
+                // Карточка задачи дня под целью накопления
+                val pendingTask = todayNotes.firstOrNull { !it.isCompleted }
+                val completedCount = todayNotes.count { it.isCompleted }
+                val totalCount = todayNotes.size
+
+                if (todayNotes.isNotEmpty()) {
+                    FinCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .clickable { showTasksMenu = true },
+                        backgroundColor = if (pendingTask == null) Color(0xFFF1F8E9) else Color.White,
+                        borderColor = if (pendingTask == null) Color(0xFFAED581) else Color(0xFFFFD54F)
+                    ) {
+                        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = if (pendingTask == null) "🌟" else "📋",
+                                        fontSize = 16.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = if (pendingTask == null) "Все задачи выполнены!" else "Задача дня",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (pendingTask == null) FreshGreen else TextPrimary
+                                    )
+                                }
+
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = if (pendingTask == null) Color(0xFFDCEDC8) else Color(0xFFFFF3E0),
+                                    modifier = Modifier.clickable { showTasksMenu = true }
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = "$completedCount/$totalCount",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (pendingTask == null) FreshGreen else JoyOrange
+                                        )
+                                        Spacer(modifier = Modifier.width(2.dp))
+                                        Text(text = "👉", fontSize = 10.sp)
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            if (pendingTask != null) {
+                                val taskIcon = when (pendingTask.category) {
+                                    "PET_FOOD" -> "🍲"
+                                    "SCHOOL" -> "📚"
+                                    "GROCERIES" -> "🛒"
+                                    "PET_QUESTION" -> "🐱"
+                                    else -> "📝"
+                                }
+
+                                val taskBadge = when (pendingTask.category) {
+                                    "PET_FOOD" -> "Лавка • 30 🪙"
+                                    "SCHOOL" -> "Школа • 2 урока"
+                                    "GROCERIES" -> "Лавка • Сдача"
+                                    "PET_QUESTION" -> "У питомца"
+                                    else -> if (pendingTask.cost > 0) "${pendingTask.cost} 🪙" else "Заметка"
+                                }
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color(0xFFFFFDE7))
+                                        .border(1.dp, Color(0xFFFFF59D), RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(text = taskIcon, fontSize = 18.sp)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = pendingTask.title,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = TextPrimary,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(6.dp))
+
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = JoyOrange,
+                                        modifier = if (pendingTask.category in listOf("PET_FOOD", "GROCERIES", "SCHOOL") && onNavigateToMap != null) {
+                                            Modifier.clickable { onNavigateToMap() }
+                                        } else if (pendingTask.category == "PET_QUESTION") {
+                                            Modifier.clickable { panelOpen = true }
+                                        } else Modifier
+                                    ) {
+                                        Text(
+                                            text = taskBadge,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                        )
+                                    }
+                                }
+                            } else {
                                 Text(
-                                    text = if (activeGoal.isReached) "🎉 Мечта достигнута!" else "Осталось накопить: $remaining монет",
+                                    text = "Все дела и уроки сделаны, Финни счастлив! 🎉",
                                     fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = if (activeGoal.isReached) FreshGreen else TextSecondary
-                                )
-                                Text(
-                                    text = "$percent%",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = JoyOrange
+                                    color = TextSecondary
                                 )
                             }
                         }
@@ -452,6 +717,7 @@ fun FinikScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
+                                        onAskQuestion()
                                         currentSpeech = advice.response
                                         panelOpen = false
                                     },
@@ -476,6 +742,188 @@ fun FinikScreen(
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        if (showTasksMenu) {
+            val completedCount = todayNotes.count { it.isCompleted }
+            val totalCount = todayNotes.size
+
+            ModalBottomSheet(
+                onDismissRequest = { showTasksMenu = false },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = "📋", fontSize = 24.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text(
+                                    text = "Задачи на сегодня",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = "Выполнено $completedCount из $totalCount",
+                                    fontSize = 12.sp,
+                                    color = TextSecondary
+                                )
+                            }
+                        }
+                        Text(
+                            text = "✕",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextSecondary,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .clickable { showTasksMenu = false }
+                                .padding(6.dp)
+                        )
+                    }
+
+                    LinearProgressIndicator(
+                        progress = { if (totalCount > 0) completedCount.toFloat() / totalCount else 0f },
+                        color = FreshGreen,
+                        trackColor = Color(0xFFEEEEEE),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                    )
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 380.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(todayNotes, key = { it.id }) { note ->
+                            val isSystemTask = note.category in listOf("PET_FOOD", "SCHOOL", "GROCERIES", "PET_QUESTION")
+                            val taskIcon = when (note.category) {
+                                "PET_FOOD" -> "🍲"
+                                "SCHOOL" -> "📚"
+                                "GROCERIES" -> "🛒"
+                                "PET_QUESTION" -> "🐱"
+                                else -> "📝"
+                            }
+                            val taskBadge = when (note.category) {
+                                "PET_FOOD" -> "Лавка • 30 🪙"
+                                "SCHOOL" -> "Школа"
+                                "GROCERIES" -> if (note.isCompleted && note.cost > 0) "+${note.cost} 🪙" else "Лавка • Сдача"
+                                "PET_QUESTION" -> "У питомца"
+                                else -> if (note.cost > 0) "${note.cost} 🪙" else "Заметка"
+                            }
+
+                            FinCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                backgroundColor = if (note.isCompleted) Color(0xFFF9FBE7) else Color(0xFFFAFAFA),
+                                borderColor = if (note.isCompleted) Color(0xFFAED581) else Color(0xFFE0E0E0)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Checkbox(
+                                            checked = note.isCompleted,
+                                            onCheckedChange = if (isSystemTask) null else { { onToggleNote(note) } },
+                                            enabled = !isSystemTask,
+                                            colors = CheckboxDefaults.colors(
+                                                checkedColor = FreshGreen,
+                                                uncheckedColor = TextSecondary,
+                                                disabledCheckedColor = FreshGreen,
+                                                disabledUncheckedColor = Color(0xFFBDBDBD)
+                                            ),
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(text = taskIcon, fontSize = 20.sp)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = note.title,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = if (note.isCompleted) TextSecondary else TextPrimary,
+                                            textDecoration = if (note.isCompleted) TextDecoration.LineThrough else TextDecoration.None
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    if (note.isCompleted) {
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = Color(0xFFE8F5E9)
+                                        ) {
+                                            Text(
+                                                text = if (note.category == "GROCERIES" && note.cost > 0) "✅ +${note.cost} 🪙" else "✅ Готово",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = FreshGreen,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            )
+                                        }
+                                    } else {
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = Color(0xFFFFF3E0),
+                                            modifier = if (note.category in listOf("PET_FOOD", "GROCERIES", "SCHOOL") && onNavigateToMap != null) {
+                                                Modifier.clickable {
+                                                    showTasksMenu = false
+                                                    onNavigateToMap()
+                                                }
+                                            } else if (note.category == "PET_QUESTION") {
+                                                Modifier.clickable {
+                                                    showTasksMenu = false
+                                                    panelOpen = true
+                                                }
+                                            } else Modifier
+                                        ) {
+                                            Text(
+                                                text = taskBadge,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = JoyOrange,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Button(
+                        onClick = { showTasksMenu = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp)
+                    ) {
+                        Text("Понятно 👍", fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 }
             }
