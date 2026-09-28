@@ -38,6 +38,7 @@ import ru.finpet.kids.core.domain.usecase.WithdrawFromGoalUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
+import coil.util.CoilUtils.result
 
 sealed interface OnboardingState {
     data object Loading : OnboardingState
@@ -45,6 +46,12 @@ sealed interface OnboardingState {
     data object NeedName : OnboardingState
     data class Ready(val skinId: String, val petName: String) : OnboardingState
 }
+
+data class MoneyEvent(
+    val amount: Int,
+    val source: String,
+    val icon: String = "🪙"
+)
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -71,6 +78,18 @@ class MainViewModel @Inject constructor(
 
     private val _currentPeriod = MutableStateFlow<PeriodEntity?>(null)
     val currentPeriod: StateFlow<PeriodEntity?> = _currentPeriod.asStateFlow()
+
+    private val _moneyEvent = MutableStateFlow<MoneyEvent?>(null)
+    val moneyEvent: StateFlow<MoneyEvent?> = _moneyEvent.asStateFlow()
+
+    private fun showMoneyEvent(amount: Int, source: String, icon: String = "🪙") {
+        if (amount <= 0) return
+        _moneyEvent.value = MoneyEvent(amount, source, icon)
+    }
+
+    fun dismissMoneyEvent() {
+        _moneyEvent.value = null
+    }
 
     val goals: StateFlow<List<GoalEntity>> = repository.getAllGoals()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -224,7 +243,13 @@ class MainViewModel @Inject constructor(
 
     fun completePeriod() {
         viewModelScope.launch {
-            completePeriodUseCase()
+            val result = completePeriodUseCase()
+            if (result != null && result.periodIncome > 0) {
+                showMoneyEvent(
+                    amount = result.periodIncome,
+                    source = "Карманные деньги на неделю (понедельник)"
+                )
+            }
             loadCurrentPeriod()
         }
     }
