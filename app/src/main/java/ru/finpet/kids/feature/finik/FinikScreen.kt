@@ -70,6 +70,8 @@ import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
+import ru.finpet.kids.feature.finik.WardrobeDialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 data class ScriptedAdvice(
     val title: String,
@@ -85,6 +87,8 @@ fun FinikScreen(
     todayNotes: List<CalendarNoteEntity> = emptyList(),
     selectedSkin: String? = null,
     petName: String? = null,
+    accessoryId: String = "none",
+    onSelectAccessory: (String) -> Unit = {},
     animationsEnabled: Boolean = true,
     onPetTapped: () -> Unit = {},
     onNavigateToGoals: (() -> Unit)? = null,
@@ -124,6 +128,7 @@ fun FinikScreen(
     var currentSpeech by remember { mutableStateOf(defaultGreeting) }
     var panelOpen by remember { mutableStateOf(false) }
     var showTasksMenu by remember { mutableStateOf(false) }
+    var showWardrobe by remember { mutableStateOf(false) }
 
     val activeGoal = remember(goals, profile?.activeGoalId) {
         goals.find { it.id == profile?.activeGoalId } ?: goals.firstOrNull()
@@ -299,21 +304,43 @@ fun FinikScreen(
                         }
                     }
                 } else {
-                    FinikInArmchair(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        skinId = selectedSkin ?: "cat_black",
-                        mood = when {
-                            effectiveMood < 40 -> "SAD"
-                            effectiveMood >= 70 -> "HAPPY"
-                            else -> "NEUTRAL"
-                        },
-                        stage = profile?.growthStage ?: "BABY",
-                        enabled = animationsEnabled,
-                        onClick = {
-                            onPetTapped()
-                            panelOpen = true
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        FinikInArmchair(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            skinId = selectedSkin ?: "cat_black",
+                            accessoryId = accessoryId,
+                            mood = when {
+                                effectiveMood < 40 -> "SAD"
+                                effectiveMood >= 70 -> "HAPPY"
+                                else -> "NEUTRAL"
+                            },
+                            stage = profile?.growthStage ?: "BABY",
+                            enabled = animationsEnabled,
+                            onClick = {
+                                onPetTapped()
+                                panelOpen = true
+                            }
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(end = 8.dp, bottom = 8.dp)
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(JoyOrange)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) { showWardrobe = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "👔", fontSize = 22.sp)
                         }
-                    )
+                    }
                 }
             }
 
@@ -927,6 +954,17 @@ fun FinikScreen(
                     }
                 }
             }
+        }
+        if (showWardrobe) {
+            WardrobeDialog(
+                currentAccessoryId = profile?.accessoryId ?: "none",
+                petName = displayName,
+                onSelect = { accId ->
+                    onSelectAccessory(accId)
+                    showWardrobe = false
+                },
+                onDismiss = { showWardrobe = false }
+            )
         }
     }
 }

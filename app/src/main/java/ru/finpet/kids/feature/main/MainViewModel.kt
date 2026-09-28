@@ -518,5 +518,12 @@ class MainViewModel @Inject constructor(
         "chore_dishes" -> "Мытьё посуды"
         else -> "Помощь по дому"
     }
+
+    fun setAccessory(accessoryId: String) {
+        viewModelScope.launch {
+            val prof = repository.getProfileSync() ?: return@launch
+            repository.saveProfile(prof.copy(accessoryId = accessoryId))
+        }
+    }
 }
 
