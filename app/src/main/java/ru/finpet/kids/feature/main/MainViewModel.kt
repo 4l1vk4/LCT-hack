@@ -47,6 +47,12 @@ sealed interface OnboardingState {
     data class Ready(val skinId: String, val petName: String) : OnboardingState
 }
 
+data class MoneyEvent(
+    val amount: Int,
+    val source: String,
+    val icon: String = "🪙"
+)
+
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val repository: FinPetRepository,
@@ -72,6 +78,18 @@ class MainViewModel @Inject constructor(
 
     private val _currentPeriod = MutableStateFlow<PeriodEntity?>(null)
     val currentPeriod: StateFlow<PeriodEntity?> = _currentPeriod.asStateFlow()
+
+    private val _moneyEvent = MutableStateFlow<MoneyEvent?>(null)
+    val moneyEvent: StateFlow<MoneyEvent?> = _moneyEvent.asStateFlow()
+
+    private fun showMoneyEvent(amount: Int, source: String, icon: String = "🪙") {
+        if (amount <= 0) return
+        _moneyEvent.value = MoneyEvent(amount, source, icon)
+    }
+
+    fun dismissMoneyEvent() {
+        _moneyEvent.value = null
+    }
 
     val goals: StateFlow<List<GoalEntity>> = repository.getAllGoals()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -356,7 +374,13 @@ class MainViewModel @Inject constructor(
 
     fun completePeriod() {
         viewModelScope.launch {
-            completePeriodUseCase()
+            val result = completePeriodUseCase()
+            if (result != null && result.periodIncome > 0) {
+                showMoneyEvent(
+                    amount = result.periodIncome,
+                    source = "Карманные деньги на неделю (понедельник)"
+                )
+            }
             loadCurrentPeriod()
         }
     }

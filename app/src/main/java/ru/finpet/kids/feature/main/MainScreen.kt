@@ -50,6 +50,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
 import androidx.compose.runtime.mutableStateOf
+import ru.finpet.kids.core.designsystem.MoneyNotification
 
 @Composable
 fun MainScreen(
@@ -103,6 +104,8 @@ fun MainScreen(
     val soundEnabled by viewModel.soundEnabled.collectAsStateWithLifecycle()
     val musicEnabled by viewModel.musicEnabled.collectAsStateWithLifecycle()
     val musicVolume by viewModel.musicVolume.collectAsStateWithLifecycle()
+    val demoMode by viewModel.demoMode.collectAsStateWithLifecycle()
+    val moneyEvent by viewModel.moneyEvent.collectAsStateWithLifecycle()
 
     // Keep-alive вкладок: один раз показанная вкладка остаётся в композиции
     // (состояние скролла, диалоги, введённый текст), переключение — только
@@ -246,7 +249,9 @@ fun MainScreen(
                             )
                         },
                         onNextDemoPeriod = { viewModel.completePeriod() },
-                        onResetProfile = { viewModel.resetDemoProfile() }
+                        onResetProfile = { viewModel.resetDemoProfile() },
+                        demoMode = demoMode,
+                        onToggleDemoMode = { enabled -> viewModel.toggleDemo(enabled) }
                     )
                 }
                 KeepAliveTab(
@@ -279,6 +284,18 @@ fun MainScreen(
                             navBarHeight = with(density) { coords.size.height.toDp() }
                         }
                 )
+
+                moneyEvent?.let { event ->
+                    MoneyNotification(
+                        amount = event.amount,
+                        source = event.source,
+                        icon = event.icon,
+                        onDismiss = { viewModel.dismissMoneyEvent() },
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 12.dp)
+                    )
+                }
             }
         }
     }

@@ -83,21 +83,21 @@ private fun petDrawableFor(skinId: String, stage: String, mood: String): Int = w
     }
     "cat_orange" -> when(stage) {
         "BABY" -> when (mood) {
-            "HAPPY" -> R.drawable.cat_orange
-            "SAD"   -> R.drawable.cat_orange
-            else    -> R.drawable.cat_orange
+            "HAPPY" -> R.drawable.cat_brown_happy
+            "SAD"   -> R.drawable.cat_brown_sad
+            else    -> R.drawable.cat_brown_neutral
         }
         "TEEN" -> when (mood) {
-            "HAPPY" -> R.drawable.cat_orange
-            "SAD"   -> R.drawable.cat_orange
-            else    -> R.drawable.cat_orange
+            "HAPPY" -> R.drawable.cat_brown_happy
+            "SAD"   -> R.drawable.cat_brown_sad
+            else    -> R.drawable.cat_brown_neutral
         }
         "ADULT" -> when (mood) {
-            "HAPPY" -> R.drawable.cat_orange
-            "SAD"   -> R.drawable.cat_orange
-            else    -> R.drawable.cat_orange
+            "HAPPY" -> R.drawable.cat_brown_happy
+            "SAD"   -> R.drawable.cat_brown_sad
+            else    -> R.drawable.cat_brown_neutral
         }
-        else -> R.drawable.cat_orange
+        else -> R.drawable.cat_brown_neutral
     }
     "cat_nlo" -> when(stage) {
         "BABY" -> when (mood) {

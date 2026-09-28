@@ -55,6 +55,8 @@ import ru.finpet.kids.core.domain.usecase.AdultSectionUseCase
 import ru.finpet.kids.core.domain.usecase.CompetencyReport
 import ru.finpet.kids.core.domain.usecase.MathProblem
 import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 
 @Composable
 fun AdultScreen(
@@ -62,7 +64,9 @@ fun AdultScreen(
     adultSectionUseCase: AdultSectionUseCase,
     onGrantBonus: (coins: Int, reason: String) -> Unit,
     onNextDemoPeriod: () -> Unit = {},
-    onResetProfile: () -> Unit
+    onResetProfile: () -> Unit,
+    demoMode: Boolean = false,
+    onToggleDemoMode: (Boolean) -> Unit = {}
 ) {
     var isUnlocked by remember { mutableStateOf(false) }
     var challenge by remember { mutableStateOf(adultSectionUseCase.generateAdultChallenge()) }
@@ -321,84 +325,64 @@ fun AdultScreen(
                 }
             }
 
-            // Блок 2: Поощрение ребенка за реальные дела
             item {
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "🎁 Поощрить ребенка монетами",
+                    text = "Демо-режим",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
-                Text(
-                    text = "Мост между реальными делами и игрой (начисление на баланс)",
-                    fontSize = 12.sp,
-                    color = TextSecondary
-                )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                bonusSuccessMessage?.let { msg ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFE8F5E9))
-                            .padding(10.dp)
-                    ) {
-                        Text(text = msg, color = FreshGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
+                FinCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    backgroundColor = if (demoMode) Color(0xFFE8F5E9) else Color.White,
+                    borderColor = if (demoMode) FreshGreen else Color(0xFFE0E0E0)
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Демо-режим",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                            }
+                            Switch(
+                                checked = demoMode,
+                                onCheckedChange = onToggleDemoMode,
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = FreshGreen
+                                )
+                            )
+                        }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    BonusRewardButton(
-                        icon = "🧹",
-                        label = "Уборка",
-                        coins = 20,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        onGrantBonus(20, "Уборка в комнате")
-                        bonusSuccessMessage = "✅ Ребенку начислено +20 монет за уборку!"
-                        scope.launch { delay(3000); bonusSuccessMessage = null }
-                    }
-                    BonusRewardButton(
-                        icon = "🧽",
-                        label = "Посуда",
-                        coins = 20,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        onGrantBonus(20, "Мытьё посуды")
-                        bonusSuccessMessage = "✅ Ребенку начислено +20 монет за мытьё посуды!"
-                        scope.launch { delay(3000); bonusSuccessMessage = null }
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    BonusRewardButton(
-                        icon = "🗑️",
-                        label = "Мусор",
-                        coins = 15,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        onGrantBonus(15, "Вынос мусора / порядок")
-                        bonusSuccessMessage = "✅ Ребенку начислено +15 монет за вынос мусора!"
-                        scope.launch { delay(3000); bonusSuccessMessage = null }
-                    }
-                    BonusRewardButton(
-                        icon = "🤝",
-                        label = "Помощь",
-                        coins = 25,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        onGrantBonus(25, "Помощь родителям по дому")
-                        bonusSuccessMessage = "✅ Ребенку начислено +25 монет за помощь родителям!"
-                        scope.launch { delay(3000); bonusSuccessMessage = null }
+                        // Кнопка пропуска — появляется только когда демо-режим включён
+                        if (demoMode) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Button(
+                                onClick = onNextDemoPeriod,
+                                colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
+                            ) {
+                                Text(
+                                    text = "⏭️ Пропустить один период",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
                     }
                 }
             }

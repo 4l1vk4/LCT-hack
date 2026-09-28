@@ -53,7 +53,7 @@ data class SkinOption(val id: String, val title: String)
 
 val AVAILABLE_SKINS = listOf(
     SkinOption("cat_black",  "Чёрный котик"),
-    SkinOption("cat_orange", "Рыжий котик"),
+    SkinOption("cat_brown", "Коричневый котик"),
     SkinOption("cat_nlo",  "Инопланетный котик")
 )
 
@@ -258,7 +258,7 @@ private fun HotspotBox(
  */
 fun previewDrawableFor(skinId: String): Int = when (skinId) {
     "cat_black"  -> R.drawable.cat_black_neutral
-    "cat_orange" -> R.drawable.cat_orange
+    "cat_brown" -> R.drawable.cat_brown_neutral
     "cat_nlo"  -> R.drawable.cat_nlo
     else         -> R.drawable.cat_black_neutral
 }
