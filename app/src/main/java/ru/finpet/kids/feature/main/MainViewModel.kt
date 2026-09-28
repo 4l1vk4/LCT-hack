@@ -258,6 +258,11 @@ class MainViewModel @Inject constructor(
                 val change = listOf(5, 10, 15).random()
                 repository.saveProfile(prof.copy(balance = prof.balance + change))
                 calendarDao.updateChecklistNoteByCategory(currentDay, "GROCERIES", isCompleted = true, cost = change)
+                showMoneyEvent(
+                    amount = change,
+                    source = "Сдача от покупки продуктов",
+                    icon = "🛒"
+                )
                 loadCurrentPeriod()
                 return@launch
             }
@@ -369,6 +374,11 @@ class MainViewModel @Inject constructor(
                     )
                 )
             }
+            showMoneyEvent(
+                amount = rewardCoins,
+                source = "Домашнее дело: ${choreTitle(choreId)}",
+                icon = "🧹"
+            )
             loadCurrentPeriod()
         }
     }
@@ -389,6 +399,10 @@ class MainViewModel @Inject constructor(
     fun grantParentBonus(coins: Int, reason: String) {
         viewModelScope.launch {
             adultSectionUseCase.grantParentBonus(coins, reason)
+            showMoneyEvent(
+                amount = coins,
+                source = "Награда от родителей: $reason",
+            )
         }
     }
 
@@ -438,6 +452,10 @@ class MainViewModel @Inject constructor(
             if (rewardCoins > 0) {
                 val prof = repository.getProfileSync() ?: return@launch
                 repository.saveProfile(prof.copy(balance = prof.balance + rewardCoins))
+                showMoneyEvent(
+                    amount = rewardCoins,
+                    source = "Задание: ${note.title}"
+                )
             }
         }
     }
@@ -492,6 +510,13 @@ class MainViewModel @Inject constructor(
 
     fun toggleDemo(enabled: Boolean) {
         viewModelScope.launch { settingsRepository.setDemoMode(enabled) }
+    }
+
+    private fun choreTitle(choreId: String): String = when (choreId) {
+        "chore_floor" -> "Мытьё полов"
+        "chore_trash" -> "Вынос мусора"
+        "chore_dishes" -> "Мытьё посуды"
+        else -> "Помощь по дому"
     }
 }
 
