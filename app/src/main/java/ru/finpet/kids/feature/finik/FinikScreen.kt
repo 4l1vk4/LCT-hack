@@ -62,14 +62,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 import ru.finpet.kids.core.data.local.entity.GoalEntity
+import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
+import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
+import ru.finpet.kids.core.domain.model.ActualExpenses
+import ru.finpet.kids.core.domain.model.BudgetPlan
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelGoldBright
+import ru.finpet.kids.core.designsystem.PixelGoldDark
+import ru.finpet.kids.core.designsystem.PixelParchmentLight
+import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.PixelTextMuted
+import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
+import ru.finpet.kids.feature.budget.BudgetPlanVsFactDialog
+import ru.finpet.kids.feature.budget.BudgetPlanningDialog
+import ru.finpet.kids.feature.budget.BudgetPulseWidget
 
 data class ScriptedAdvice(
     val title: String,
@@ -91,7 +105,11 @@ fun FinikScreen(
     onNavigateToMap: (() -> Unit)? = null,
     onAskQuestion: () -> Unit = {},
     onPlaceFoodBowl: () -> Unit = {},
-    onToggleNote: (CalendarNoteEntity) -> Unit = {}
+    onToggleNote: (CalendarNoteEntity) -> Unit = {},
+    isBudgetConfirmed: Boolean = true,
+    onNavigateToPlans: (() -> Unit)? = null,
+    currentPeriod: PeriodEntity? = null,
+    onConfirmBudget: (BudgetPlan) -> Unit = {}
 ) {
     val satiety = profile?.satiety ?: 100
     val mood = profile?.mood ?: 80
@@ -100,14 +118,7 @@ fun FinikScreen(
 
     // Сытость и здоровье скрыто влияют на единый показатель настроения
     val effectiveMood = remember(mood, satiety, health) {
-        var calculated = (mood * 0.60f + satiety * 0.20f + health * 0.20f)
-        if (satiety < 50) {
-            calculated -= (50 - satiety) * 0.5f
-        }
-        if (health < 60) {
-            calculated -= (60 - health) * 0.6f
-        }
-        calculated.roundToInt().coerceIn(0, 100)
+        PetEconomyCalculator.calculateEffectiveMood(mood, satiety, health)
     }
 
     val isPetRunaway = (profile?.isPetRunaway == true) || (effectiveMood <= 0)
@@ -118,12 +129,16 @@ fun FinikScreen(
         } else {
             "Кот убежал! Настроение упало до 0%. Скорее поставь миску с кормом у двери, чтобы вернуть питомца!"
         }
+    } else if (!isBudgetConfirmed) {
+        "Давай распределим монетки по баночкам! 📜"
     } else {
         "Привет! Я твой финансовый помощник $displayName. Нажми на меня, чтобы задать вопрос!"
     }
     var currentSpeech by remember { mutableStateOf(defaultGreeting) }
     var panelOpen by remember { mutableStateOf(false) }
     var showTasksMenu by remember { mutableStateOf(false) }
+    var showBudgetPlanningDialog by remember { mutableStateOf(false) }
+    var showPlanVsFactDialog by remember { mutableStateOf(false) }
 
     val activeGoal = remember(goals, profile?.activeGoalId) {
         goals.find { it.id == profile?.activeGoalId } ?: goals.firstOrNull()
@@ -190,6 +205,85 @@ fun FinikScreen(
                         color = TextPrimary,
                         lineHeight = 22.sp
                     )
+                }
+            }
+
+            if (!isPetRunaway) {
+                if (!isBudgetConfirmed) {
+                    item(key = "budget_planning_banner") {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(PixelWoodDark)
+                                .padding(2.dp)
+                                .border(1.5.dp, PixelGoldBright, RoundedCornerShape(10.dp))
+                                .background(PixelParchmentLight)
+                                .clickable { showBudgetPlanningDialog = true }
+                                .padding(horizontal = 12.dp, vertical = 10.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(text = "📜", fontSize = 26.sp)
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = "Спланировать бюджет",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = PixelTextDark
+                                        )
+                                        Text(
+                                            text = "«Давай распределим монетки по баночкам!»",
+                                            fontSize = 11.sp,
+                                            color = PixelTextMuted
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                PixelButton(
+                                    text = "Баночки ➔",
+                                    onClick = { showBudgetPlanningDialog = true },
+                                    containerColor = PixelGoldBright,
+                                    textColor = PixelTextDark,
+                                    borderColor = PixelGoldDark
+                                )
+                            }
+                        }
+                    }
+                } else if (currentPeriod != null) {
+                    item(key = "budget_pulse_widget") {
+                        val plan = remember(currentPeriod) {
+                            BudgetPlan(
+                                plannedMandatory = currentPeriod.plannedMandatory,
+                                plannedOptional = currentPeriod.plannedOptional,
+                                plannedSavings = currentPeriod.plannedSavings
+                            )
+                        }
+                        val actual = remember(currentPeriod) {
+                            ActualExpenses(
+                                actualMandatory = currentPeriod.actualMandatory,
+                                actualOptional = currentPeriod.actualOptional,
+                                actualSavings = currentPeriod.actualSavings
+                            )
+                        }
+                        BudgetPulseWidget(
+                            plan = plan,
+                            actual = actual,
+                            onClick = { showPlanVsFactDialog = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp)
+                        )
+                    }
                 }
             }
 
@@ -927,6 +1021,59 @@ fun FinikScreen(
                     }
                 }
             }
+        }
+
+        // Диалог планирования бюджета (Концепт 1 «Волшебные баночки заботы», ТЗ 2.5.5)
+        if (showBudgetPlanningDialog) {
+            val initialPlan = remember(currentPeriod) {
+                BudgetPlan(
+                    plannedMandatory = currentPeriod?.plannedMandatory ?: 0,
+                    plannedOptional = currentPeriod?.plannedOptional ?: 0,
+                    plannedSavings = currentPeriod?.plannedSavings ?: 0
+                )
+            }
+            BudgetPlanningDialog(
+                balance = profile?.balance ?: 0,
+                currentDay = profile?.currentPeriodIndex ?: 1,
+                initialPlan = initialPlan,
+                onConfirm = { newPlan ->
+                    onConfirmBudget(newPlan)
+                    showBudgetPlanningDialog = false
+                },
+                onDismiss = { showBudgetPlanningDialog = false }
+            )
+        }
+
+        // Диалог «План vs Факт» со Звёздами Бюджета (ТЗ 2.5.5)
+        if (showPlanVsFactDialog && currentPeriod != null) {
+            val plan = remember(currentPeriod) {
+                BudgetPlan(
+                    plannedMandatory = currentPeriod.plannedMandatory,
+                    plannedOptional = currentPeriod.plannedOptional,
+                    plannedSavings = currentPeriod.plannedSavings
+                )
+            }
+            val actual = remember(currentPeriod) {
+                ActualExpenses(
+                    actualMandatory = currentPeriod.actualMandatory,
+                    actualOptional = currentPeriod.actualOptional,
+                    actualSavings = currentPeriod.actualSavings
+                )
+            }
+            val compliance = remember(plan, actual) {
+                PetEconomyCalculator.calculateCompliance(plan, actual)
+            }
+            BudgetPlanVsFactDialog(
+                currentDay = profile?.currentPeriodIndex ?: 1,
+                plan = plan,
+                actual = actual,
+                compliance = compliance,
+                onEditPlan = {
+                    showPlanVsFactDialog = false
+                    showBudgetPlanningDialog = true
+                },
+                onDismiss = { showPlanVsFactDialog = false }
+            )
         }
     }
 }

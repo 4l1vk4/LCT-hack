@@ -75,7 +75,12 @@ import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
+import ru.finpet.kids.core.domain.model.ActualExpenses
 import ru.finpet.kids.core.domain.model.BudgetPlan
+import ru.finpet.kids.feature.budget.BudgetPlanVsFactCard
+import ru.finpet.kids.feature.budget.BudgetPlanningDialog
+import ru.finpet.kids.feature.budget.DaySummaryBudgetSection
 
 @Composable
 fun CalendarScreen(
@@ -101,6 +106,7 @@ fun CalendarScreen(
     var showAddNoteDialogForDay by remember { mutableStateOf<Int?>(null) }
     var showAddRecurringDialog by remember { mutableStateOf(false) }
     var showNextDayConfirmDialog by remember { mutableStateOf(false) }
+    var showBudgetPlanningDialog by remember { mutableStateOf(false) }
 
     // Оптимизация: кешируем распределение постоянных трат и заметок по дням
     val recurringDayMap = remember(recurringExpenses) {
@@ -170,6 +176,77 @@ fun CalendarScreen(
                         }
                     }
                 }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
+        // --- 1.1. БЛОК ПЛАНИРОВАНИЯ БЮДЖЕТА / ПЛАН VS ФАКТ (ТЗ 2.5.5) ---
+        item(key = "budget_plan_section") {
+            val isConfirmed = currentPeriod?.isBudgetConfirmed == true
+            val plan = remember(currentPeriod) {
+                BudgetPlan(
+                    plannedMandatory = currentPeriod?.plannedMandatory ?: 0,
+                    plannedOptional = currentPeriod?.plannedOptional ?: 0,
+                    plannedSavings = currentPeriod?.plannedSavings ?: 0
+                )
+            }
+            val actual = remember(currentPeriod) {
+                ActualExpenses(
+                    actualMandatory = currentPeriod?.actualMandatory ?: 0,
+                    actualOptional = currentPeriod?.actualOptional ?: 0,
+                    actualSavings = currentPeriod?.actualSavings ?: 0
+                )
+            }
+
+            if (!isConfirmed) {
+                StardewBoard(
+                    headerTitle = "ПЛАН БЮДЖЕТА НА ДЕНЬ $currentDayIndex",
+                    headerIcon = "📜"
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "⚠️", fontSize = 24.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Бюджет на сегодня не составлен!",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = PixelTextDark
+                                )
+                                Text(
+                                    text = "Распредели доступные монетки по 3 корзинам: на жизнь, радости и мечту до начала покупок.",
+                                    fontSize = 11.sp,
+                                    color = PixelTextMuted,
+                                    lineHeight = 15.sp
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        PixelButton(
+                            text = "🪙 Спланировать бюджет ($balance монет)",
+                            onClick = { showBudgetPlanningDialog = true },
+                            containerColor = PixelGoldBright,
+                            textColor = PixelTextDark,
+                            borderColor = PixelGoldDark,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            } else {
+                val compliance = remember(plan, actual) {
+                    PetEconomyCalculator.calculateCompliance(plan, actual)
+                }
+                BudgetPlanVsFactCard(
+                    currentDay = currentDayIndex,
+                    plan = plan,
+                    actual = actual,
+                    compliance = compliance,
+                    onEditPlan = { showBudgetPlanningDialog = true }
+                )
             }
             Spacer(modifier = Modifier.height(10.dp))
         }
@@ -345,12 +422,34 @@ fun CalendarScreen(
         )
     }
 
+    // --- ДИАЛОГ ПЛАНИРОВАНИЯ БЮДЖЕТА (ТЗ 2.5.5) ---
+    if (showBudgetPlanningDialog) {
+        val initialPlan = remember(currentPeriod) {
+            BudgetPlan(
+                plannedMandatory = currentPeriod?.plannedMandatory ?: 0,
+                plannedOptional = currentPeriod?.plannedOptional ?: 0,
+                plannedSavings = currentPeriod?.plannedSavings ?: 0
+            )
+        }
+        BudgetPlanningDialog(
+            balance = balance,
+            currentDay = currentDayIndex,
+            initialPlan = initialPlan,
+            onConfirm = { plan ->
+                onConfirmBudget(plan)
+                showBudgetPlanningDialog = false
+            },
+            onDismiss = { showBudgetPlanningDialog = false }
+        )
+    }
+
     // --- ДИАЛОГ ПОДТВЕРЖДЕНИЯ ПЕРЕХОДА НА СЛЕДУЮЩИЙ ДЕНЬ ---
     if (showNextDayConfirmDialog) {
         val nextDayNumber = currentDayIndex + 1
         NextDayConfirmDialog(
             currentDay = currentDayIndex,
             nextDay = nextDayNumber,
+            currentPeriod = currentPeriod,
             onConfirm = {
                 showNextDayConfirmDialog = false
                 onCompletePeriod()
@@ -1098,16 +1197,44 @@ fun BudgetCounterRow(
 }
 
 /**
- * Всплывающее окно подтверждения перехода на следующий день
+ * Всплывающее окно подтверждения перехода на следующий день с итогами бюджета (ТЗ 2.5.5, 2.5.11)
  */
 @Composable
 fun NextDayConfirmDialog(
     currentDay: Int,
     nextDay: Int,
+    currentPeriod: PeriodEntity?,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val isNextMonday = (nextDay - 1) % 7 == 0
+    val isConfirmed = currentPeriod?.isBudgetConfirmed == true
+    val plan = remember(currentPeriod) {
+        BudgetPlan(
+            plannedMandatory = currentPeriod?.plannedMandatory ?: 0,
+            plannedOptional = currentPeriod?.plannedOptional ?: 0,
+            plannedSavings = currentPeriod?.plannedSavings ?: 0
+        )
+    }
+    val actual = remember(currentPeriod) {
+        ActualExpenses(
+            actualMandatory = currentPeriod?.actualMandatory ?: 0,
+            actualOptional = currentPeriod?.actualOptional ?: 0,
+            actualSavings = currentPeriod?.actualSavings ?: 0
+        )
+    }
+    val compliance = remember(plan, actual) {
+        PetEconomyCalculator.calculateCompliance(plan, actual)
+    }
+    val carePointsEarned = remember(plan, actual, compliance) {
+        PetEconomyCalculator.calculateCarePoints(
+            satiety = 100,
+            health = 100,
+            plan = plan,
+            actual = actual,
+            compliance = compliance
+        )
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -1115,7 +1242,7 @@ fun NextDayConfirmDialog(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.90f)
+                .fillMaxWidth(0.92f)
                 .wrapContentHeight()
                 .clip(RoundedCornerShape(8.dp))
         ) {
@@ -1136,7 +1263,18 @@ fun NextDayConfirmDialog(
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Если бюджет был утвержден — показываем карточку «Итоги бюджета дня»
+                    if (isConfirmed) {
+                        DaySummaryBudgetSection(
+                            plan = plan,
+                            actual = actual,
+                            compliance = compliance,
+                            carePoints = carePointsEarned
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
 
                     Box(
                         modifier = Modifier
@@ -1144,29 +1282,29 @@ fun NextDayConfirmDialog(
                             .clip(RoundedCornerShape(6.dp))
                             .background(PixelParchmentMedium)
                             .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
-                            .padding(12.dp)
+                            .padding(10.dp)
                     ) {
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = if (isNextMonday) "🎉" else "🐾", fontSize = 20.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text = if (isNextMonday) "🎉" else "🐾", fontSize = 18.sp)
+                                Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = if (isNextMonday) "Понедельник — выплата карманных!" else "Завершение Дня $currentDay",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp,
+                                    fontSize = 12.sp,
                                     color = PixelTextDark
                                 )
                             }
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = if (isNextMonday) {
                                     "Наступает новая неделя! При переходе на День $nextDay тебе будет начислено 200 монет 🪙 карманных денег."
                                 } else {
                                     "Все заметки и траты за сегодня сохранятся в календаре, а питомец перейдет на следующий день."
                                 },
-                                fontSize = 12.sp,
+                                fontSize = 11.sp,
                                 color = PixelTextDark,
-                                lineHeight = 17.sp
+                                lineHeight = 15.sp
                             )
                         }
                     }

@@ -234,7 +234,12 @@ class CompletePeriodUseCase @Inject constructor(
             }
         } else {
             // Если питомец был дома, но настроение упало до 0% — он убегает
-            if (resolution.newStats.mood <= 0) {
+            val effectiveMood = PetEconomyCalculator.calculateEffectiveMood(
+                mood = resolution.newStats.mood,
+                satiety = resolution.newStats.satiety,
+                health = resolution.newStats.health
+            )
+            if (resolution.newStats.mood <= 0 || effectiveMood <= 0) {
                 newIsPetRunaway = true
                 newRunawayDaysLeft = (1..3).random()
                 finalMood = 0

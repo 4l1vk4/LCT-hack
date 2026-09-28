@@ -148,4 +148,63 @@ class PetEconomyCalculatorTest {
         val finished = PetEconomyCalculator.calculatePeriodsLeft(targetCost = 150, savedAmount = 150, avgDeposit = 50)
         assertEquals(0, finished)
     }
+
+    @Test
+    fun `calculateEffectiveMood correctly combines stats and drops smoothly below 26 percent`() {
+        assertEquals(100, PetEconomyCalculator.calculateEffectiveMood(mood = 100, satiety = 100, health = 100))
+        assertEquals(82, PetEconomyCalculator.calculateEffectiveMood(mood = 70, satiety = 100, health = 100))
+        assertEquals(26, PetEconomyCalculator.calculateEffectiveMood(mood = 30, satiety = 30, health = 60))
+        
+        // Значения ниже 26% при прогрессирующем ухудшении состояния
+        val moodLevelLow = PetEconomyCalculator.calculateEffectiveMood(mood = 20, satiety = 20, health = 50)
+        assertTrue("Настроение должно опускаться ниже 26%, получили: $moodLevelLow", moodLevelLow < 26)
+        assertEquals(5, moodLevelLow)
+
+        val moodLevelCritical = PetEconomyCalculator.calculateEffectiveMood(mood = 10, satiety = 15, health = 45)
+        assertEquals(0, moodLevelCritical)
+
+        assertEquals(0, PetEconomyCalculator.calculateEffectiveMood(mood = 0, satiety = 0, health = 0))
+    }
+
+    @Test
+    fun `calculateSatiety progressively drops below 30 on consecutive missed feedings`() {
+        val emptyExpenses = ActualExpenses()
+        val day1Satiety = PetEconomyCalculator.calculateSatiety(emptyExpenses, previousSatiety = 100)
+        assertEquals(30, day1Satiety)
+
+        val day2Satiety = PetEconomyCalculator.calculateSatiety(emptyExpenses, previousSatiety = day1Satiety)
+        assertEquals(15, day2Satiety)
+
+        val day3Satiety = PetEconomyCalculator.calculateSatiety(emptyExpenses, previousSatiety = day2Satiety)
+        assertEquals(0, day3Satiety)
+    }
+
+    @Test
+    fun `consecutive unfed periods drop effective mood below 26 percent down to zero`() {
+        val initialStats = PetStats(
+            satiety = 100,
+            health = 100,
+            mood = 70,
+            carePoints = 2,
+            stage = GrowthStage.BABY,
+            emotion = PetEmotion.HAPPY,
+            feedback = ""
+        )
+        val plan = BudgetPlan(plannedMandatory = 30, plannedOptional = 10, plannedSavings = 20)
+        val noExpenses = ActualExpenses()
+
+        // День 1 без еды: настроение опускается до 26%
+        val day1 = PetEconomyCalculator.resolvePeriod(initialStats, plan, noExpenses)
+        val day1Effective = PetEconomyCalculator.calculateEffectiveMood(day1.newStats.mood, day1.newStats.satiety, day1.newStats.health)
+        assertEquals(26, day1Effective)
+        assertEquals(PetEmotion.SAD, day1.newStats.emotion)
+
+        // День 2 без еды: состояние ухудшается дальше, настроение падает ниже 26% до 0%!
+        val day2 = PetEconomyCalculator.resolvePeriod(day1.newStats, plan, noExpenses)
+        val day2Effective = PetEconomyCalculator.calculateEffectiveMood(day2.newStats.mood, day2.newStats.satiety, day2.newStats.health)
+        assertTrue("На 2-й день без еды настроение должно опуститься ниже 26%", day2Effective < 26)
+        assertEquals(0, day2Effective)
+        assertEquals(0, day2.newStats.mood)
+        assertEquals(PetEmotion.SAD, day2.newStats.emotion)
+    }
 }
