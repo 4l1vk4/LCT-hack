@@ -11,6 +11,17 @@
     "description": "Полезная еда на каждый день. Нужна, чтобы питомец был сытым и сильным!"
   },
   {
+    "id": "groceries_parents",
+    "name": "Продукты по поручению родителей",
+    "category": "MANDATORY",
+    "price": 0,
+    "satietyBonus": 0,
+    "moodBonus": 15,
+    "healthBonus": 0,
+    "icon": "ic_food_bowl",
+    "description": "Родители дают деньги на продукты для дома, а сдача (5, 10 или 15 🪙) остаётся тебе!"
+  },
+  {
     "id": "water_fresh",
     "name": "Свежая вода",
     "category": "MANDATORY",

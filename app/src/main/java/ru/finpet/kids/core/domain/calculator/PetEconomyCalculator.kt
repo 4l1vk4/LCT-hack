@@ -93,7 +93,7 @@ object PetEconomyCalculator {
             mood -= 30
         }
 
-        return mood.coerceIn(10, 100)
+        return mood.coerceIn(0, 100)
     }
 
     /**

@@ -18,6 +18,12 @@ interface CalendarDao {
     @Query("SELECT * FROM calendar_notes ORDER BY dayIndex ASC, id ASC")
     fun getAllNotes(): Flow<List<CalendarNoteEntity>>
 
+    @Query("SELECT COUNT(*) FROM calendar_notes")
+    suspend fun getNotesCount(): Int
+
+    @Query("SELECT COUNT(*) FROM calendar_notes WHERE category = 'PET_FOOD'")
+    suspend fun getChecklistCount(): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNote(note: CalendarNoteEntity): Long
 
@@ -29,6 +35,18 @@ interface CalendarDao {
 
     @Query("UPDATE calendar_notes SET isCompleted = :isCompleted WHERE id = :id")
     suspend fun updateNoteCompleted(id: Long, isCompleted: Boolean)
+
+    @Query("UPDATE calendar_notes SET isCompleted = :isCompleted, cost = :cost WHERE id = :id")
+    suspend fun updateNoteStatus(id: Long, isCompleted: Boolean, cost: Int)
+
+    @Query("SELECT COUNT(*) FROM calendar_notes WHERE category = 'PET_QUESTION'")
+    suspend fun getPetQuestionNotesCount(): Int
+
+    @Query("UPDATE calendar_notes SET isCompleted = 1 WHERE dayIndex = :dayIndex AND category = :category")
+    suspend fun completeChecklistTaskByCategory(dayIndex: Int, category: String)
+
+    @Query("UPDATE calendar_notes SET isCompleted = :isCompleted, cost = :cost WHERE dayIndex = :dayIndex AND category = :category")
+    suspend fun updateChecklistNoteByCategory(dayIndex: Int, category: String, isCompleted: Boolean, cost: Int)
 
     @Query("SELECT * FROM recurring_expenses ORDER BY id ASC")
     fun getAllRecurringExpenses(): Flow<List<RecurringExpenseEntity>>

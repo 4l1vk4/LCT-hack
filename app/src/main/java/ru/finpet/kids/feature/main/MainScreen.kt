@@ -167,6 +167,8 @@ fun MainScreen(
                         onAnswerQuest = { qId, optId -> viewModel.answerQuest(qId, optId) },
                         onDepositGoal = { gId, amt -> viewModel.depositGoal(gId, amt) },
                         onWithdrawGoal = { gId, amt -> viewModel.withdrawGoal(gId, amt) },
+                        onSelectActiveGoal = { gId -> viewModel.selectActiveGoal(gId) },
+                        onCompleteHomeChore = { choreId, coins -> viewModel.completeHomeChore(choreId, coins) },
                         onNavigateToFinik = { selectedTab = 2 }
                     )
                 }
@@ -193,6 +195,7 @@ fun MainScreen(
                         },
                         onDeleteNote = { note -> viewModel.deleteCalendarNote(note) },
                         onToggleNote = { note -> viewModel.toggleCalendarNote(note) },
+                        onCompleteChecklistTask = { note, reward -> viewModel.completeChecklistTask(note, reward) },
                         onAddRecurring = { title, cost, freq, icon ->
                             viewModel.addRecurringExpense(
                                 title,
@@ -210,16 +213,24 @@ fun MainScreen(
                     key = 2,
                     stateHolder = stateHolder
                 ) {
+                    val currentDayIndex = profile?.currentPeriodIndex ?: 1
+                    val todayNotes = calendarNotes.filter { it.dayIndex == currentDayIndex }
+
                     FinikScreen(
                         profile = profile,
                         goals = goals,
+                        todayNotes = todayNotes,
                         selectedSkin = ready?.skinId,
                         petName = ready?.petName,
                         // Анимации персонажа работают только на видимой вкладке —
                         // скрытый Финни не тратит CPU на бесконечные перерисовки
                         animationsEnabled = selectedTab == 2,
                         onPetTapped = { /* Можно добавить звук мурлыканья */ },
-                        onNavigateToGoals = { selectedTab = 0 }
+                        onNavigateToGoals = { selectedTab = 0 },
+                        onNavigateToMap = { selectedTab = 0 },
+                        onAskQuestion = { viewModel.onPetAskedQuestion() },
+                        onPlaceFoodBowl = { viewModel.placeFoodBowl() },
+                        onToggleNote = { note -> viewModel.toggleCalendarNote(note) }
                     )
                 }
                 KeepAliveTab(

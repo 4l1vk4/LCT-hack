@@ -205,6 +205,42 @@ class CompletePeriodUseCase @Inject constructor(
             )
         )
 
+        var newIsPetRunaway = profile.isPetRunaway
+        var newRunawayDaysLeft = profile.runawayDaysLeft
+        var newBowlPlacedToday = false // Сбрасываем на новый день
+
+        var finalMood = resolution.newStats.mood
+        var finalSatiety = resolution.newStats.satiety
+        var finalHealth = resolution.newStats.health
+
+        if (profile.isPetRunaway) {
+            if (profile.bowlPlacedToday) {
+                val daysRemaining = profile.runawayDaysLeft - 1
+                if (daysRemaining <= 0) {
+                    // Питомец возвращается домой!
+                    newIsPetRunaway = false
+                    newRunawayDaysLeft = 0
+                    finalMood = 60
+                    finalSatiety = 80
+                    finalHealth = maxOf(finalHealth, 70)
+                } else {
+                    newRunawayDaysLeft = daysRemaining
+                    newIsPetRunaway = true
+                }
+            } else {
+                // Миска не была поставлена — питомец не вернется, пока не поставят корм
+                newIsPetRunaway = true
+                newRunawayDaysLeft = profile.runawayDaysLeft
+            }
+        } else {
+            // Если питомец был дома, но настроение упало до 0% — он убегает
+            if (resolution.newStats.mood <= 0) {
+                newIsPetRunaway = true
+                newRunawayDaysLeft = (1..3).random()
+                finalMood = 0
+            }
+        }
+
         // Обновляем профиль на следующий период
         repository.saveProfile(
             profile.copy(
@@ -212,9 +248,12 @@ class CompletePeriodUseCase @Inject constructor(
                 currentPeriodIndex = nextPeriodIndex,
                 carePoints = resolution.newStats.carePoints,
                 growthStage = resolution.newStats.stage.name,
-                satiety = resolution.newStats.satiety,
-                health = resolution.newStats.health,
-                mood = resolution.newStats.mood
+                satiety = finalSatiety,
+                health = finalHealth,
+                mood = finalMood,
+                isPetRunaway = newIsPetRunaway,
+                runawayDaysLeft = newRunawayDaysLeft,
+                bowlPlacedToday = newBowlPlacedToday
             )
         )
 

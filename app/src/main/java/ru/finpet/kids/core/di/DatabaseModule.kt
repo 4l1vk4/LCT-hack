@@ -35,6 +35,14 @@ object DatabaseModule {
         }
     }
 
+    private val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE profiles ADD COLUMN isPetRunaway INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE profiles ADD COLUMN runawayDaysLeft INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE profiles ADD COLUMN bowlPlacedToday INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -43,7 +51,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-            .addMigrations(MIGRATION_2_3)
+            .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
             .fallbackToDestructiveMigration()
             .build()
     }
