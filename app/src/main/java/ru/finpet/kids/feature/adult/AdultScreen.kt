@@ -55,6 +55,8 @@ import ru.finpet.kids.core.domain.usecase.AdultSectionUseCase
 import ru.finpet.kids.core.domain.usecase.CompetencyReport
 import ru.finpet.kids.core.domain.usecase.MathProblem
 import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 
 @Composable
 fun AdultScreen(
@@ -62,7 +64,9 @@ fun AdultScreen(
     adultSectionUseCase: AdultSectionUseCase,
     onGrantBonus: (coins: Int, reason: String) -> Unit,
     onNextDemoPeriod: () -> Unit = {},
-    onResetProfile: () -> Unit
+    onResetProfile: () -> Unit,
+    demoMode: Boolean = false,
+    onToggleDemoMode: (Boolean) -> Unit = {}
 ) {
     var isUnlocked by remember { mutableStateOf(false) }
     var challenge by remember { mutableStateOf(adultSectionUseCase.generateAdultChallenge()) }
@@ -399,6 +403,68 @@ fun AdultScreen(
                         onGrantBonus(25, "Помощь родителям по дому")
                         bonusSuccessMessage = "✅ Ребенку начислено +25 монет за помощь родителям!"
                         scope.launch { delay(3000); bonusSuccessMessage = null }
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Демо-режим",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                FinCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    backgroundColor = if (demoMode) Color(0xFFE8F5E9) else Color.White,
+                    borderColor = if (demoMode) FreshGreen else Color(0xFFE0E0E0)
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Демо-режим",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                            }
+                            Switch(
+                                checked = demoMode,
+                                onCheckedChange = onToggleDemoMode,
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = FreshGreen
+                                )
+                            )
+                        }
+
+                        // Кнопка пропуска — появляется только когда демо-режим включён
+                        if (demoMode) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Button(
+                                onClick = onNextDemoPeriod,
+                                colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
+                            ) {
+                                Text(
+                                    text = "⏭️ Пропустить один период",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
                     }
                 }
             }
