@@ -224,7 +224,7 @@ fun MainScreen(
                         selectedSkin = ready?.skinId,
                         petName = ready?.petName,
                         accessoryId = profile?.accessoryId ?: "none",
-                        onSelectAccessory = { accId -> viewModel.setAccessory(accId) },
+                        onToggleAccessory = { accId -> viewModel.toggleAccessory(accId) },
                         // Анимации персонажа работают только на видимой вкладке —
                         // скрытый Финни не тратит CPU на бесконечные перерисовки
                         animationsEnabled = selectedTab == 2,

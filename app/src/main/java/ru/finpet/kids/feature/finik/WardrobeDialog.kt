@@ -39,9 +39,9 @@ import androidx.compose.foundation.Image
 
 @Composable
 fun WardrobeDialog(
-    currentAccessoryId: String,
+    currentAccessoryIds: Set<String>,     // ← теперь Set вместо String
     petName: String,
-    onSelect: (String) -> Unit,
+    onToggle: (String) -> Unit,            // ← toggle, не onSelect
     onDismiss: () -> Unit
 ) {
     Dialog(
@@ -51,7 +51,7 @@ fun WardrobeDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.92f)
-                .fillMaxHeight(0.7f)
+                .fillMaxHeight(0.75f)
                 .clip(RoundedCornerShape(24.dp))
                 .background(Color(0xFFFFFDF7))
                 .border(2.dp, Color(0xFFFFE082), RoundedCornerShape(24.dp))
@@ -76,7 +76,7 @@ fun WardrobeDialog(
                             color = TextPrimary
                         )
                         Text(
-                            text = "Выбери аксессуар для $petName",
+                            text = "Надень или сними аксессуары для $petName",
                             fontSize = 12.sp,
                             color = TextSecondary
                         )
@@ -103,19 +103,19 @@ fun WardrobeDialog(
                     contentPadding = PaddingValues(bottom = 12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(ACCESSORIES, key = { it.id }) { acc ->
-                        val isSelected = acc.id == currentAccessoryId
+                    items(ACCESSORIES.filter { it.id != "none" }, key = { it.id }) { acc ->
+                        val isOn = acc.id in currentAccessoryIds
 
                         Column(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(if (isSelected) Color(0xFFFFF3E0) else Color.White)
+                                .background(if (isOn) Color(0xFFFFF3E0) else Color.White)
                                 .border(
-                                    width = if (isSelected) 2.dp else 1.dp,
-                                    color = if (isSelected) JoyOrange else Color(0xFFE0E0E0),
+                                    width = if (isOn) 2.dp else 1.dp,
+                                    color = if (isOn) JoyOrange else Color(0xFFE0E0E0),
                                     shape = RoundedCornerShape(14.dp)
                                 )
-                                .clickable { onSelect(acc.id) }
+                                .clickable { onToggle(acc.id) }
                                 .padding(10.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
@@ -126,25 +126,62 @@ fun WardrobeDialog(
                                     .background(Color(0xFFFBFBFB)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (acc.id == "none") {
-                                    Text(text = "🚫", fontSize = 28.sp)
-                                } else {
-                                    Image(
-                                        painter = painterResource(acc.drawableRes),
-                                        contentDescription = acc.title,
-                                        modifier = Modifier.size(50.dp)
-                                    )
+                                Image(
+                                    painter = painterResource(acc.drawableRes),
+                                    contentDescription = acc.title,
+                                    modifier = Modifier.size(50.dp)
+                                )
+
+                                // Галочка "надето"
+                                if (isOn) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(22.dp)
+                                            .clip(CircleShape)
+                                            .background(JoyOrange),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "✓",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color.White
+                                        )
+                                    }
                                 }
                             }
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = acc.title,
                                 fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) JoyOrange else TextPrimary,
+                                fontWeight = if (isOn) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isOn) JoyOrange else TextPrimary,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                         }
+                    }
+                }
+
+                // Кнопка "Снять всё" — если что-то надето
+                if (currentAccessoryIds.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(44.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFFFEBEE))
+                            .border(1.5.dp, Color(0xFFEF9A9A), RoundedCornerShape(12.dp))
+                            .clickable { onToggle("none") },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "🚫 Снять всё",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFC62828)
+                        )
                     }
                 }
             }

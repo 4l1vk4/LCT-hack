@@ -72,6 +72,7 @@ import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.feature.finik.WardrobeDialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ru.finpet.kids.feature.finik.parseAccessories
 
 data class ScriptedAdvice(
     val title: String,
@@ -88,7 +89,7 @@ fun FinikScreen(
     selectedSkin: String? = null,
     petName: String? = null,
     accessoryId: String = "none",
-    onSelectAccessory: (String) -> Unit = {},
+    onToggleAccessory: (String) -> Unit = {},
     animationsEnabled: Boolean = true,
     onPetTapped: () -> Unit = {},
     onNavigateToGoals: (() -> Unit)? = null,
@@ -957,11 +958,10 @@ fun FinikScreen(
         }
         if (showWardrobe) {
             WardrobeDialog(
-                currentAccessoryId = profile?.accessoryId ?: "none",
+                currentAccessoryIds = parseAccessories(accessoryId).map { it.id }.toSet(),
                 petName = displayName,
-                onSelect = { accId ->
-                    onSelectAccessory(accId)
-                    showWardrobe = false
+                onToggle = { accId ->
+                    onToggleAccessory(accId)
                 },
                 onDismiss = { showWardrobe = false }
             )

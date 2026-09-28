@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import coil.util.CoilUtils.result
+import ru.finpet.kids.feature.finik.parseAccessories
 
 sealed interface OnboardingState {
     data object Loading : OnboardingState
@@ -519,10 +520,25 @@ class MainViewModel @Inject constructor(
         else -> "Помощь по дому"
     }
 
-    fun setAccessory(accessoryId: String) {
+    fun toggleAccessory(accessoryId: String) {
         viewModelScope.launch {
             val prof = repository.getProfileSync() ?: return@launch
-            repository.saveProfile(prof.copy(accessoryId = accessoryId))
+
+            // "none" — снять всё
+            val newValue = if (accessoryId == "none") {
+                "none"
+            } else {
+                val current = parseAccessories(prof.accessoryId).map { it.id }.toMutableSet()
+                if (accessoryId in current) {
+                    current.remove(accessoryId)     // toggle off
+                } else {
+                    current.add(accessoryId)        // toggle on
+                }
+                if (current.isEmpty()) "none"
+                else current.joinToString(",")
+            }
+
+            repository.saveProfile(prof.copy(accessoryId = newValue))
         }
     }
 }
