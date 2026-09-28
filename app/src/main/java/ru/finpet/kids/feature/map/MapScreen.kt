@@ -508,6 +508,7 @@ fun ShopBottomSheet(
     onBuy: (PurchaseItem) -> Unit
 ) {
     var selectedCategory by remember { mutableStateOf("ALL") }
+    var itemToConfirm by remember { mutableStateOf<PurchaseItem?>(null) }
 
     val filteredItems = remember(selectedCategory, items) {
         if (selectedCategory == "ALL") items
@@ -588,7 +589,7 @@ fun ShopBottomSheet(
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                         Button(
-                            onClick = { onBuy(item) },
+                            onClick = { itemToConfirm = item },
                             colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
                             shape = RoundedCornerShape(14.dp),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
@@ -602,6 +603,89 @@ fun ShopBottomSheet(
                 }
             }
         }
+    }
+    // --- ДИАЛОГ ПОДТВЕРЖДЕНИЯ ПОКУПКИ ---
+    itemToConfirm?.let { item ->
+        AlertDialog(
+            onDismissRequest = { itemToConfirm = null },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Купить «${item.name}»?",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+            },
+            text = {
+                Column {
+                    Text(
+                        text = item.description,
+                        fontSize = 14.sp,
+                        color = TextSecondary,
+                        lineHeight = 20.sp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Цена
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Цена: ",
+                            fontSize = 15.sp,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "${item.price} ",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = JoyOrange
+                        )
+                        CoinIcon(modifier = Modifier.size(16.dp))
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Остаток после покупки
+                    val remaining = balance - item.price
+                    Text(
+                        text = "Останется: $remaining монет",
+                        fontSize = 13.sp,
+                        color = if (remaining >= 0) FreshGreen else Color(0xFFD32F2F),
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    // Что даёт питомцу
+                    val effects = mutableListOf<String>()
+                    if (item.satietyBonus > 0) effects.add("🍎 Сытость +${item.satietyBonus}")
+                    if (item.moodBonus > 0) effects.add("⚡ Настроение +${item.moodBonus}")
+                    if (item.healthBonus > 0) effects.add("❤️ Здоровье +${item.healthBonus}")
+
+                    if (effects.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Эффект: ${effects.joinToString(", ")}",
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onBuy(item)
+                        itemToConfirm = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = FreshGreen)
+                ) {
+                    Text("Купить 🛒", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { itemToConfirm = null }) {
+                    Text("Отмена")
+                }
+            }
+        )
     }
 }
 
