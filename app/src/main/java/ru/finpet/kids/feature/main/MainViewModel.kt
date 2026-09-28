@@ -36,11 +36,15 @@ import ru.finpet.kids.core.domain.usecase.QuestEngineUseCase
 import ru.finpet.kids.core.domain.usecase.ResetDemoProfileUseCase
 import ru.finpet.kids.core.domain.usecase.WithdrawFromGoalUseCase
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import coil.util.CoilUtils.result
 import ru.finpet.kids.feature.finik.parseAccessories
+import kotlinx.coroutines.flow.first
 
 sealed interface OnboardingState {
     data object Loading : OnboardingState
@@ -78,8 +82,13 @@ class MainViewModel @Inject constructor(
     val profile: StateFlow<ProfileEntity?> = repository.getProfile()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val _currentPeriod = MutableStateFlow<PeriodEntity?>(null)
-    val currentPeriod: StateFlow<PeriodEntity?> = _currentPeriod.asStateFlow()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentPeriod: StateFlow<PeriodEntity?> = repository.getProfile()
+        .flatMapLatest { prof ->
+            if (prof == null) flowOf(null)
+            else repository.getPeriod(prof.currentPeriodIndex)
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _moneyEvent = MutableStateFlow<MoneyEvent?>(null)
     val moneyEvent: StateFlow<MoneyEvent?> = _moneyEvent.asStateFlow()
@@ -235,9 +244,7 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun loadCurrentPeriod() {
-        val prof = repository.getProfileSync() ?: return
-        val period = repository.getPeriodSync(prof.currentPeriodIndex)
-        _currentPeriod.value = period
+        // currentPeriod обновляется автоматически через реактивный Flow из Room
     }
 
     fun confirmBudget(plan: BudgetPlan) {
@@ -377,8 +384,7 @@ class MainViewModel @Inject constructor(
             }
             showMoneyEvent(
                 amount = rewardCoins,
-                source = "Домашнее дело: ${choreTitle(choreId)}",
-                icon = "🧹"
+                source = "Домашнее дело: ${choreTitle(choreId)}"
             )
             loadCurrentPeriod()
         }

@@ -37,42 +37,83 @@ object PetEconomyCalculator {
     }
 
     /**
-     * Рассчитывает сытость питомца (0..100) на основе обязательных расходов на питание.
-     * Питомец не может умереть (минимальная сытость 30, если еду не купили).
+     * Рассчитывает единый (эффективный) показатель настроения питомца (0..100)
+     * с учетом сытости и общего здоровья.
+     * Используется для UI и проверки критических состояний (убегание питомца).
      */
-    fun calculateSatiety(actualExpenses: ActualExpenses): Int {
+    fun calculateEffectiveMood(mood: Int, satiety: Int, health: Int): Int {
+        var calculated = (mood * 0.60f + satiety * 0.20f + health * 0.20f)
+        if (satiety < 50) {
+            calculated -= (50 - satiety) * 0.5f
+        }
+        if (health < 60) {
+            calculated -= (60 - health) * 0.6f
+        }
+        return calculated.roundToInt().coerceIn(0, 100)
+    }
+
+    /**
+     * Рассчитывает сытость питомца (0..100) на основе обязательных расходов на питание.
+     * При разовом пропуске сытость падает до 30 (питомец голоден, но держится).
+     * При систематическом голодании сытость опускается до 0.
+     */
+    fun calculateSatiety(actualExpenses: ActualExpenses, previousSatiety: Int = 100): Int {
         return when {
             actualExpenses.hasPurchasedFood || actualExpenses.actualMandatory >= MIN_FOOD_COST -> 100
-            actualExpenses.hasPurchasedWater || actualExpenses.actualMandatory >= MIN_WATER_COST -> 60
-            else -> 30
+            actualExpenses.hasPurchasedWater || actualExpenses.actualMandatory >= MIN_WATER_COST -> {
+                if (previousSatiety > 60) 60 else minOf(60, previousSatiety + 15)
+            }
+            else -> {
+                if (previousSatiety > 30) {
+                    30
+                } else {
+                    maxOf(0, previousSatiety - 15)
+                }
+            }
         }
     }
 
     /**
      * Рассчитывает здоровье питомца (0..100).
+     * При невыполнении обязательных расходов здоровье снижается (до 60 при первом пропуске,
+     * а при хроническом голоде опускается ниже).
      */
     fun calculateHealth(
         satiety: Int,
         plan: BudgetPlan,
-        actualExpenses: ActualExpenses
+        actualExpenses: ActualExpenses,
+        previousHealth: Int = 100
     ): Int {
         val mandatoryCovered = actualExpenses.actualMandatory >= plan.plannedMandatory && satiety >= 60
         return when {
             mandatoryCovered -> 100
             actualExpenses.hasPurchasedMedicine -> 90
-            else -> 60
+            else -> {
+                if (previousHealth > 60) {
+                    60
+                } else if (satiety < 30) {
+                    maxOf(0, previousHealth - 20)
+                } else {
+                    maxOf(20, previousHealth - 10)
+                }
+            }
         }
     }
 
     /**
-     * Рассчитывает настроение питомца (10..100) с учетом радостей, копилки и перерасхода.
+     * Рассчитывает настроение питомца (0..100) с учетом радостей, копилки, перерасхода и голода.
      */
     fun calculateMood(
         satiety: Int,
         plan: BudgetPlan,
-        actualExpenses: ActualExpenses
+        actualExpenses: ActualExpenses,
+        currentMood: Int = 60
     ): Int {
-        var mood = 60
+        var mood = if (satiety < 50) {
+            minOf(currentMood, 60)
+        } else {
+            maxOf(currentMood, 60)
+        }
 
         // Бонус за полезные/приятные покупки
         val optionalBonus = min(35, (actualExpenses.actualOptional / 10) * 10)
@@ -93,6 +134,11 @@ object PetEconomyCalculator {
             mood -= 30
         }
 
+        // Дополнительный штраф при критическом голоде (satiety < 30)
+        if (satiety < 30) {
+            mood -= (30 - satiety)
+        }
+
         return mood.coerceIn(0, 100)
     }
 
@@ -100,9 +146,10 @@ object PetEconomyCalculator {
      * Определение эмоционального состояния питомца для UI.
      */
     fun resolveEmotion(satiety: Int, health: Int, mood: Int): PetEmotion {
+        val effective = calculateEffectiveMood(mood, satiety, health)
         return when {
-            satiety >= 70 && health >= 80 && mood >= 70 -> PetEmotion.HAPPY
-            satiety >= 50 && health >= 60 && mood >= 40 -> PetEmotion.NEUTRAL
+            effective >= 70 -> PetEmotion.HAPPY
+            effective >= 40 -> PetEmotion.NEUTRAL
             else -> PetEmotion.SAD
         }
     }
@@ -185,9 +232,11 @@ object PetEconomyCalculator {
         actual: ActualExpenses,
         nextDayIndex: Int = 1
     ): PeriodResolution {
-        val satiety = calculateSatiety(actual)
-        val health = calculateHealth(satiety, plan, actual)
-        val mood = calculateMood(satiety, plan, actual)
+        val satiety = calculateSatiety(actual, currentStats.satiety)
+        val health = calculateHealth(satiety, plan, actual, currentStats.health)
+        val rawMood = calculateMood(satiety, plan, actual, currentStats.mood)
+        val effectiveMood = calculateEffectiveMood(rawMood, satiety, health)
+        val mood = if (effectiveMood <= 0) 0 else rawMood
         val emotion = resolveEmotion(satiety, health, mood)
         val compliance = calculateCompliance(plan, actual)
 

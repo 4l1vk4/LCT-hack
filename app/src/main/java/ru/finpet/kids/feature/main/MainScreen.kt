@@ -228,6 +228,10 @@ fun MainScreen(
                         // Анимации персонажа работают только на видимой вкладке —
                         // скрытый Финни не тратит CPU на бесконечные перерисовки
                         animationsEnabled = selectedTab == 2,
+                        isBudgetConfirmed = currentPeriod?.isBudgetConfirmed == true,
+                        currentPeriod = currentPeriod,
+                        onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
+                        onNavigateToPlans = { selectedTab = 1 },
                         onPetTapped = { /* Можно добавить звук мурлыканья */ },
                         onNavigateToGoals = { selectedTab = 0 },
                         onNavigateToMap = { selectedTab = 0 },

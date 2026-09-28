@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -131,6 +132,25 @@ class EconomyUseCasesTest {
     }
 
     @Test
+    fun `ConfirmBudgetUseCase rejects negative values in budget plan`() = runTest {
+        val plan = BudgetPlan(plannedMandatory = -10, plannedOptional = 50, plannedSavings = 50)
+        val result = confirmBudgetUseCase(periodIndex = 1, plan = plan)
+
+        assertTrue(result is BudgetValidationResult.NegativeValues)
+    }
+
+    @Test
+    fun `ConfirmBudgetUseCase allows plan exactly matching available balance`() = runTest {
+        val plan = BudgetPlan(plannedMandatory = 150, plannedOptional = 50, plannedSavings = 100) // Exactly 300
+        val result = confirmBudgetUseCase(periodIndex = 1, plan = plan)
+
+        assertTrue(result is BudgetValidationResult.Success)
+        val savedPeriod = repository.getPeriodSync(1)
+        assertTrue(savedPeriod?.isBudgetConfirmed == true)
+        assertEquals(300, plan.totalPlanned)
+    }
+
+    @Test
     fun `MakePurchaseUseCase succeeds and deducts balance when funds are sufficient`() = runTest {
         val result = makePurchaseUseCase(
             itemId = "food_basic",
@@ -214,5 +234,30 @@ class EconomyUseCasesTest {
         assertEquals(330, success.newBalance)
         assertEquals(20, success.newSaved)
         assertEquals(20, repository.getGoalByIdSync("goal_house")?.savedAmount)
+    }
+
+    @Test
+    fun `CompletePeriodUseCase triggers runaway when mood drops to 0 across consecutive missed feedings`() = runTest {
+        repository.saveProfile(
+            ProfileEntity(
+                satiety = 100,
+                health = 100,
+                mood = 70,
+                balance = 200,
+                currentPeriodIndex = 1
+            )
+        )
+        // День 1: еда не куплена
+        completePeriodUseCase()
+        val profDay1 = repository.getProfileSync()
+        assertFalse(profDay1?.isPetRunaway == true)
+        assertEquals(30, profDay1?.satiety)
+        assertEquals(30, profDay1?.mood)
+
+        // День 2: снова еда не куплена — настроение падает до 0% и кот убегает
+        completePeriodUseCase()
+        val profDay2 = repository.getProfileSync()
+        assertTrue("Питомец должен убежать при падении настроения до 0%", profDay2?.isPetRunaway == true)
+        assertEquals(0, profDay2?.mood)
     }
 }
