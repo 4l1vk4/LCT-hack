@@ -48,6 +48,9 @@ interface CalendarDao {
     @Query("UPDATE calendar_notes SET isCompleted = :isCompleted, cost = :cost WHERE dayIndex = :dayIndex AND category = :category")
     suspend fun updateChecklistNoteByCategory(dayIndex: Int, category: String, isCompleted: Boolean, cost: Int)
 
+    @Query("SELECT * FROM calendar_notes WHERE dayIndex = :dayIndex AND category = :category LIMIT 1")
+    suspend fun getNoteByDayAndCategory(dayIndex: Int, category: String): CalendarNoteEntity?
+
     @Query("SELECT * FROM recurring_expenses ORDER BY id ASC")
     fun getAllRecurringExpenses(): Flow<List<RecurringExpenseEntity>>
 

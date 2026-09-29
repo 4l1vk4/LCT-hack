@@ -77,6 +77,8 @@ class MainViewModel @Inject constructor(
     private val resetDemoProfileUseCase: ResetDemoProfileUseCase
 ) : ViewModel() {
 
+    private var isProcessingGroceries = false
+
     // Eagerly: подписка на Room/DataStore стартует сразу при создании VM в фоне,
     // а не в момент первого открытия вкладки — переключение вкладок не ждёт диск.
     // Сами запросы Room выполняет на своём пуле, главный поток не блокируется.
@@ -269,6 +271,27 @@ class MainViewModel @Inject constructor(
             val currentDay = prof.currentPeriodIndex
 
             if (item.id == "groceries_parents") {
+<<<<<<< HEAD
+                // Защита от бесконечного клика и абуза:
+                // Задание родителей можно выполнить только ОДИН раз в день, когда оно активно и ещё не выполнено!
+                if (isProcessingGroceries) return@launch
+                isProcessingGroceries = true
+                try {
+                    val groceryTask = calendarDao.getNoteByDayAndCategory(currentDay, "GROCERIES")
+                    if (groceryTask == null || groceryTask.isCompleted) {
+                        return@launch
+                    }
+
+                    // По поручению родителей: деньги дают родители (цена 0),
+                    // а сдача (5, 10 или 15 монет) с рандомным шансом остаётся ребёнку!
+                    val change = listOf(5, 10, 15).random()
+                    repository.saveProfile(prof.copy(balance = prof.balance + change))
+                    calendarDao.updateChecklistNoteByCategory(currentDay, "GROCERIES", isCompleted = true, cost = change)
+                    loadCurrentPeriod()
+                } finally {
+                    isProcessingGroceries = false
+                }
+=======
                 // По поручению родителей: деньги дают родители (цена 0),
                 // а сдача (5, 10 или 15 монет) с рандомным шансом остаётся ребёнку!
                 val change = listOf(5, 10, 15).random()
@@ -280,6 +303,7 @@ class MainViewModel @Inject constructor(
                     icon = "🛒"
                 )
                 loadCurrentPeriod()
+>>>>>>> f29374ee75b0db4e12b1f0db0a3bfe0d2776bea6
                 return@launch
             }
 

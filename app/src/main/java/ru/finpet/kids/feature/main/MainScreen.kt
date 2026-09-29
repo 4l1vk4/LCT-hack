@@ -185,6 +185,10 @@ fun MainScreen(
                         .fillMaxSize()
                         .padding(top = innerPadding.calculateTopPadding())
                 ) {
+                    val currentDayIndex = profile?.currentPeriodIndex ?: 1
+                    val todayNotes = remember(calendarNotes, currentDayIndex) {
+                        calendarNotes.filter { it.dayIndex == currentDayIndex }
+                    }
                     KeepAliveTab(
                         visible = selectedTab == 0,
                         seen = seenTabs.contains(0),
@@ -197,6 +201,7 @@ fun MainScreen(
                             quests = quests,
                             questProgress = questProgress,
                             goals = goals,
+                            todayNotes = todayNotes,
                             onBuyItem = { viewModel.buyItem(it) },
                             onAnswerQuest = { qId, optId -> viewModel.answerQuest(qId, optId) },
                             onDepositGoal = { gId, amt -> viewModel.depositGoal(gId, amt) },
@@ -257,9 +262,6 @@ fun MainScreen(
                         key = 2,
                         stateHolder = stateHolder
                     ) {
-                        val currentDayIndex = profile?.currentPeriodIndex ?: 1
-                        val todayNotes = calendarNotes.filter { it.dayIndex == currentDayIndex }
-
                         FinikScreen(
                             profile = profile,
                             goals = goals,
@@ -323,17 +325,17 @@ fun MainScreen(
                     NavBarWithHotspots(
                         navRes = R.drawable.menu,
                         imageAspectRatio = 1073f / 278f,
-                        hotspots = DEFAULT_NAV_HOTSPOTS,
-                        onSelectTab = onSelectTab,
-                        debug = false,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.BottomCenter)
-                            .navigationBarsPadding()
-                            .onGloballyPositioned { coords ->
-                                navBarHeight = with(density) { coords.size.height.toDp() }
-                            }
-                    )
+                    hotspots = DEFAULT_NAV_HOTSPOTS,
+                    onSelectTab = onSelectTab,
+                    debug = false,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .navigationBarsPadding()
+                        .onGloballyPositioned { coords ->
+                            navBarHeight = with(density) { coords.size.height.toDp() }
+                        }
+                )
 
                     moneyEvent?.let { event ->
                         MoneyNotification(
