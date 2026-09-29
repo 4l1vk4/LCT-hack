@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import ru.finpet.kids.R
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.text.font.FontFamily
 
 @Composable
 fun FinButton(
@@ -200,5 +202,34 @@ fun FinCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         content()
+    }
+}
+
+/**
+ * Текст с монеткой в конце: "150 🪙" → [150] [coin-icon]
+ */
+@Composable
+fun CoinText(
+    fontSize: TextUnit = 14.sp,
+    color: Color = TextPrimary,
+    fontWeight: FontWeight = FontWeight.Bold,
+    fontFamily: FontFamily? = null,
+    prefix: String = "",
+    suffix: String = "",
+    modifier: Modifier = Modifier.size(28.dp)
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+    ) {
+        Text(
+            text = "$prefix$suffix",
+            fontSize = fontSize,
+            fontWeight = fontWeight,
+            fontFamily = fontFamily,
+            color = color
+        )
+        Spacer(modifier = Modifier.width(3.dp))
+        CoinIcon(modifier = Modifier.size(fontSize.value.dp * 1.2f))
     }
 }

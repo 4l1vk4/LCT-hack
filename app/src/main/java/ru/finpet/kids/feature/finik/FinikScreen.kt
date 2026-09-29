@@ -3,10 +3,8 @@ package ru.finpet.kids.feature.finik
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -23,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -41,7 +38,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
@@ -71,22 +67,12 @@ import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
-import ru.finpet.kids.core.designsystem.PixelButton
-import ru.finpet.kids.core.designsystem.PixelGoldBright
-import ru.finpet.kids.core.designsystem.PixelGoldDark
-import ru.finpet.kids.core.designsystem.PixelParchmentLight
-import ru.finpet.kids.core.designsystem.PixelTextDark
-import ru.finpet.kids.core.designsystem.PixelTextMuted
-import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
-import ru.finpet.kids.feature.finik.WardrobeDialog
-import androidx.lifecycle.viewmodel.compose.viewModel
-import ru.finpet.kids.feature.finik.parseAccessories
 import ru.finpet.kids.feature.budget.BudgetPlanVsFactDialog
 import ru.finpet.kids.feature.budget.BudgetPlanningDialog
-import ru.finpet.kids.feature.budget.BudgetPulseWidget
+import ru.finpet.kids.core.designsystem.OrbStatBar
 
 data class ScriptedAdvice(
     val title: String,
@@ -246,7 +232,7 @@ fun FinikScreen(
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = "Настроение упало до 0%. Поставь миску корма у двери (цена x2 от обычного корма: 60 🪙). Питомец вернётся через 1–3 дня, если ставить миску каждый день!",
+                            text = "Настроение упало до 0%. Поставь миску корма у двери (цена x2 от обычного корма: 60 монет). Питомец вернётся через 1–3 дня, если ставить миску каждый день!",
                             fontSize = 13.sp,
                             color = TextSecondary,
                             textAlign = TextAlign.Center,
@@ -360,78 +346,77 @@ fun FinikScreen(
                 }
             }
 
-            item(key = "mood_bar") {
-                // Единый показатель настроения питомца
+            item(key = "stats_panel") {
                 FinCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 4.dp, bottom = 6.dp),
                     backgroundColor = Color.White
                 ) {
-                    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-                        val animatedProgress by animateFloatAsState(
-                            targetValue = (effectiveMood.coerceIn(0, 100) / 100f),
-                            animationSpec = tween(durationMillis = 500),
-                            label = "mood_anim"
-                        )
-                        val moodColor = remember(effectiveMood) {
-                            when {
-                                effectiveMood >= 70 -> FreshGreen
-                                effectiveMood >= 40 -> JoyOrange
-                                else -> Color(0xFFFF5252)
-                            }
-                        }
-                        val moodBrush = remember(moodColor) {
-                            Brush.horizontalGradient(
-                                listOf(moodColor.copy(alpha = 0.8f), moodColor)
-                            )
-                        }
-
+                    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = when {
-                                        effectiveMood >= 70 -> "⚡"
-                                        effectiveMood >= 40 -> "🙂"
-                                        else -> "🥺"
-                                    },
-                                    fontSize = 17.sp
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Настроение $displayName",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
-                                )
-                            }
+                            Text(
+                                text = "Состояние $displayName",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                            // Общий процент настроения — сразу видно, к чему стремиться
                             Text(
                                 text = "$effectiveMood%",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = moodColor
+                                color = remember(effectiveMood) {
+                                    when {
+                                        effectiveMood >= 70 -> FreshGreen
+                                        effectiveMood >= 40 -> JoyOrange
+                                        else -> Color(0xFFFF5252)
+                                    }
+                                }
                             )
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // 1. Сытость
+                        OrbStatBar(
+                            label = "Сытость",
+                            icon = "🍎",
+                            value = satiety,
+                            tintColor  = JoyOrange,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // 2. Энергия (настроение)
+                        OrbStatBar(
+                            label = "Энергия",
+                            icon = "⚡",
+                            value = mood,
+                            tintColor  = SkyBlue,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // 3. Здоровье
+                        OrbStatBar(
+                            label = "Здоровье",
+                            icon = "❤️",
+                            value = health,
+                            tintColor  = FreshGreen,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
                         Spacer(modifier = Modifier.height(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(20.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(Color(0xFFEEEEEE))
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .fillMaxWidth(animatedProgress)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(moodBrush)
-                            )
-                        }
+                        Text(
+                            text = "Следи за всеми тремя — от них зависит общее настроение!",
+                            fontSize = 11.sp,
+                            color = TextSecondary,
+                            lineHeight = 14.sp
+                        )
                     }
                 }
             }

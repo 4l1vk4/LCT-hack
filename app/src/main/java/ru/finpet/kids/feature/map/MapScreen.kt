@@ -91,6 +91,7 @@ fun MapScreen(
     var activeModal by remember { mutableStateOf<String?>(null) } // "SHOP", "QUESTS", "GOALS"
     var notEnoughMoneyInfo by remember { mutableStateOf<Pair<Int, Int>?>(null) } // missing, price
     var questFeedback by remember { mutableStateOf<String?>(null) }
+    var showNoPetDialog by remember { mutableStateOf(false) }
 
     val balance = profile?.balance ?: 50
 
@@ -108,7 +109,13 @@ fun MapScreen(
                 debug = DEBUG_HOTSPOTS,     // ← рамки видны прямо здесь
                 onClickHotspot = { spot ->
                     when (spot.id) {
-                        "shop" -> activeModal = "SHOP"
+                        "shop" -> {
+                            if (profile?.isPetRunaway == true) {
+                                showNoPetDialog = true
+                            } else {
+                                activeModal = "SHOP"
+                            }
+                        }
                         "quests" -> activeModal = "QUESTS"
                         "home", "bank" -> activeModal = "GOALS"
                     }
@@ -205,6 +212,39 @@ fun MapScreen(
             },
             dismissButton = {
                 TextButton(onClick = { notEnoughMoneyInfo = null }) {
+                    Text("Понятно")
+                }
+            }
+        )
+    }
+
+    // --- ДИАЛОГ: КОТ УБЕЖАЛ, МАГАЗИН ЗАКРЫТ ---
+    if (showNoPetDialog) {
+        AlertDialog(
+            onDismissRequest = { showNoPetDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "😿", fontSize = 22.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Продукты никому не нужны",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+            },
+            text = {
+                Text(
+                    text = "Кот убежал, и сейчас его нет дома. Продукты никому не нужны.\n\nПоставь миску корма у двери — и он скоро вернётся!",
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showNoPetDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = JoyOrange)
+                ) {
                     Text("Понятно")
                 }
             }

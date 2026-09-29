@@ -151,7 +151,7 @@ fun MainScreen(
                             if (p.health < 60) m -= (60 - p.health) * 0.6f
                             m.roundToInt().coerceIn(0, 100)
                         } ?: 70,
-                        onOpenInstructions = { /* ... */ },
+                        onOpenInstructions = {},
                         onOpenSettings = { selectedTab = 4 },
                         debug = false,
                         modifier = Modifier

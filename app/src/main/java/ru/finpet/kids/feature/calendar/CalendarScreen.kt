@@ -227,7 +227,7 @@ fun CalendarScreen(
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         PixelButton(
-                            text = "🪙 Спланировать бюджет ($balance монет)",
+                            text = "Спланировать бюджет ($balance монет)",
                             onClick = { showBudgetPlanningDialog = true },
                             containerColor = PixelGoldBright,
                             textColor = PixelTextDark,

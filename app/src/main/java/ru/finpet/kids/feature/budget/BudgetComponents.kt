@@ -60,6 +60,7 @@ import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
 import ru.finpet.kids.core.domain.model.ActualExpenses
 import ru.finpet.kids.core.domain.model.BudgetCompliance
 import ru.finpet.kids.core.domain.model.BudgetPlan
+import ru.finpet.kids.core.designsystem.CoinText
 
 /**
  * Модель «3 Звезды Бюджета» (ТЗ 2.5.5, Шаг 5 Приложения А):
@@ -267,12 +268,12 @@ fun BudgetPlanningDialog(
                                         fontFamily = FontFamily.Monospace
                                     )
                                 }
-                                Text(
-                                    text = "В баночках: $totalPlanned 🪙",
-                                    fontWeight = FontWeight.Bold,
+                                CoinText(
+                                    prefix = "В баночках: $totalPlanned",
                                     fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
                                     color = if (isOverBudget) PixelRedBerry else PixelTextDark,
-                                    fontFamily = FontFamily.Monospace
+                                    modifier = Modifier
                                 )
                             }
 
@@ -602,8 +603,8 @@ private fun MagicJarCard(
                     .padding(horizontal = 8.dp, vertical = 4.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "$amount 🪙",
+                CoinText(
+                    prefix = "$amount",
                     fontWeight = FontWeight.ExtraBold,
                     color = color,
                     fontSize = 13.sp,
@@ -720,7 +721,28 @@ fun BudgetPlanVsFactCard(
             ) {
                 Column {
                     Text(
-                        text = "План: ${plan.totalPlanned} 🪙 • Факт: ${actual.totalActual} 🪙",
+                        text = "План: ",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        color = PixelTextDark,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    CoinText(
+                        prefix = "${plan.totalPlanned}",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        color = PixelTextDark,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Text(
+                        text = "• Факт: ",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        color = PixelTextDark,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    CoinText(
+                        prefix = "${actual.totalActual}",
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
                         color = PixelTextDark,
@@ -988,8 +1010,8 @@ private fun CategoryComparisonRow(
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(text = starStatus, fontSize = 12.sp)
             }
-            Text(
-                text = "$actual / $planned 🪙",
+            CoinText(
+                prefix = "$actual / $planned",
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 12.sp,
                 color = if (isOverspent) PixelRedBerry else color,

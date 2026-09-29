@@ -150,7 +150,7 @@ fun TopBarWithHotspots(
             text = "$moodPercent%",
             fontSize = PERCENT_FONT_SIZE.sp,
             fontWeight = FontWeight.Black,
-            color = tint,
+            color = Color.Black,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .offset(
