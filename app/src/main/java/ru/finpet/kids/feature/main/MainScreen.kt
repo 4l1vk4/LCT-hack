@@ -1,6 +1,8 @@
 package ru.finpet.kids.feature.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -108,6 +110,7 @@ fun MainScreen(
     val musicVolume by viewModel.musicVolume.collectAsStateWithLifecycle()
     val demoMode by viewModel.demoMode.collectAsStateWithLifecycle()
     val moneyEvent by viewModel.moneyEvent.collectAsStateWithLifecycle()
+    var helpPanelOpen by remember { mutableStateOf(false) }
 
     // Keep-alive вкладок: один раз показанная вкладка остаётся в композиции
     // (состояние скролла, диалоги, введённый текст), переключение — только
@@ -153,6 +156,8 @@ fun MainScreen(
                         } ?: 70,
                         onOpenInstructions = {},
                         onOpenSettings = { selectedTab = 4 },
+                        menuExpanded = helpPanelOpen,
+                        onToggleMenu = { helpPanelOpen = !helpPanelOpen },
                         debug = false,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -318,6 +323,38 @@ fun MainScreen(
                             .align(Alignment.TopCenter)
                             .padding(top = 12.dp)
                     )
+                }
+
+                // Оверлей справки — поверх всего, на весь экран
+                if (helpPanelOpen) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.25f))
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { helpPanelOpen = false },
+                        contentAlignment = Alignment.TopStart
+                    ) {
+                        HelpPanelWithHotspots(
+                            panelRes = R.drawable.top_fall,
+                            imageAspectRatio = 1073f / 104f,
+                            onInstructions = {
+                                helpPanelOpen = false
+                                // открыть инструкцию
+                            },
+                            onSettings = {
+                                helpPanelOpen = false
+                                selectedTab = 4    // или как ты открываешь настройки
+                            },
+                            onClose = {helpPanelOpen = false},
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 0.dp),   // ← позиция под топбаром
+                            debug = false
+                        )
+                    }
                 }
             }
         }

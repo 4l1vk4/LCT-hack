@@ -38,6 +38,8 @@ import kotlin.math.roundToInt
 import ru.finpet.kids.R
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 
 data class TopBarHotspot(
     val id: String,
@@ -47,7 +49,6 @@ data class TopBarHotspot(
     val bottom: Float
 )
 
-// ⚠️ Все координаты — в долях от размера картинки. Подгони через debug.
 private val MENU_HOTSPOT = TopBarHotspot(
     id = "menu",
     left = 0.91f, top = 0.10f, right = 0.99f, bottom = 0.90f
@@ -55,7 +56,7 @@ private val MENU_HOTSPOT = TopBarHotspot(
 
 // Текст баланса (слева, поверх монетки на картинке)
 private const val MONEY_CX = 0.12f
-private const val MONEY_CY = 0.2f
+private const val MONEY_CY = 0.18f
 private const val MONEY_FONT_SIZE = 13f
 
 // Полоска орбов (в центре)
@@ -83,11 +84,11 @@ fun TopBarWithHotspots(
     moodPercent: Int,
     onOpenInstructions: () -> Unit,
     onOpenSettings: () -> Unit,
+    menuExpanded: Boolean,
+    onToggleMenu: () -> Unit,
     modifier: Modifier = Modifier,
     debug: Boolean = false
 ) {
-    var menuExpanded by remember { mutableStateOf(false) }
-
     BoxWithConstraints(
         modifier = modifier.aspectRatio(imageAspectRatio)
     ) {
@@ -186,38 +187,8 @@ fun TopBarWithHotspots(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
-                ) { menuExpanded = true }
+                ) { onToggleMenu() }
         )
-
-        // 5. Выпадающее меню под кнопкой
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .offset(
-                    x = w * MENU_HOTSPOT.left - 140.dp,
-                    y = h * MENU_HOTSPOT.bottom + 4.dp
-                )
-        ) {
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("📖 Инструкция", fontSize = 15.sp, fontWeight = FontWeight.SemiBold) },
-                    onClick = {
-                        menuExpanded = false
-                        onOpenInstructions()
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("⚙️ Настройки", fontSize = 15.sp, fontWeight = FontWeight.SemiBold) },
-                    onClick = {
-                        menuExpanded = false
-                        onOpenSettings()
-                    }
-                )
-            }
-        }
 
         // 6. Debug
         if (debug) {
