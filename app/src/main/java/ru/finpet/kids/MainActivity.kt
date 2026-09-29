@@ -30,7 +30,9 @@ class MainActivity : ComponentActivity() {
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
+        windowInsetsController.hide(
+            WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars()
+        )
 
         setContent {
             FinPetTheme {

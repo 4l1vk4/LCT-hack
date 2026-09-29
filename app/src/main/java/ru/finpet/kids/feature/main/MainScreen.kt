@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.Dp
 import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
 import androidx.compose.runtime.mutableStateOf
 import ru.finpet.kids.core.designsystem.MoneyNotification
+import kotlin.math.roundToInt
 
 @Composable
 fun MainScreen(
@@ -139,9 +140,24 @@ fun MainScreen(
             containerColor = SoftBackground,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
-                // Показываем топбар везде, кроме вкладки «Карта» (индекс 0)
                 if (selectedTab != 0) {
-                    TopBar(balance = balance)
+                    TopBarWithHotspots(
+                        topBarRes = R.drawable.top,
+                        imageAspectRatio = 1073f / 104f,
+                        balance = balance,
+                        moodPercent = profile?.let { p ->
+                            var m = (p.mood * 0.60f + p.satiety * 0.20f + p.health * 0.20f)
+                            if (p.satiety < 50) m -= (50 - p.satiety) * 0.5f
+                            if (p.health < 60) m -= (60 - p.health) * 0.6f
+                            m.roundToInt().coerceIn(0, 100)
+                        } ?: 70,
+                        onOpenInstructions = { /* ... */ },
+                        onOpenSettings = { selectedTab = 4 },
+                        debug = false,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 15.dp)
+                    )
                 }
             }
             // Нижнего бара в Scaffold нет: стеклянный док парит ПОВЕРХ контента,
@@ -341,30 +357,6 @@ private fun KeepAliveTab(
     ) {
         stateHolder.SaveableStateProvider(key) {
             content()
-        }
-    }
-}
-
-@Composable
-private fun TopBar(
-    balance: Int
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(2.dp),
-        color = Color.White
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "🐾", fontSize = 24.sp)
-            CoinBadge(coins = balance)
         }
     }
 }
