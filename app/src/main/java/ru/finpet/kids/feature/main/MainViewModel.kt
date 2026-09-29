@@ -42,6 +42,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import coil.util.CoilUtils.result
+import ru.finpet.kids.feature.finik.parseAccessories
+import kotlinx.coroutines.flow.first
 
 sealed interface OnboardingState {
     data object Loading : OnboardingState
@@ -260,6 +263,7 @@ class MainViewModel @Inject constructor(
             val currentDay = prof.currentPeriodIndex
 
             if (item.id == "groceries_parents") {
+<<<<<<< HEAD
                 // Защита от бесконечного клика и абуза:
                 // Задание родителей можно выполнить только ОДИН раз в день, когда оно активно и ещё не выполнено!
                 if (isProcessingGroceries) return@launch
@@ -279,6 +283,19 @@ class MainViewModel @Inject constructor(
                 } finally {
                     isProcessingGroceries = false
                 }
+=======
+                // По поручению родителей: деньги дают родители (цена 0),
+                // а сдача (5, 10 или 15 монет) с рандомным шансом остаётся ребёнку!
+                val change = listOf(5, 10, 15).random()
+                repository.saveProfile(prof.copy(balance = prof.balance + change))
+                calendarDao.updateChecklistNoteByCategory(currentDay, "GROCERIES", isCompleted = true, cost = change)
+                showMoneyEvent(
+                    amount = change,
+                    source = "Сдача от покупки продуктов",
+                    icon = "🛒"
+                )
+                loadCurrentPeriod()
+>>>>>>> f29374ee75b0db4e12b1f0db0a3bfe0d2776bea6
                 return@launch
             }
 
@@ -389,6 +406,10 @@ class MainViewModel @Inject constructor(
                     )
                 )
             }
+            showMoneyEvent(
+                amount = rewardCoins,
+                source = "Домашнее дело: ${choreTitle(choreId)}"
+            )
             loadCurrentPeriod()
         }
     }
@@ -409,6 +430,10 @@ class MainViewModel @Inject constructor(
     fun grantParentBonus(coins: Int, reason: String) {
         viewModelScope.launch {
             adultSectionUseCase.grantParentBonus(coins, reason)
+            showMoneyEvent(
+                amount = coins,
+                source = "Награда от родителей: $reason",
+            )
         }
     }
 
@@ -458,6 +483,10 @@ class MainViewModel @Inject constructor(
             if (rewardCoins > 0) {
                 val prof = repository.getProfileSync() ?: return@launch
                 repository.saveProfile(prof.copy(balance = prof.balance + rewardCoins))
+                showMoneyEvent(
+                    amount = rewardCoins,
+                    source = "Задание: ${note.title}"
+                )
             }
         }
     }
@@ -512,6 +541,35 @@ class MainViewModel @Inject constructor(
 
     fun toggleDemo(enabled: Boolean) {
         viewModelScope.launch { settingsRepository.setDemoMode(enabled) }
+    }
+
+    private fun choreTitle(choreId: String): String = when (choreId) {
+        "chore_floor" -> "Мытьё полов"
+        "chore_trash" -> "Вынос мусора"
+        "chore_dishes" -> "Мытьё посуды"
+        else -> "Помощь по дому"
+    }
+
+    fun toggleAccessory(accessoryId: String) {
+        viewModelScope.launch {
+            val prof = repository.getProfileSync() ?: return@launch
+
+            // "none" — снять всё
+            val newValue = if (accessoryId == "none") {
+                "none"
+            } else {
+                val current = parseAccessories(prof.accessoryId).map { it.id }.toMutableSet()
+                if (accessoryId in current) {
+                    current.remove(accessoryId)     // toggle off
+                } else {
+                    current.add(accessoryId)        // toggle on
+                }
+                if (current.isEmpty()) "none"
+                else current.joinToString(",")
+            }
+
+            repository.saveProfile(prof.copy(accessoryId = newValue))
+        }
     }
 }
 

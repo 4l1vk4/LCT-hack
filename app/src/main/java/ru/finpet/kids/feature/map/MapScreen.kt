@@ -65,6 +65,7 @@ import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.R
+import androidx.compose.foundation.layout.size
 
 private const val DEBUG_HOTSPOTS = false
 
@@ -119,12 +120,15 @@ fun MapScreen(
         }
     }
 
+    val petName = profile?.petName ?: "Финни"
+
     // --- БОЛЬШАЯ ВСПЛЫВАШКА: ШКОЛА ФИННИ (КВЕСТЫ) ---
     if (activeModal == "QUESTS") {
         SchoolBottomSheet(
             quests = quests,
             progressList = questProgress,
             onDismiss = { activeModal = null },
+            petName = petName,
             onSelectOption = { questId, optionId ->
                 val quest = quests.find { it.id == questId }
                 val opt = quest?.options?.find { it.id == optionId }
@@ -186,7 +190,7 @@ fun MapScreen(
             },
             text = {
                 Text(
-                    text = "Тебе не хватает $missing монет для покупки за $price.\n\nЗагляни в Школу Финни и реши задание, чтобы заработать монет!",
+                    text = "Тебе не хватает $missing монет для покупки за $price.\n\nЗагляни в Школу финансовой грамотности и реши задание, чтобы заработать монет!",
                     fontSize = 15.sp,
                     lineHeight = 22.sp
                 )
@@ -214,7 +218,7 @@ fun MapScreen(
     questFeedback?.let { feedback ->
         AlertDialog(
             onDismissRequest = { questFeedback = null },
-            title = { Text(text = "💡 Совет от Финни", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+            title = { Text(text = "💡 Совет от $petName", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
             text = {
                 Text(
                     text = feedback,
@@ -381,19 +385,61 @@ private fun PixelLocationModalSheet(
 fun SchoolBottomSheet(
     quests: List<QuestItem>,
     progressList: List<QuestProgressEntity>,
+    petName: String,
     onDismiss: () -> Unit,
     onSelectOption: (questId: String, optionId: String) -> Unit
 ) {
     val completedCount = progressList.count { it.isCompleted }
+    var showGlossary by remember { mutableStateOf(false) }
 
     PixelLocationModalSheet(
-        title = "🏫 Школа Финни",
+        title = "🏫 Школа финансовой грамотности",
         subtitle = "Уроки финансовой грамотности • Полезные советы для жизни",
         headerDrawableRes = R.drawable.location_school_header,
         badgeText = "$completedCount / ${quests.size} решено",
         onDismiss = onDismiss
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Кнопка открытия словарика — первая в списке
+            Surface(
+                onClick = { showGlossary = true },
+                shape = RoundedCornerShape(14.dp),
+                color = Color(0xFFFFF8E1),
+                border = BorderStroke(2.dp, Color(0xFFFFE082)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFFFE082)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "📖", fontSize = 22.sp)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Словарик $petName",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "Что значит «бюджет», «накопления», «сдача» и другие слова",
+                            fontSize = 12.sp,
+                            color = TextSecondary,
+                            lineHeight = 16.sp
+                        )
+                    }
+                    Text(text = "👉", fontSize = 18.sp)
+                }
+            }
+
             quests.forEach { quest ->
                 val isDone = progressList.any { it.questId == quest.id && it.isCompleted }
 
@@ -466,6 +512,11 @@ fun SchoolBottomSheet(
                 }
             }
         }
+    }
+
+    // Отдельно от боттом-шита — диалог словарика
+    if (showGlossary) {
+        GlossaryDialog(petName = petName, onDismiss = { showGlossary = false })
     }
 }
 

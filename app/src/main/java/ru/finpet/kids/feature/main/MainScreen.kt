@@ -86,6 +86,7 @@ fun MainScreen(
     val ready = onboarding as? OnboardingState.Ready
 
     var selectedTab by rememberSaveable { mutableIntStateOf(2) } // По умолчанию вкладка 3: Финни в кресле
+    val showWardrobe = remember { mutableStateOf(false) }
     var navBarHeight by remember { mutableStateOf(140.dp) }
     val density = LocalDensity.current
 
@@ -225,6 +226,8 @@ fun MainScreen(
                         todayNotes = todayNotes,
                         selectedSkin = ready?.skinId,
                         petName = ready?.petName,
+                        accessoryId = profile?.accessoryId ?: "none",
+                        onToggleAccessory = { accId -> viewModel.toggleAccessory(accId) },
                         // Анимации персонажа работают только на видимой вкладке —
                         // скрытый Финни не тратит CPU на бесконечные перерисовки
                         animationsEnabled = selectedTab == 2,

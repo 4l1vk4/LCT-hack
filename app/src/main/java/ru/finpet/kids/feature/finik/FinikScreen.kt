@@ -81,6 +81,9 @@ import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
+import ru.finpet.kids.feature.finik.WardrobeDialog
+import androidx.lifecycle.viewmodel.compose.viewModel
+import ru.finpet.kids.feature.finik.parseAccessories
 import ru.finpet.kids.feature.budget.BudgetPlanVsFactDialog
 import ru.finpet.kids.feature.budget.BudgetPlanningDialog
 import ru.finpet.kids.feature.budget.BudgetPulseWidget
@@ -99,6 +102,8 @@ fun FinikScreen(
     todayNotes: List<CalendarNoteEntity> = emptyList(),
     selectedSkin: String? = null,
     petName: String? = null,
+    accessoryId: String = "none",
+    onToggleAccessory: (String) -> Unit = {},
     animationsEnabled: Boolean = true,
     onPetTapped: () -> Unit = {},
     onNavigateToGoals: (() -> Unit)? = null,
@@ -137,6 +142,7 @@ fun FinikScreen(
     var currentSpeech by remember { mutableStateOf(defaultGreeting) }
     var panelOpen by remember { mutableStateOf(false) }
     var showTasksMenu by remember { mutableStateOf(false) }
+    var showWardrobe by remember { mutableStateOf(false) }
     var showBudgetPlanningDialog by remember { mutableStateOf(false) }
     var showPlanVsFactDialog by remember { mutableStateOf(false) }
 
@@ -205,85 +211,6 @@ fun FinikScreen(
                         color = TextPrimary,
                         lineHeight = 22.sp
                     )
-                }
-            }
-
-            if (!isPetRunaway) {
-                if (!isBudgetConfirmed) {
-                    item(key = "budget_planning_banner") {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 12.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(PixelWoodDark)
-                                .padding(2.dp)
-                                .border(1.5.dp, PixelGoldBright, RoundedCornerShape(10.dp))
-                                .background(PixelParchmentLight)
-                                .clickable { showBudgetPlanningDialog = true }
-                                .padding(horizontal = 12.dp, vertical = 10.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(text = "📜", fontSize = 26.sp)
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Column {
-                                        Text(
-                                            text = "Спланировать бюджет",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 13.sp,
-                                            color = PixelTextDark
-                                        )
-                                        Text(
-                                            text = "«Давай распределим монетки по баночкам!»",
-                                            fontSize = 11.sp,
-                                            color = PixelTextMuted
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.width(8.dp))
-                                PixelButton(
-                                    text = "Баночки ➔",
-                                    onClick = { showBudgetPlanningDialog = true },
-                                    containerColor = PixelGoldBright,
-                                    textColor = PixelTextDark,
-                                    borderColor = PixelGoldDark
-                                )
-                            }
-                        }
-                    }
-                } else if (currentPeriod != null) {
-                    item(key = "budget_pulse_widget") {
-                        val plan = remember(currentPeriod) {
-                            BudgetPlan(
-                                plannedMandatory = currentPeriod.plannedMandatory,
-                                plannedOptional = currentPeriod.plannedOptional,
-                                plannedSavings = currentPeriod.plannedSavings
-                            )
-                        }
-                        val actual = remember(currentPeriod) {
-                            ActualExpenses(
-                                actualMandatory = currentPeriod.actualMandatory,
-                                actualOptional = currentPeriod.actualOptional,
-                                actualSavings = currentPeriod.actualSavings
-                            )
-                        }
-                        BudgetPulseWidget(
-                            plan = plan,
-                            actual = actual,
-                            onClick = { showPlanVsFactDialog = true },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 12.dp)
-                        )
-                    }
                 }
             }
 
@@ -393,21 +320,43 @@ fun FinikScreen(
                         }
                     }
                 } else {
-                    FinikInArmchair(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        skinId = selectedSkin ?: "cat_black",
-                        mood = when {
-                            effectiveMood < 40 -> "SAD"
-                            effectiveMood >= 70 -> "HAPPY"
-                            else -> "NEUTRAL"
-                        },
-                        stage = profile?.growthStage ?: "BABY",
-                        enabled = animationsEnabled,
-                        onClick = {
-                            onPetTapped()
-                            panelOpen = true
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        FinikInArmchair(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            skinId = selectedSkin ?: "cat_black",
+                            accessoryId = accessoryId,
+                            mood = when {
+                                effectiveMood < 40 -> "SAD"
+                                effectiveMood >= 70 -> "HAPPY"
+                                else -> "NEUTRAL"
+                            },
+                            stage = profile?.growthStage ?: "BABY",
+                            enabled = animationsEnabled,
+                            onClick = {
+                                onPetTapped()
+                                panelOpen = true
+                            }
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(end = 8.dp, bottom = 8.dp)
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(JoyOrange)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) { showWardrobe = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "👔", fontSize = 22.sp)
                         }
-                    )
+                    }
                 }
             }
 
@@ -1073,6 +1022,17 @@ fun FinikScreen(
                     showBudgetPlanningDialog = true
                 },
                 onDismiss = { showPlanVsFactDialog = false }
+            )
+        }
+
+        if (showWardrobe) {
+            WardrobeDialog(
+                currentAccessoryIds = parseAccessories(accessoryId).map { it.id }.toSet(),
+                petName = displayName,
+                onToggle = { accId ->
+                    onToggleAccessory(accId)
+                },
+                onDismiss = { showWardrobe = false }
             )
         }
     }

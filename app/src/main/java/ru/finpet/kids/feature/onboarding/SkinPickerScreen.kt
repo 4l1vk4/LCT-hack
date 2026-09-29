@@ -70,7 +70,7 @@ private data class Hotspot(
 
 private val LEFT_ARROW  = Hotspot(0.0065f, 0.5737f, 0.1296f, 0.6784f)
 private val RIGHT_ARROW = Hotspot(0.8630f, 0.5737f, 0.9648f, 0.6722f)
-private val PLAY_BUTTON = Hotspot(0.0620f, 0.9529f, 0.9306f, 0.9962f)
+private val PLAY_BUTTON = Hotspot(0.185f, 0.774f, 0.835f, 0.873f)
 
 // Где рисовать кота (в долях от размера картинки)
 private const val CAT_CENTER_X = 0.5f     // центр по X
@@ -259,6 +259,6 @@ private fun HotspotBox(
 fun previewDrawableFor(skinId: String): Int = when (skinId) {
     "cat_black"  -> R.drawable.cat_black_neutral
     "cat_brown" -> R.drawable.cat_brown_neutral
-    "cat_nlo"  -> R.drawable.cat_nlo
+    "cat_nlo"  -> R.drawable.cat_nlo_neutral
     else         -> R.drawable.cat_black_neutral
 }
