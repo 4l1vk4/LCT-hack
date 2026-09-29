@@ -17,9 +17,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var musicPlayer: ru.finpet.kids.core.audio.MusicPlayer
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // До super.onCreate: система продолжает рисовать иконку сплэша,
         // пока не будет готов первый кадр Compose. Белого экрана нет.
@@ -34,6 +39,8 @@ class MainActivity : ComponentActivity() {
             WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars()
         )
 
+        musicPlayer.start()
+
         setContent {
             FinPetTheme {
                 Surface(
@@ -45,5 +52,15 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        musicPlayer.onAppForeground()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        musicPlayer.onAppBackground()
     }
 }
