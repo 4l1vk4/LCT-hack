@@ -54,6 +54,8 @@ import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
 import androidx.compose.runtime.mutableStateOf
 import ru.finpet.kids.core.designsystem.MoneyNotification
 import kotlin.math.roundToInt
+import ru.finpet.kids.feature.onboarding.TutorialScreen
+import ru.finpet.kids.feature.onboarding.TutorialScreen
 
 @Composable
 fun MainScreen(
@@ -79,6 +81,14 @@ fun MainScreen(
         is OnboardingState.NeedName -> {
             PetNameScreen(
                 onNameConfirmed = { name -> viewModel.setPetName(name) }
+            )
+            return
+        }
+        is OnboardingState.NeedTutorial -> {
+            TutorialScreen(
+                petName = state.petName,
+                skinId = state.skinId,
+                onFinish = { viewModel.completeTutorial() }
             )
             return
         }
@@ -111,6 +121,7 @@ fun MainScreen(
     val demoMode by viewModel.demoMode.collectAsStateWithLifecycle()
     val moneyEvent by viewModel.moneyEvent.collectAsStateWithLifecycle()
     var helpPanelOpen by remember { mutableStateOf(false) }
+    var showTutorialFromMenu by remember { mutableStateOf(false) }
 
     // Keep-alive вкладок: один раз показанная вкладка остаётся в композиции
     // (состояние скролла, диалоги, введённый текст), переключение — только
@@ -138,224 +149,244 @@ fun MainScreen(
 
     val balance = profile?.balance ?: 50
     CompositionLocalProvider(LocalBottomBarHeight provides navBarHeight) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = SoftBackground,
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            topBar = {
-                if (selectedTab != 0) {
-                    TopBarWithHotspots(
-                        topBarRes = R.drawable.top,
-                        imageAspectRatio = 1073f / 104f,
-                        balance = balance,
-                        moodPercent = profile?.let { p ->
-                            var m = (p.mood * 0.60f + p.satiety * 0.20f + p.health * 0.20f)
-                            if (p.satiety < 50) m -= (50 - p.satiety) * 0.5f
-                            if (p.health < 60) m -= (60 - p.health) * 0.6f
-                            m.roundToInt().coerceIn(0, 100)
-                        } ?: 70,
-                        onOpenInstructions = {},
-                        onOpenSettings = { selectedTab = 4 },
-                        menuExpanded = helpPanelOpen,
-                        onToggleMenu = { helpPanelOpen = !helpPanelOpen },
-                        debug = false,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 15.dp)
-                    )
-                }
-            }
-            // Нижнего бара в Scaffold нет: стеклянный док парит ПОВЕРХ контента,
-            // списки уже имеют нижний отступ 84dp и просвечивают сквозь стекло
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = innerPadding.calculateTopPadding())
-            ) {
-                KeepAliveTab(
-                    visible = selectedTab == 0,
-                    seen = seenTabs.contains(0),
-                    key = 0,
-                    stateHolder = stateHolder
-                ) {
-                    MapScreen(
-                        profile = profile,
-                        purchases = purchases,
-                        quests = quests,
-                        questProgress = questProgress,
-                        goals = goals,
-                        onBuyItem = { viewModel.buyItem(it) },
-                        onAnswerQuest = { qId, optId -> viewModel.answerQuest(qId, optId) },
-                        onDepositGoal = { gId, amt -> viewModel.depositGoal(gId, amt) },
-                        onWithdrawGoal = { gId, amt -> viewModel.withdrawGoal(gId, amt) },
-                        onSelectActiveGoal = { gId -> viewModel.selectActiveGoal(gId) },
-                        onCompleteHomeChore = { choreId, coins -> viewModel.completeHomeChore(choreId, coins) },
-                        onNavigateToFinik = { selectedTab = 2 }
-                    )
-                }
-                KeepAliveTab(
-                    visible = selectedTab == 1,
-                    seen = seenTabs.contains(1),
-                    key = 1,
-                    stateHolder = stateHolder
-                ) {
-                    CalendarScreen(
-                        profile = profile,
-                        currentPeriod = currentPeriod,
-                        calendarNotes = calendarNotes,
-                        recurringExpenses = recurringExpenses,
-                        onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
-                        onCompletePeriod = { viewModel.completePeriod() },
-                        onAddNote = { day, title, cost, cat ->
-                            viewModel.addCalendarNote(
-                                day,
-                                title,
-                                cost,
-                                cat
-                            )
-                        },
-                        onDeleteNote = { note -> viewModel.deleteCalendarNote(note) },
-                        onToggleNote = { note -> viewModel.toggleCalendarNote(note) },
-                        onCompleteChecklistTask = { note, reward -> viewModel.completeChecklistTask(note, reward) },
-                        onAddRecurring = { title, cost, freq, icon ->
-                            viewModel.addRecurringExpense(
-                                title,
-                                cost,
-                                freq,
-                                icon
-                            )
-                        },
-                        onDeleteRecurring = { exp -> viewModel.deleteRecurringExpense(exp) }
-                    )
-                }
-                KeepAliveTab(
-                    visible = selectedTab == 2,
-                    seen = seenTabs.contains(2),
-                    key = 2,
-                    stateHolder = stateHolder
-                ) {
-                    val currentDayIndex = profile?.currentPeriodIndex ?: 1
-                    val todayNotes = calendarNotes.filter { it.dayIndex == currentDayIndex }
-
-                    FinikScreen(
-                        profile = profile,
-                        goals = goals,
-                        todayNotes = todayNotes,
-                        selectedSkin = ready?.skinId,
-                        petName = ready?.petName,
-                        accessoryId = profile?.accessoryId ?: "none",
-                        onToggleAccessory = { accId -> viewModel.toggleAccessory(accId) },
-                        // Анимации персонажа работают только на видимой вкладке —
-                        // скрытый Финни не тратит CPU на бесконечные перерисовки
-                        animationsEnabled = selectedTab == 2,
-                        isBudgetConfirmed = currentPeriod?.isBudgetConfirmed == true,
-                        currentPeriod = currentPeriod,
-                        onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
-                        onNavigateToPlans = { selectedTab = 1 },
-                        onPetTapped = { /* Можно добавить звук мурлыканья */ },
-                        onNavigateToGoals = { selectedTab = 0 },
-                        onNavigateToMap = { selectedTab = 0 },
-                        onAskQuestion = { viewModel.onPetAskedQuestion() },
-                        onPlaceFoodBowl = { viewModel.placeFoodBowl() },
-                        onToggleNote = { note -> viewModel.toggleCalendarNote(note) }
-                    )
-                }
-                KeepAliveTab(
-                    visible = selectedTab == 3,
-                    seen = seenTabs.contains(3),
-                    key = 3,
-                    stateHolder = stateHolder
-                ) {
-                    AdultScreen(
-                        report = report,
-                        adultSectionUseCase = viewModel.adultSectionUseCase,
-                        onGrantBonus = { coins, reason ->
-                            viewModel.grantParentBonus(
-                                coins,
-                                reason
-                            )
-                        },
-                        onNextDemoPeriod = { viewModel.completePeriod() },
-                        onResetProfile = { viewModel.resetDemoProfile() },
-                        demoMode = demoMode,
-                        onToggleDemoMode = { enabled -> viewModel.toggleDemo(enabled) }
-                    )
-                }
-                KeepAliveTab(
-                    visible = selectedTab == 4,
-                    seen = seenTabs.contains(4),
-                    key = 4,
-                    stateHolder = stateHolder
-                ) {
-                    SettingsScreen(
-                        soundEnabled = soundEnabled,
-                        musicEnabled = musicEnabled,
-                        musicVolume = musicVolume,
-                        onToggleSound = { viewModel.toggleSound(it) },
-                        onToggleMusic = { viewModel.toggleMusic(it) },
-                        onMusicVolumeChange = { viewModel.setMusicVolume(it) }
-                    )
-                }
-                // Стеклянный док поверх контента: последний в Box = рисуется сверху
-                NavBarWithHotspots(
-                    navRes = R.drawable.menu,
-                    imageAspectRatio = 1073f / 278f,
-                    hotspots = DEFAULT_NAV_HOTSPOTS,
-                    onSelectTab = onSelectTab,
-                    debug = false,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .navigationBarsPadding()
-                        .onGloballyPositioned { coords ->
-                            navBarHeight = with(density) { coords.size.height.toDp() }
-                        }
-                )
-
-                moneyEvent?.let { event ->
-                    MoneyNotification(
-                        amount = event.amount,
-                        source = event.source,
-                        icon = event.icon,
-                        onDismiss = { viewModel.dismissMoneyEvent() },
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = 12.dp)
-                    )
-                }
-
-                // Оверлей справки — поверх всего, на весь экран
-                if (helpPanelOpen) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.25f))
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { helpPanelOpen = false },
-                        contentAlignment = Alignment.TopStart
-                    ) {
-                        HelpPanelWithHotspots(
-                            panelRes = R.drawable.top_fall,
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                containerColor = SoftBackground,
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                topBar = {
+                    if (selectedTab != 0) {
+                        TopBarWithHotspots(
+                            topBarRes = R.drawable.top,
                             imageAspectRatio = 1073f / 104f,
-                            onInstructions = {
-                                helpPanelOpen = false
-                                // открыть инструкцию
-                            },
-                            onSettings = {
-                                helpPanelOpen = false
-                                selectedTab = 4    // или как ты открываешь настройки
-                            },
-                            onClose = {helpPanelOpen = false},
+                            balance = balance,
+                            moodPercent = profile?.let { p ->
+                                var m = (p.mood * 0.60f + p.satiety * 0.20f + p.health * 0.20f)
+                                if (p.satiety < 50) m -= (50 - p.satiety) * 0.5f
+                                if (p.health < 60) m -= (60 - p.health) * 0.6f
+                                m.roundToInt().coerceIn(0, 100)
+                            } ?: 70,
+                            onOpenInstructions = { showTutorialFromMenu = true },
+                            onOpenSettings = { selectedTab = 4 },
+                            menuExpanded = helpPanelOpen,
+                            onToggleMenu = { helpPanelOpen = !helpPanelOpen },
+                            debug = false,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 0.dp),   // ← позиция под топбаром
-                            debug = false
+                                .padding(top = 15.dp)
                         )
                     }
                 }
+                // Нижнего бара в Scaffold нет: стеклянный док парит ПОВЕРХ контента,
+                // списки уже имеют нижний отступ 84dp и просвечивают сквозь стекло
+            ) { innerPadding ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = innerPadding.calculateTopPadding())
+                ) {
+                    KeepAliveTab(
+                        visible = selectedTab == 0,
+                        seen = seenTabs.contains(0),
+                        key = 0,
+                        stateHolder = stateHolder
+                    ) {
+                        MapScreen(
+                            profile = profile,
+                            purchases = purchases,
+                            quests = quests,
+                            questProgress = questProgress,
+                            goals = goals,
+                            onBuyItem = { viewModel.buyItem(it) },
+                            onAnswerQuest = { qId, optId -> viewModel.answerQuest(qId, optId) },
+                            onDepositGoal = { gId, amt -> viewModel.depositGoal(gId, amt) },
+                            onWithdrawGoal = { gId, amt -> viewModel.withdrawGoal(gId, amt) },
+                            onSelectActiveGoal = { gId -> viewModel.selectActiveGoal(gId) },
+                            onCompleteHomeChore = { choreId, coins ->
+                                viewModel.completeHomeChore(
+                                    choreId,
+                                    coins
+                                )
+                            },
+                            onNavigateToFinik = { selectedTab = 2 }
+                        )
+                    }
+                    KeepAliveTab(
+                        visible = selectedTab == 1,
+                        seen = seenTabs.contains(1),
+                        key = 1,
+                        stateHolder = stateHolder
+                    ) {
+                        CalendarScreen(
+                            profile = profile,
+                            currentPeriod = currentPeriod,
+                            calendarNotes = calendarNotes,
+                            recurringExpenses = recurringExpenses,
+                            onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
+                            onCompletePeriod = { viewModel.completePeriod() },
+                            onAddNote = { day, title, cost, cat ->
+                                viewModel.addCalendarNote(
+                                    day,
+                                    title,
+                                    cost,
+                                    cat
+                                )
+                            },
+                            onDeleteNote = { note -> viewModel.deleteCalendarNote(note) },
+                            onToggleNote = { note -> viewModel.toggleCalendarNote(note) },
+                            onCompleteChecklistTask = { note, reward ->
+                                viewModel.completeChecklistTask(
+                                    note,
+                                    reward
+                                )
+                            },
+                            onAddRecurring = { title, cost, freq, icon ->
+                                viewModel.addRecurringExpense(
+                                    title,
+                                    cost,
+                                    freq,
+                                    icon
+                                )
+                            },
+                            onDeleteRecurring = { exp -> viewModel.deleteRecurringExpense(exp) }
+                        )
+                    }
+                    KeepAliveTab(
+                        visible = selectedTab == 2,
+                        seen = seenTabs.contains(2),
+                        key = 2,
+                        stateHolder = stateHolder
+                    ) {
+                        val currentDayIndex = profile?.currentPeriodIndex ?: 1
+                        val todayNotes = calendarNotes.filter { it.dayIndex == currentDayIndex }
+
+                        FinikScreen(
+                            profile = profile,
+                            goals = goals,
+                            todayNotes = todayNotes,
+                            selectedSkin = ready?.skinId,
+                            petName = ready?.petName,
+                            accessoryId = profile?.accessoryId ?: "none",
+                            onToggleAccessory = { accId -> viewModel.toggleAccessory(accId) },
+                            // Анимации персонажа работают только на видимой вкладке —
+                            // скрытый Финни не тратит CPU на бесконечные перерисовки
+                            animationsEnabled = selectedTab == 2,
+                            isBudgetConfirmed = currentPeriod?.isBudgetConfirmed == true,
+                            currentPeriod = currentPeriod,
+                            onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
+                            onNavigateToPlans = { selectedTab = 1 },
+                            onPetTapped = { /* Можно добавить звук мурлыканья */ },
+                            onNavigateToGoals = { selectedTab = 0 },
+                            onNavigateToMap = { selectedTab = 0 },
+                            onAskQuestion = { viewModel.onPetAskedQuestion() },
+                            onPlaceFoodBowl = { viewModel.placeFoodBowl() },
+                            onToggleNote = { note -> viewModel.toggleCalendarNote(note) }
+                        )
+                    }
+                    KeepAliveTab(
+                        visible = selectedTab == 3,
+                        seen = seenTabs.contains(3),
+                        key = 3,
+                        stateHolder = stateHolder
+                    ) {
+                        AdultScreen(
+                            report = report,
+                            adultSectionUseCase = viewModel.adultSectionUseCase,
+                            onGrantBonus = { coins, reason ->
+                                viewModel.grantParentBonus(
+                                    coins,
+                                    reason
+                                )
+                            },
+                            onNextDemoPeriod = { viewModel.completePeriod() },
+                            onResetProfile = { viewModel.resetDemoProfile() },
+                            demoMode = demoMode,
+                            onToggleDemoMode = { enabled -> viewModel.toggleDemo(enabled) }
+                        )
+                    }
+                    KeepAliveTab(
+                        visible = selectedTab == 4,
+                        seen = seenTabs.contains(4),
+                        key = 4,
+                        stateHolder = stateHolder
+                    ) {
+                        SettingsScreen(
+                            soundEnabled = soundEnabled,
+                            musicEnabled = musicEnabled,
+                            musicVolume = musicVolume,
+                            onToggleSound = { viewModel.toggleSound(it) },
+                            onToggleMusic = { viewModel.toggleMusic(it) },
+                            onMusicVolumeChange = { viewModel.setMusicVolume(it) }
+                        )
+                    }
+                    // Стеклянный док поверх контента: последний в Box = рисуется сверху
+                    NavBarWithHotspots(
+                        navRes = R.drawable.menu,
+                        imageAspectRatio = 1073f / 278f,
+                        hotspots = DEFAULT_NAV_HOTSPOTS,
+                        onSelectTab = onSelectTab,
+                        debug = false,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
+                            .onGloballyPositioned { coords ->
+                                navBarHeight = with(density) { coords.size.height.toDp() }
+                            }
+                    )
+
+                    moneyEvent?.let { event ->
+                        MoneyNotification(
+                            amount = event.amount,
+                            source = event.source,
+                            icon = event.icon,
+                            onDismiss = { viewModel.dismissMoneyEvent() },
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 12.dp)
+                        )
+                    }
+
+                    // Оверлей справки — поверх всего, на весь экран
+                    if (helpPanelOpen) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.25f))
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) { helpPanelOpen = false },
+                            contentAlignment = Alignment.TopStart
+                        ) {
+                            HelpPanelWithHotspots(
+                                panelRes = R.drawable.top_fall,
+                                imageAspectRatio = 1073f / 104f,
+                                onInstructions = {
+                                    helpPanelOpen = false
+                                    showTutorialFromMenu = true
+                                },
+                                onSettings = {
+                                    helpPanelOpen = false
+                                    selectedTab = 4    // или как ты открываешь настройки
+                                },
+                                onClose = { helpPanelOpen = false },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 0.dp),   // ← позиция под топбаром
+                                debug = false
+                            )
+                        }
+                    }
+                }
+            }
+            if (showTutorialFromMenu) {
+                val currentSkinId = ready?.skinId ?: "cat_black"
+                TutorialScreen(
+                    petName = ready?.petName ?: profile?.petName ?: "Финни",
+                    skinId = currentSkinId,
+                    onFinish = { showTutorialFromMenu = false }
+                )
             }
         }
     }

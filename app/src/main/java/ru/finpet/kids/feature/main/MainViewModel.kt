@@ -50,6 +50,7 @@ sealed interface OnboardingState {
     data object Loading : OnboardingState
     data object NeedSkin : OnboardingState
     data object NeedName : OnboardingState
+    data class NeedTutorial(val skinId: String, val petName: String) : OnboardingState
     data class Ready(val skinId: String, val petName: String) : OnboardingState
 }
 
@@ -137,14 +138,16 @@ class MainViewModel @Inject constructor(
 
     val onboardingState: StateFlow<OnboardingState> = combine(
         settingsRepository.selectedSkin,
-        settingsRepository.petName
-    ) { skin, name ->
+        settingsRepository.petName,
+        settingsRepository.isTutorialCompleted
+    ) { skin, name, tutorialDone ->
         val s = skin?.takeIf { it.isNotBlank() }
         val n = name?.takeIf { it.isNotBlank() }
         when {
-            s == null -> OnboardingState.NeedSkin
-            n == null -> OnboardingState.NeedName
-            else      -> OnboardingState.Ready(s, n)
+            s == null          -> OnboardingState.NeedSkin
+            n == null          -> OnboardingState.NeedName
+            !tutorialDone      -> OnboardingState.NeedTutorial(s, n)
+            else               -> OnboardingState.Ready(s, n)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, OnboardingState.Loading)
 
@@ -162,6 +165,11 @@ class MainViewModel @Inject constructor(
             }
         }
     }
+
+    fun completeTutorial() {
+        viewModelScope.launch { settingsRepository.setTutorialCompleted(true) }
+    }
+
 
     init {
         // Вся инициализация — на IO-пуле и максимально параллельно:
@@ -418,6 +426,7 @@ class MainViewModel @Inject constructor(
             resetDemoProfileUseCase()
             settingsRepository.setSelectedSkin("")
             settingsRepository.setPetName("")
+            settingsRepository.setTutorialCompleted(false)
             settingsRepository.setOnboardingCompleted(false)
             calendarDao.clearAllNotes()
             calendarDao.clearAllRecurringExpenses()

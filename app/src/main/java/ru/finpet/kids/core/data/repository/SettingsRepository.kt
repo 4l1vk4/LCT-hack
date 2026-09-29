@@ -28,6 +28,7 @@ class SettingsRepository @Inject constructor(
         val DEMO_MODE = booleanPreferencesKey("demo_mode")
         val SELECTED_SKIN = stringPreferencesKey("selected_skin")
         val PET_NAME = stringPreferencesKey("pet_name")
+        val TUTORIAL_COMPLETED = booleanPreferencesKey("tutorial_completed")
     }
 
     val isSoundEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -97,6 +98,16 @@ class SettingsRepository @Inject constructor(
     suspend fun setPetName(name: String) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.PET_NAME] = name
+        }
+    }
+
+    val isTutorialCompleted: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.TUTORIAL_COMPLETED] ?: false
+    }
+
+    suspend fun setTutorialCompleted(completed: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.TUTORIAL_COMPLETED] = completed
         }
     }
 }
