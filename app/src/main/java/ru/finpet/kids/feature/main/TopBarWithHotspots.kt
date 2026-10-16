@@ -57,7 +57,7 @@ private val MENU_HOTSPOT = TopBarHotspot(
 // Текст баланса (слева, поверх монетки на картинке)
 private const val MONEY_CX = 0.12f
 private const val MONEY_CY = 0.18f
-private const val MONEY_FONT_SIZE = 13f
+private const val MONEY_FONT_SIZE = 15f
 
 // Полоска орбов (в центре)
 private const val ORB_BAR_LEFT = 0.27f     // где начинается ряд
@@ -104,12 +104,12 @@ fun TopBarWithHotspots(
         )
 
         val moneyFontSize = when {
-            balance > 9999 -> 8f
-            balance > 999  -> 10f
+            balance > 9999 -> 10f
+            balance > 999  -> 12f
             else           -> MONEY_FONT_SIZE
         }
 
-        // 2. Баланс — текст поверх монетки слева
+        // 2. Баланс
         Text(
             text = "$balance",
             fontSize = moneyFontSize.sp,
@@ -117,7 +117,7 @@ fun TopBarWithHotspots(
             color = Color(0xFF381F0E),
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(x = w * MONEY_CX, y = h * MONEY_CY)
+                .offset(x = w * MONEY_CX + 6.dp, y = h * MONEY_CY - 3.dp)
         )
 
         // 3. Орбы настроения — накладываем N штук в ряд
@@ -155,8 +155,8 @@ fun TopBarWithHotspots(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .offset(
-                    x = w * PERCENT_CX,
-                    y = h * PERCENT_CY
+                    x = w * PERCENT_CX + 10.dp,
+                    y = h * PERCENT_CY - 3.dp
                 )
         )
 

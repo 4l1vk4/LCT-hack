@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
@@ -171,7 +172,7 @@ fun GlossaryDialog(
                             Text(
                                 text = "Нажми на слово, чтобы узнать его значение!",
                                 fontSize = 11.sp,
-                                fontFamily = FontFamily.Monospace,
+                                fontFamily = AppFontFamily,
                                 color = PixelTextMuted,
                                 lineHeight = 15.sp
                             )
@@ -232,7 +233,7 @@ fun GlossaryDialog(
                                     Text(
                                         text = term.term,
                                         fontSize = 15.sp,
-                                        fontFamily = FontFamily.Monospace,
+                                        fontFamily = AppFontFamily,
                                         fontWeight = FontWeight.Black,
                                         color = PixelTextDark,
                                         modifier = Modifier.weight(1f)

@@ -13,6 +13,9 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+/**
+ * калькулятор игровой экономики: баланс, статы питомца, план vs факт и переход между днями
+ */
 object PetEconomyCalculator {
 
     const val STARTING_BALANCE = 200
@@ -21,26 +24,25 @@ object PetEconomyCalculator {
     const val MIN_FOOD_COST = 30
     const val MIN_WATER_COST = 10
 
-    /**
-     * Понедельники в 28-дневном календаре (4 недели по 7 дней) — это дни 1, 8, 15, 22.
-     */
-    fun isMonday(dayIndex: Int): Boolean {
-        return (dayIndex - 1) % 7 == 0
+    // проверяем, выпадает ли день на понедельник реального месяца (для выдачи карманных денег)
+    fun isMonday(dayIndex: Int, yearMonth: java.time.YearMonth? = null): Boolean {
+        return try {
+            if (yearMonth != null && dayIndex in 1..yearMonth.lengthOfMonth()) {
+                yearMonth.atDay(dayIndex).dayOfWeek == java.time.DayOfWeek.MONDAY
+            } else {
+                (dayIndex - 1) % 7 == 0
+            }
+        } catch (_: Exception) {
+            (dayIndex - 1) % 7 == 0
+        }
     }
 
-    /**
-     * Расчет начисления карманных денег при переходе на следующий день.
-     * Понедельник: +200 монет (на неделю), остальные дни: 0 монет.
-     */
-    fun calculateDayIncome(nextDayIndex: Int): Int {
-        return if (isMonday(nextDayIndex)) WEEKLY_ALLOWANCE else DAILY_INCOME
+    // карманные деньги начисляются по понедельникам: +200 крокетсов на неделю вперед
+    fun calculateDayIncome(nextDayIndex: Int, yearMonth: java.time.YearMonth? = null): Int {
+        return if (isMonday(nextDayIndex, yearMonth)) WEEKLY_ALLOWANCE else DAILY_INCOME
     }
 
-    /**
-     * Рассчитывает единый (эффективный) показатель настроения питомца (0..100)
-     * с учетом сытости и общего здоровья.
-     * Используется для UI и проверки критических состояний (убегание питомца).
-     */
+    // считаем взвешенное настроение (0..100): если сытость или здоровье на дне, настроение тоже резко проседает
     fun calculateEffectiveMood(mood: Int, satiety: Int, health: Int): Int {
         var calculated = (mood * 0.60f + satiety * 0.20f + health * 0.20f)
         if (satiety < 50) {
@@ -52,11 +54,7 @@ object PetEconomyCalculator {
         return calculated.roundToInt().coerceIn(0, 100)
     }
 
-    /**
-     * Рассчитывает сытость питомца (0..100) на основе обязательных расходов на питание.
-     * При разовом пропуске сытость падает до 30 (питомец голоден, но держится).
-     * При систематическом голодании сытость опускается до 0.
-     */
+    // считаем сытость: если купили обед — 100%, если только воду — поддерживаем на 60%, иначе падает до 30% и ниже
     fun calculateSatiety(actualExpenses: ActualExpenses, previousSatiety: Int = 100): Int {
         return when {
             actualExpenses.hasPurchasedFood || actualExpenses.actualMandatory >= MIN_FOOD_COST -> 100
@@ -73,11 +71,7 @@ object PetEconomyCalculator {
         }
     }
 
-    /**
-     * Рассчитывает здоровье питомца (0..100).
-     * При невыполнении обязательных расходов здоровье снижается (до 60 при первом пропуске,
-     * а при хроническом голоде опускается ниже).
-     */
+    // здоровье питомца: если обязательные расходы закрыты и питомец сыт — 100%, иначе постепенно ухудшается
     fun calculateHealth(
         satiety: Int,
         plan: BudgetPlan,
@@ -100,9 +94,7 @@ object PetEconomyCalculator {
         }
     }
 
-    /**
-     * Рассчитывает настроение питомца (0..100) с учетом радостей, копилки, перерасхода и голода.
-     */
+    // базовое настроение: растут бонусы за игрушки и копилку, но за перерасход и голод штрафуем
     fun calculateMood(
         satiety: Int,
         plan: BudgetPlan,
@@ -115,26 +107,26 @@ object PetEconomyCalculator {
             maxOf(currentMood, 60)
         }
 
-        // Бонус за полезные/приятные покупки
+        // бонус за радости и лакомства
         val optionalBonus = min(35, (actualExpenses.actualOptional / 10) * 10)
         mood += optionalBonus
 
-        // Бонус за дисциплину в накоплениях
+        // похвала за дисциплину в копилке
         if (actualExpenses.actualSavings >= plan.plannedSavings && plan.plannedSavings > 0) {
             mood += 10
         }
 
-        // Штраф за перерасход необязательного бюджета
+        // штраф за превышение лимита на спонтанные траты
         if (actualExpenses.actualOptional > plan.plannedOptional && plan.plannedOptional > 0) {
             mood -= 20
         }
 
-        // Штраф, если питомец голоден
+        // штраф, если забыли покормить
         if (satiety < 50) {
             mood -= 30
         }
 
-        // Дополнительный штраф при критическом голоде (satiety < 30)
+        // критический голод роняет настроение еще сильнее
         if (satiety < 30) {
             mood -= (30 - satiety)
         }
@@ -142,9 +134,7 @@ object PetEconomyCalculator {
         return mood.coerceIn(0, 100)
     }
 
-    /**
-     * Определение эмоционального состояния питомца для UI.
-     */
+    // эмоция для отрисовки мордочки питомца в интерфейсе
     fun resolveEmotion(satiety: Int, health: Int, mood: Int): PetEmotion {
         val effective = calculateEffectiveMood(mood, satiety, health)
         return when {
@@ -154,10 +144,7 @@ object PetEconomyCalculator {
         }
     }
 
-    /**
-     * Расчет соответствия плану бюджета (Plan vs Fact).
-     * Защищен от деления на 0 и возврата отрицательных значений.
-     */
+    // считаем точность соблюдения бюджета по 3 корзинам (без деления на 0)
     fun calculateCompliance(plan: BudgetPlan, actual: ActualExpenses): BudgetCompliance {
         fun categoryScore(p: Int, a: Int): Float {
             return when {
@@ -191,9 +178,7 @@ object PetEconomyCalculator {
         )
     }
 
-    /**
-     * Расчет очков заботы за период (0..4 Care Points).
-     */
+    // очки заботы за день (0..4 очка), двигают эволюцию питомца
     fun calculateCarePoints(
         satiety: Int,
         health: Int,
@@ -203,19 +188,19 @@ object PetEconomyCalculator {
     ): Int {
         var points = 0
 
-        // +2 очка: обязательные нужды закрыты (сыт и здоров)
+        // +2 очка: базовые потребности закрыты (сыт и здоров)
         if (satiety >= 60 && health >= 80) {
             points += 2
         }
 
-        // +1 очко: отложено в копилку по плану или самостоятельный взнос >= 20
+        // +1 очко: копилка пополнена по плану или самостоятельный взнос от 20 монет
         val savingsKept = (plan.plannedSavings > 0 && actual.actualSavings >= plan.plannedSavings) ||
                 (plan.plannedSavings == 0 && actual.actualSavings >= 20)
         if (savingsKept) {
             points += 1
         }
 
-        // +1 очко: высокая дисциплина бюджета (>= 75%)
+        // +1 очко: хорошая финансовая дисциплина (от 75%)
         if (compliance.isDisciplined) {
             points += 1
         }
@@ -223,14 +208,13 @@ object PetEconomyCalculator {
         return points
     }
 
-    /**
-     * Полное завершение игрового периода: вычисление всех статов, наград и эволюции.
-     */
+    // полный расчет итогов дня: пересчитываем статы, проверяем стадию взросления и начисляем доход
     fun resolvePeriod(
         currentStats: PetStats,
         plan: BudgetPlan,
         actual: ActualExpenses,
-        nextDayIndex: Int = 1
+        nextDayIndex: Int = 1,
+        yearMonth: java.time.YearMonth? = null
     ): PeriodResolution {
         val satiety = calculateSatiety(actual, currentStats.satiety)
         val health = calculateHealth(satiety, plan, actual, currentStats.health)
@@ -260,7 +244,7 @@ object PetEconomyCalculator {
             feedback = feedback
         )
 
-        val periodIncome = calculateDayIncome(nextDayIndex)
+        val periodIncome = calculateDayIncome(nextDayIndex, yearMonth)
 
         val summaryFeedback = buildString {
             append("Итоги дня: получено +$carePointsEarned очков заботы. ")
@@ -283,9 +267,7 @@ object PetEconomyCalculator {
         )
     }
 
-    /**
-     * Расчет оставшихся периодов до достижения цели.
-     */
+    // считаем, сколько дней еще копить до цели при текущем темпе
     fun calculatePeriodsLeft(targetCost: Int, savedAmount: Int, avgDeposit: Int): Int {
         val remaining = max(0, targetCost - savedAmount)
         if (remaining == 0) return 0

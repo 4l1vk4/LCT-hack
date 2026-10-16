@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,6 +30,8 @@ class SettingsRepository @Inject constructor(
         val SELECTED_SKIN = stringPreferencesKey("selected_skin")
         val PET_NAME = stringPreferencesKey("pet_name")
         val TUTORIAL_COMPLETED = booleanPreferencesKey("tutorial_completed")
+        val VIRTUAL_DATE = stringPreferencesKey("virtual_date")
+        val LAST_REAL_DATE = stringPreferencesKey("last_real_date")
     }
 
     val isSoundEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -109,5 +112,51 @@ class SettingsRepository @Inject constructor(
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.TUTORIAL_COMPLETED] = completed
         }
+    }
+
+    val virtualDate: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.VIRTUAL_DATE]
+    }
+
+    suspend fun getVirtualDateSync(): String? {
+        return context.dataStore.data.map { it[PreferencesKeys.VIRTUAL_DATE] }.firstOrNull()
+    }
+
+    suspend fun setVirtualDate(date: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.VIRTUAL_DATE] = date
+        }
+    }
+
+    val lastRealDate: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.LAST_REAL_DATE]
+    }
+
+    suspend fun getLastRealDateSync(): String? {
+        return context.dataStore.data.map { it[PreferencesKeys.LAST_REAL_DATE] }.firstOrNull()
+    }
+
+    suspend fun setLastRealDate(date: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.LAST_REAL_DATE] = date
+        }
+    }
+
+    suspend fun getVirtualLocalDateSync(): java.time.LocalDate? {
+        val s = getVirtualDateSync() ?: return null
+        return runCatching { java.time.LocalDate.parse(s) }.getOrNull()
+    }
+
+    suspend fun setVirtualDate(date: java.time.LocalDate) {
+        setVirtualDate(date.toString())
+    }
+
+    suspend fun getLastRealLocalDateSync(): java.time.LocalDate? {
+        val s = getLastRealDateSync() ?: return null
+        return runCatching { java.time.LocalDate.parse(s) }.getOrNull()
+    }
+
+    suspend fun setLastRealDate(date: java.time.LocalDate) {
+        setLastRealDate(date.toString())
     }
 }

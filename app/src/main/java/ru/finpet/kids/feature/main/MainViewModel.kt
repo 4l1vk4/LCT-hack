@@ -37,14 +37,16 @@ import ru.finpet.kids.core.domain.usecase.ResetDemoProfileUseCase
 import ru.finpet.kids.core.domain.usecase.WithdrawFromGoalUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import coil.util.CoilUtils.result
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 import ru.finpet.kids.feature.finik.parseAccessories
-import kotlinx.coroutines.flow.first
 
 sealed interface OnboardingState {
     data object Loading : OnboardingState
@@ -92,6 +94,9 @@ class MainViewModel @Inject constructor(
             else repository.getPeriod(prof.currentPeriodIndex)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val _virtualDate = MutableStateFlow<LocalDate>(LocalDate.now())
+    val virtualDate: StateFlow<LocalDate> = _virtualDate.asStateFlow()
 
     private val _moneyEvent = MutableStateFlow<MoneyEvent?>(null)
     val moneyEvent: StateFlow<MoneyEvent?> = _moneyEvent.asStateFlow()
@@ -184,7 +189,9 @@ class MainViewModel @Inject constructor(
                 val purchasesDeferred = async { contentRepository.getPurchases() }
                 val questsDeferred = async { contentRepository.getQuests() }
                 dbInit.await()
-                // Календарь зависит только от готовой БД
+                // Синхронизируем виртуальное и реальное время
+                initVirtualTime()
+                // Календарь зависит только от готовой БД и времени
                 ensureCalendarDataInitialized()
                 _purchases.value = purchasesDeferred.await()
                 _quests.value = questsDeferred.await()
@@ -194,63 +201,136 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private suspend fun initVirtualTime() {
+        val todayReal = LocalDate.now()
+        val lastReal = settingsRepository.getLastRealLocalDateSync()
+        val savedVirtual = settingsRepository.getVirtualLocalDateSync()
+
+        val resolvedVirtual = if (lastReal == null) {
+            val vDate = savedVirtual ?: todayReal
+            settingsRepository.setLastRealDate(todayReal)
+            settingsRepository.setVirtualDate(vDate)
+            vDate
+        } else {
+            val daysPassed = ChronoUnit.DAYS.between(lastReal, todayReal)
+            if (daysPassed > 0) {
+                val baseDate = savedVirtual ?: lastReal
+                val advanced = baseDate.plusDays(daysPassed)
+                settingsRepository.setLastRealDate(todayReal)
+                settingsRepository.setVirtualDate(advanced)
+                advanced
+            } else {
+                savedVirtual ?: todayReal
+            }
+        }
+        _virtualDate.value = resolvedVirtual
+
+        // Если при наступлении нового дня сменился месяц — обновляем задачи на новый месяц
+        val oldMonth = savedVirtual?.month
+        if (oldMonth != null && oldMonth != resolvedVirtual.month) {
+            seedCalendarNotesForMonth(YearMonth.from(resolvedVirtual))
+        }
+
+        // Синхронизируем текущий день в профиле с днем виртуальной даты
+        val profile = repository.getProfileSync()
+        if (profile != null && profile.currentPeriodIndex != resolvedVirtual.dayOfMonth) {
+            repository.saveProfile(profile.copy(currentPeriodIndex = resolvedVirtual.dayOfMonth))
+        }
+    }
+
     private suspend fun ensureCalendarDataInitialized() {
-        calendarDao.clearAllRecurringExpenses()
+        if (calendarDao.getRecurringExpensesSync().isEmpty()) {
+            calendarDao.insertRecurringExpenses(
+                listOf(
+                    RecurringExpenseEntity(
+                        title = "Школьный обед",
+                        cost = 20,
+                        frequencyDays = 1,
+                        icon = "🍲",
+                        category = "MANDATORY"
+                    ),
+                    RecurringExpenseEntity(
+                        title = "Витаминки для питомца",
+                        cost = 15,
+                        frequencyDays = 3,
+                        icon = "💊",
+                        category = "MANDATORY"
+                    ),
+                    RecurringExpenseEntity(
+                        title = "Уход и шампунь",
+                        cost = 25,
+                        frequencyDays = 7,
+                        icon = "🧼",
+                        category = "OPTIONAL"
+                    )
+                )
+            )
+        }
+        val currentYM = YearMonth.from(_virtualDate.value)
+        val notesCount = calendarDao.getNotesCount()
+        val petQuestionsCount = calendarDao.getPetQuestionNotesCount()
+        if (notesCount == 0 || petQuestionsCount == 0) {
+            seedCalendarNotesForMonth(currentYM)
+        }
+    }
+
+    private suspend fun seedCalendarNotesForMonth(yearMonth: YearMonth) {
+        val daysInMonth = yearMonth.lengthOfMonth()
         val petName = repository.getProfileSync()?.petName ?: "Финни"
-        if (calendarDao.getPetQuestionNotesCount() == 0) {
-            calendarDao.clearAllNotes()
-            val allNotes = mutableListOf<CalendarNoteEntity>()
-            for (day in 1..28) {
-                // 1. Ежедневный сытный корм для питомца
+        calendarDao.clearAllNotes()
+        val allNotes = mutableListOf<CalendarNoteEntity>()
+        for (day in 1..daysInMonth) {
+            val date = yearMonth.atDay(day)
+            val isWeekend = date.dayOfWeek in listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
+
+            // 1. Ежедневный сытный корм для питомца
+            allNotes.add(
+                CalendarNoteEntity(
+                    dayIndex = day,
+                    title = "Купить корм для питомца в Лавке",
+                    cost = 30,
+                    category = "PET_FOOD",
+                    isCompleted = false
+                )
+            )
+
+            // 2. В будни — 2 урока в Школе; в выходные (сб-вс) — спросить вопросы у питомца
+            if (isWeekend) {
                 allNotes.add(
                     CalendarNoteEntity(
                         dayIndex = day,
-                        title = "Купить корм для питомца в Лавке",
-                        cost = 30,
-                        category = "PET_FOOD",
+                        title = "Спросить вопросы у $petName",
+                        cost = 0,
+                        category = "PET_QUESTION",
                         isCompleted = false
                     )
                 )
-
-                // 2. В будни — 2 урока в Школе; в выходные (сб-вс: 6, 7, 13, 14, 20, 21, 27, 28) — спросить вопросы у питомца
-                val isWeekend = (day % 7) in listOf(6, 0)
-                if (isWeekend) {
-                    allNotes.add(
-                        CalendarNoteEntity(
-                            dayIndex = day,
-                            title = "Спросить вопросы у $petName",
-                            cost = 0,
-                            category = "PET_QUESTION",
-                            isCompleted = false
-                        )
+            } else {
+                allNotes.add(
+                    CalendarNoteEntity(
+                        dayIndex = day,
+                        title = "Сделать 2 урока в Школе",
+                        cost = 0,
+                        category = "SCHOOL",
+                        isCompleted = false
                     )
-                } else {
-                    allNotes.add(
-                        CalendarNoteEntity(
-                            dayIndex = day,
-                            title = "Сделать 2 урока в Школе",
-                            cost = 0,
-                            category = "SCHOOL",
-                            isCompleted = false
-                        )
-                    )
-                }
-
-                // 3. Продукты по поручению родителей (спавнится ровно 3 раза в неделю: дни 2, 4, 6 в каждой семидневке)
-                if ((day % 7) in listOf(2, 4, 6)) {
-                    allNotes.add(
-                        CalendarNoteEntity(
-                            dayIndex = day,
-                            title = "Купить продукты по поручению родителей",
-                            cost = 0,
-                            category = "GROCERIES",
-                            isCompleted = false
-                        )
-                    )
-                }
+                )
             }
-            calendarDao.insertNotes(allNotes)
+
+            // 3. Продукты по поручению родителей (спавнится 3 раза в неделю: Вт, Чт, Сб)
+            if (date.dayOfWeek in listOf(DayOfWeek.TUESDAY, DayOfWeek.THURSDAY, DayOfWeek.SATURDAY)) {
+                allNotes.add(
+                    CalendarNoteEntity(
+                        dayIndex = day,
+                        title = "Купить продукты по поручению родителей",
+                        cost = 0,
+                        category = "GROCERIES",
+                        isCompleted = false
+                    )
+                )
+            }
         }
+        calendarDao.insertNotes(allNotes)
     }
 
     private suspend fun loadCurrentPeriod() {
@@ -421,7 +501,20 @@ class MainViewModel @Inject constructor(
 
     fun completePeriod() {
         viewModelScope.launch {
-            val result = completePeriodUseCase()
+            val curDate = _virtualDate.value
+            val nextDate = curDate.plusDays(1)
+            _virtualDate.value = nextDate
+            settingsRepository.setVirtualDate(nextDate)
+
+            val monthChanged = nextDate.month != curDate.month
+            val nextDayIndex = nextDate.dayOfMonth
+            val nextYM = YearMonth.from(nextDate)
+
+            if (monthChanged) {
+                seedCalendarNotesForMonth(nextYM)
+            }
+
+            val result = completePeriodUseCase(nextDayIndex = nextDayIndex, yearMonth = nextYM)
             if (result != null && result.periodIncome > 0) {
                 showMoneyEvent(
                     amount = result.periodIncome,
@@ -445,6 +538,10 @@ class MainViewModel @Inject constructor(
     fun resetDemoProfile() {
         viewModelScope.launch {
             resetDemoProfileUseCase()
+            val initialDate = LocalDate.now().withDayOfMonth(1)
+            _virtualDate.value = initialDate
+            settingsRepository.setVirtualDate(initialDate)
+            settingsRepository.setLastRealDate(LocalDate.now())
             settingsRepository.setSelectedSkin("")
             settingsRepository.setPetName("")
             settingsRepository.setTutorialCompleted(false)

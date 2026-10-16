@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -94,7 +95,7 @@ fun StardewBoard(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = headerTitle,
-                            fontFamily = FontFamily.Monospace,
+                            fontFamily = AppFontFamily,
                             fontWeight = FontWeight.Black,
                             fontSize = 14.sp,
                             color = PixelGoldBright,
@@ -122,7 +123,8 @@ fun PixelButton(
     containerColor: Color = PixelGoldBright,
     textColor: Color = PixelTextDark,
     borderColor: Color = PixelGoldDark,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    fontSize: TextUnit = 13.sp
 ) {
     val actualBg = if (enabled) containerColor else Color(0xFFCCCCCC)
     val actualBorder = if (enabled) borderColor else Color(0xFF999999)
@@ -140,9 +142,9 @@ fun PixelButton(
     ) {
         Text(
             text = text,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = AppFontFamily,
             fontWeight = FontWeight.ExtraBold,
-            fontSize = 13.sp,
+            fontSize = fontSize,
             color = if (enabled) textColor else Color(0xFF666666),
             textAlign = TextAlign.Center
         )

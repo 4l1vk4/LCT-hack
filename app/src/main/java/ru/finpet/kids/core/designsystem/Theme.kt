@@ -11,6 +11,8 @@ import androidx.compose.ui.text.font.FontWeight
 import ru.finpet.kids.R
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 
 val SunnyYellow = Color(0xFFFFD54F)
 val JoyOrange = Color(0xFFFF9800)
@@ -23,12 +25,13 @@ val TextSecondary = Color(0xFF8798AD)
 val ErrorRed = Color(0xFFE53935)
 
 val AppFontFamily = FontFamily(
-    Font(R.font.icomoon, FontWeight.Normal),
-    Font(R.font.icomoon, FontWeight.Bold),      // если есть отдельный bold-файл — поменяй
-    Font(R.font.icomoon, FontWeight.Medium),
-    Font(R.font.icomoon, FontWeight.SemiBold),
-    Font(R.font.icomoon, FontWeight.Black),
-    Font(R.font.icomoon, FontWeight.ExtraBold)
+    Font(R.font.epilepsy_sans, FontWeight.Normal),
+    Font(R.font.epilepsy_sans, FontWeight.Light),
+    Font(R.font.epilepsy_sans, FontWeight.Medium),
+    Font(R.font.epilepsy_sans_bold, FontWeight.SemiBold),
+    Font(R.font.epilepsy_sans_bold, FontWeight.Bold),
+    Font(R.font.epilepsy_sans_bold, FontWeight.ExtraBold),
+    Font(R.font.epilepsy_sans_bold, FontWeight.Black)
 )
 
 private val AppTypography = Typography(
@@ -74,11 +77,20 @@ private val LightColorScheme = lightColorScheme(
 fun FinPetTheme(
     content: @Composable () -> Unit
 ) {
+    val currentDensity = LocalDensity.current
+    // пиксельный шрифт Epilepsy Sans оптически компактнее обычных шрифтов,
+    // масштабируем fontScale на ~18% (+2..4sp), чтобы текст читался крупно и четко
+    val scaledDensity = Density(
+        density = currentDensity.density,
+        fontScale = currentDensity.fontScale * 1.18f
+    )
+
     MaterialTheme(
         colorScheme = LightColorScheme,
         typography = AppTypography
     ) {
         CompositionLocalProvider(
+            LocalDensity provides scaledDensity,
             LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = AppFontFamily)
         ) {
             content()

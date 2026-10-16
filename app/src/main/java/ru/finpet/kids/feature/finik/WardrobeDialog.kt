@@ -71,13 +71,13 @@ fun WardrobeDialog(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Гардероб",
-                            fontSize = 20.sp,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = TextPrimary
                         )
                         Text(
                             text = "Надень или сними аксессуары для $petName",
-                            fontSize = 12.sp,
+                            fontSize = 16.sp,
                             color = TextSecondary
                         )
                     }
@@ -154,7 +154,7 @@ fun WardrobeDialog(
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = acc.title,
-                                fontSize = 11.sp,
+                                fontSize = 15.sp,
                                 fontWeight = if (isOn) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isOn) JoyOrange else TextPrimary,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center

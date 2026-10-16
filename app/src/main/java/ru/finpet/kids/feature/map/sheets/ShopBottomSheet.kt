@@ -1,0 +1,408 @@
+package ru.finpet.kids.feature.map.sheets
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import ru.finpet.kids.R
+import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
+import ru.finpet.kids.core.data.repository.PurchaseItem
+import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.FinCard
+import ru.finpet.kids.core.designsystem.FreshGreen
+import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.SkyBlue
+import ru.finpet.kids.core.designsystem.TextPrimary
+import ru.finpet.kids.core.designsystem.TextSecondary
+import ru.finpet.kids.feature.map.components.PixelLocationModalSheet
+
+// шторка магазина товаров: еда, вода, игрушки и поручение купить продукты
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ShopBottomSheet(
+    balance: Int,
+    items: List<PurchaseItem>,
+    todayNotes: List<CalendarNoteEntity> = emptyList(),
+    targetItemId: String? = null,
+    onBuy: (PurchaseItem) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var selectedCategory by remember { mutableStateOf("ALL") }
+    var itemToConfirm by remember { mutableStateOf<PurchaseItem?>(null) }
+    val listState = rememberLazyListState()
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+
+    // скроллим к целевому товару при переходе из задачи дня
+    LaunchedEffect(targetItemId) {
+        if (targetItemId != null) {
+            selectedCategory = "ALL"
+            delay(200)
+            try {
+                bringIntoViewRequester.bringIntoView()
+            } catch (_: Exception) {
+                listState.animateScrollToItem(1)
+            }
+        }
+    }
+
+    val filteredItems = remember(items, selectedCategory) {
+        when (selectedCategory) {
+            "MANDATORY" -> items.filter { it.category == "MANDATORY" }
+            "OPTIONAL" -> items.filter { it.category == "OPTIONAL" }
+            else -> items
+        }
+    }
+
+    PixelLocationModalSheet(
+        title = "🏪 Лавка дядюшки Барсика",
+        subtitle = "Полезный корм, игрушки и поручения родителей",
+        headerDrawableRes = R.drawable.location_shop_header,
+        badgeText = "$balance монет",
+        onDismiss = onDismiss,
+        listState = listState
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // текущий баланс монет
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFFFFF3E0),
+                border = BorderStroke(1.dp, Color(0xFFFFB74D)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CoinIcon(modifier = Modifier.size(22.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "В кошельке: $balance монет",
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFE65100)
+                    )
+                }
+            }
+
+            // фильтрация: все / обязательные / желаемые
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CategoryChip("Все", selectedCategory == "ALL") { selectedCategory = "ALL" }
+                CategoryChip("Обязательное 🥣", selectedCategory == "MANDATORY") { selectedCategory = "MANDATORY" }
+                CategoryChip("Желаемое 🎈", selectedCategory == "OPTIONAL") { selectedCategory = "OPTIONAL" }
+            }
+
+            // список товаров лавки
+            filteredItems.forEach { item ->
+                val isGroceriesItem = item.id == "groceries_parents"
+                val groceryTask = if (isGroceriesItem) todayNotes.find { it.category == "GROCERIES" } else null
+                val isGroceriesCompleted = groceryTask?.isCompleted == true
+                val isGroceriesUnavailable = isGroceriesItem && groceryTask == null
+                val isTarget = targetItemId != null && item.id == targetItemId
+
+                FinCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(if (isTarget) Modifier.bringIntoViewRequester(bringIntoViewRequester) else Modifier),
+                    backgroundColor = if (item.category == "MANDATORY") Color(0xFFF1F8E9) else Color(0xFFF3E5F5),
+                    borderColor = if (isTarget) JoyOrange else if (item.category == "MANDATORY") Color(0xFFA5D6A7) else Color(0xFFCE93D8)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = item.name,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                if (isGroceriesCompleted) {
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = Color(0xFFDCEDC8)
+                                    ) {
+                                        Text(
+                                            text = "Выполнено",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = FreshGreen,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(3.dp))
+                            Text(
+                                text = when {
+                                    isGroceriesCompleted -> "Поручение родителей выполнено! Сдача +${groceryTask?.cost ?: 0} монет уже в кошельке."
+                                    isGroceriesUnavailable -> "Родители сегодня не давали поручение на покупки. Загляни во Вт, Чт или Сб!"
+                                    else -> item.description
+                                },
+                                fontSize = 17.sp,
+                                color = TextSecondary,
+                                lineHeight = 21.sp
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (item.satietyBonus > 0) Text("🍎 +${item.satietyBonus}", fontSize = 16.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
+                                if (item.moodBonus > 0) Text("⚡ +${item.moodBonus}", fontSize = 16.sp, color = SkyBlue, fontWeight = FontWeight.Bold)
+                                if (item.healthBonus > 0) Text("❤️ +${item.healthBonus}", fontSize = 16.sp, color = FreshGreen, fontWeight = FontWeight.Bold)
+                                if (isGroceriesItem && !isGroceriesCompleted && !isGroceriesUnavailable) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        CoinIcon(modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Сдача: 5, 10 или 15 монет", fontSize = 16.sp, color = FreshGreen, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        when {
+                            isGroceriesCompleted -> {
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Color(0xFFE8F5E9),
+                                    border = BorderStroke(1.dp, Color(0xFFAED581))
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
+                                    ) {
+                                        if ((groceryTask?.cost ?: 0) > 0) {
+                                            Text(
+                                                text = "✅ +${groceryTask?.cost} ",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 16.sp,
+                                                color = FreshGreen
+                                            )
+                                            CoinIcon(modifier = Modifier.size(16.dp))
+                                        } else {
+                                            Text(
+                                                text = "✅ Готово",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 16.sp,
+                                                color = FreshGreen
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            isGroceriesUnavailable -> {
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Color(0xFFF5F5F5),
+                                    border = BorderStroke(1.dp, Color(0xFFE0E0E0))
+                                ) {
+                                    Text(
+                                        text = "🔒 Нет задания",
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 16.sp,
+                                        color = TextSecondary,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
+                                    )
+                                }
+                            }
+                            else -> {
+                                Button(
+                                    onClick = { itemToConfirm = item },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isGroceriesItem) FreshGreen else JoyOrange
+                                    ),
+                                    shape = RoundedCornerShape(14.dp),
+                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
+                                ) {
+                                    if (isGroceriesItem) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text("0 ", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                                            CoinIcon(modifier = Modifier.size(16.dp))
+                                            Text(" • Сдача!", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                                        }
+                                    } else {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text("${item.price} ", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                            CoinIcon(modifier = Modifier.size(18.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // диалог подтверждения перед покупкой или выполнением поручения
+    itemToConfirm?.let { item ->
+        AlertDialog(
+            onDismissRequest = { itemToConfirm = null },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = if (item.id == "groceries_parents") "Выполнить поручение родителей?" else "Купить «${item.name}»?",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
+                    )
+                }
+            },
+            text = {
+                Column {
+                    if (item.id == "groceries_parents") {
+                        Text(
+                            text = "Родители дают деньги на покупки для дома. Тебе платить ничего не нужно (цена 0 монет), а вся сдача (5, 10 или 15 монет) с чека попадёт прямо в твой кошелёк!",
+                            fontSize = 18.sp,
+                            color = TextSecondary,
+                            lineHeight = 24.sp
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "💰 Награда: сдача 5, 10 или 15 ",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = FreshGreen
+                            )
+                            CoinIcon(modifier = Modifier.size(18.dp))
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "⚠️ Поручение можно выполнить только 1 раз за день!",
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp,
+                            color = JoyOrange
+                        )
+                    } else {
+                        Text(
+                            text = item.description,
+                            fontSize = 18.sp,
+                            color = TextSecondary,
+                            lineHeight = 24.sp
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // цена
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = "Цена: ", fontSize = 19.sp, color = TextPrimary)
+                            Text(
+                                text = "${item.price} ",
+                                fontSize = 21.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = JoyOrange
+                            )
+                            CoinIcon(modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        // сколько останется после покупки
+                        val remaining = balance - item.price
+                        Text(
+                            text = "Останется: $remaining монет",
+                            fontSize = 17.sp,
+                            color = if (remaining >= 0) FreshGreen else Color(0xFFD32F2F),
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        // эффекты на сытость / настроение / здоровье
+                        val effects = mutableListOf<String>()
+                        if (item.satietyBonus > 0) effects.add("🍎 Сытость +${item.satietyBonus}")
+                        if (item.moodBonus > 0) effects.add("⚡ Настроение +${item.moodBonus}")
+                        if (item.healthBonus > 0) effects.add("❤️ Здоровье +${item.healthBonus}")
+
+                        if (effects.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = "Эффект: ${effects.joinToString(", ")}",
+                                fontSize = 16.sp,
+                                color = TextSecondary
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onBuy(item)
+                        itemToConfirm = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = FreshGreen)
+                ) {
+                    Text(
+                        text = if (item.id == "groceries_parents") "Выполнить поручение 🛒" else "Купить 🛒",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { itemToConfirm = null }) {
+                    Text("Отмена", fontSize = 18.sp)
+                }
+            }
+        )
+    }
+}
+
+// чип фильтрации категорий товаров
+@Composable
+fun CategoryChip(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(10.dp),
+        color = if (isSelected) JoyOrange else Color.White,
+        border = BorderStroke(1.5.dp, if (isSelected) JoyOrange else Color(0xFFE0E0E0))
+    ) {
+        Text(
+            text = text,
+            fontSize = 17.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            color = if (isSelected) Color.White else TextPrimary,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        )
+    }
+}

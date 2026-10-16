@@ -41,9 +41,12 @@ import ru.finpet.kids.feature.adult.AdultScreen
 import ru.finpet.kids.feature.calendar.CalendarScreen
 import ru.finpet.kids.feature.finik.FinikScreen
 import ru.finpet.kids.feature.map.MapScreen
+import ru.finpet.kids.feature.calendar.CalendarMonthInfo
 import ru.finpet.kids.feature.settings.SettingsScreen
+import java.time.YearMonth
 import androidx.compose.foundation.layout.WindowInsets
 import ru.finpet.kids.R
+import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.feature.onboarding.SkinPickerScreen
 import ru.finpet.kids.feature.onboarding.PetNameScreen
 import androidx.compose.runtime.CompositionLocalProvider
@@ -54,7 +57,6 @@ import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
 import androidx.compose.runtime.mutableStateOf
 import ru.finpet.kids.core.designsystem.MoneyNotification
 import kotlin.math.roundToInt
-import ru.finpet.kids.feature.onboarding.TutorialScreen
 import ru.finpet.kids.feature.onboarding.TutorialScreen
 
 @Composable
@@ -119,9 +121,52 @@ fun MainScreen(
     val musicEnabled by viewModel.musicEnabled.collectAsStateWithLifecycle()
     val musicVolume by viewModel.musicVolume.collectAsStateWithLifecycle()
     val demoMode by viewModel.demoMode.collectAsStateWithLifecycle()
+    val virtualDate by viewModel.virtualDate.collectAsStateWithLifecycle()
+    val calendarMonthInfo = remember(virtualDate) { CalendarMonthInfo.of(YearMonth.from(virtualDate)) }
     val moneyEvent by viewModel.moneyEvent.collectAsStateWithLifecycle()
     var helpPanelOpen by remember { mutableStateOf(false) }
     var showTutorialFromMenu by remember { mutableStateOf(false) }
+    var mapInitialModal by remember { mutableStateOf<String?>(null) }
+    var mapTargetGoalId by remember { mutableStateOf<String?>(null) }
+    var mapTargetShopItemId by remember { mutableStateOf<String?>(null) }
+    var mapTargetQuestId by remember { mutableStateOf<String?>(null) }
+    var finikOpenAdvice by remember { mutableStateOf(false) }
+
+    // переход из задач дня сразу в нужное здание с автоматическим скроллом к целевому действию
+    val onNavigateToTask: (CalendarNoteEntity) -> Unit = { note ->
+        when (note.category) {
+            "PET_FOOD" -> {
+                mapInitialModal = "SHOP"
+                mapTargetShopItemId = "food_basic"
+                selectedTab = 0
+            }
+            "GROCERIES" -> {
+                mapInitialModal = "SHOP"
+                mapTargetShopItemId = "groceries_parents"
+                selectedTab = 0
+            }
+            "SCHOOL" -> {
+                val nextQuest = quests.firstOrNull { q ->
+                    questProgress.none { it.questId == q.id && it.isCompleted }
+                } ?: quests.firstOrNull()
+                mapInitialModal = "QUESTS"
+                mapTargetQuestId = nextQuest?.id
+                selectedTab = 0
+            }
+            "SAVINGS" -> {
+                mapInitialModal = "GOALS"
+                mapTargetGoalId = profile?.activeGoalId ?: goals.firstOrNull()?.id
+                selectedTab = 0
+            }
+            "PET_QUESTION" -> {
+                finikOpenAdvice = true
+                selectedTab = 2
+            }
+            else -> {
+                selectedTab = 0
+            }
+        }
+    }
 
     // Keep-alive вкладок: один раз показанная вкладка остаётся в композиции
     // (состояние скролла, диалоги, введённый текст), переключение — только
@@ -148,11 +193,15 @@ fun MainScreen(
     }
 
     val balance = profile?.balance ?: 50
+    val currentTabBgColor = when (selectedTab) {
+        1 -> Color(0xFFE8DAC2) // тёплый цвет фона календаря
+        else -> SoftBackground
+    }
     CompositionLocalProvider(LocalBottomBarHeight provides navBarHeight) {
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
-                containerColor = SoftBackground,
+                containerColor = currentTabBgColor,
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 topBar = {
                     if (selectedTab != 0) {
@@ -173,6 +222,7 @@ fun MainScreen(
                             debug = false,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .background(currentTabBgColor)
                                 .padding(top = 15.dp)
                         )
                     }
@@ -202,6 +252,16 @@ fun MainScreen(
                             questProgress = questProgress,
                             goals = goals,
                             todayNotes = todayNotes,
+                            initialModal = mapInitialModal,
+                            targetGoalId = mapTargetGoalId,
+                            targetShopItemId = mapTargetShopItemId,
+                            targetQuestId = mapTargetQuestId,
+                            onModalDismissed = {
+                                mapInitialModal = null
+                                mapTargetGoalId = null
+                                mapTargetShopItemId = null
+                                mapTargetQuestId = null
+                            },
                             onBuyItem = { viewModel.buyItem(it) },
                             onAnswerQuest = { qId, optId -> viewModel.answerQuest(qId, optId) },
                             onDepositGoal = { gId, amt -> viewModel.depositGoal(gId, amt) },
@@ -227,6 +287,7 @@ fun MainScreen(
                             currentPeriod = currentPeriod,
                             calendarNotes = calendarNotes,
                             recurringExpenses = recurringExpenses,
+                            monthInfo = calendarMonthInfo,
                             onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
                             onCompletePeriod = { viewModel.completePeriod() },
                             onAddNote = { day, title, cost, cat ->
@@ -239,6 +300,7 @@ fun MainScreen(
                             },
                             onDeleteNote = { note -> viewModel.deleteCalendarNote(note) },
                             onToggleNote = { note -> viewModel.toggleCalendarNote(note) },
+                            onNavigateToTask = onNavigateToTask,
                             onCompleteChecklistTask = { note, reward ->
                                 viewModel.completeChecklistTask(
                                     note,
@@ -275,11 +337,17 @@ fun MainScreen(
                             animationsEnabled = selectedTab == 2,
                             isBudgetConfirmed = currentPeriod?.isBudgetConfirmed == true,
                             currentPeriod = currentPeriod,
+                            openAdvice = finikOpenAdvice,
+                            onAdviceDismissed = { finikOpenAdvice = false },
                             onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
                             onNavigateToPlans = { selectedTab = 1 },
-                            onPetTapped = { /* Можно добавить звук мурлыканья */ },
-                            onNavigateToGoals = { selectedTab = 0 },
+                            onNavigateToGoals = { goalId ->
+                                mapInitialModal = "GOALS"
+                                mapTargetGoalId = goalId
+                                selectedTab = 0
+                            },
                             onNavigateToMap = { selectedTab = 0 },
+                            onNavigateToTask = onNavigateToTask,
                             onAskQuestion = { viewModel.onPetAskedQuestion() },
                             onPlaceFoodBowl = { viewModel.placeFoodBowl() },
                             onToggleNote = { note -> viewModel.toggleCalendarNote(note) }
@@ -322,20 +390,29 @@ fun MainScreen(
                         )
                     }
                     // Стеклянный док поверх контента: последний в Box = рисуется сверху
-                    NavBarWithHotspots(
-                        navRes = R.drawable.menu,
-                        imageAspectRatio = 1073f / 278f,
-                    hotspots = DEFAULT_NAV_HOTSPOTS,
-                    onSelectTab = onSelectTab,
-                    debug = false,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .navigationBarsPadding()
-                        .onGloballyPositioned { coords ->
-                            navBarHeight = with(density) { coords.size.height.toDp() }
-                        }
-                )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { /* блокируем случайное прокликивание сквозь нижнюю панель и системные отступы */ }
+                    ) {
+                        NavBarWithHotspots(
+                            navRes = R.drawable.menu,
+                            imageAspectRatio = 1073f / 278f,
+                            hotspots = DEFAULT_NAV_HOTSPOTS,
+                            onSelectTab = onSelectTab,
+                            debug = false,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onGloballyPositioned { coords ->
+                                    navBarHeight = with(density) { coords.size.height.toDp() }
+                                }
+                        )
+                    }
 
                     moneyEvent?.let { event ->
                         MoneyNotification(

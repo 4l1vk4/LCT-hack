@@ -161,7 +161,10 @@ class DepositToGoalUseCase @Inject constructor(
 class CompletePeriodUseCase @Inject constructor(
     private val repository: FinPetRepository
 ) {
-    suspend operator fun invoke(): PeriodResolution? = repository.inTransaction<PeriodResolution?> {
+    suspend operator fun invoke(
+        nextDayIndex: Int? = null,
+        yearMonth: java.time.YearMonth? = null
+    ): PeriodResolution? = repository.inTransaction<PeriodResolution?> {
         val profile = repository.getProfileSync() ?: return@inTransaction null
         val period = repository.getPeriodSync(profile.currentPeriodIndex) ?: PeriodEntity(profile.currentPeriodIndex)
 
@@ -188,12 +191,13 @@ class CompletePeriodUseCase @Inject constructor(
             feedback = ""
         )
 
-        val nextPeriodIndex = profile.currentPeriodIndex + 1
+        val nextPeriodIndex = nextDayIndex ?: (profile.currentPeriodIndex + 1)
         val resolution = PetEconomyCalculator.resolvePeriod(
             currentStats = currentStats,
             plan = plan,
             actual = actual,
-            nextDayIndex = nextPeriodIndex
+            nextDayIndex = nextPeriodIndex,
+            yearMonth = yearMonth
         )
 
         // Закрываем текущий период

@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -29,13 +30,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.gestures.detectTapGestures
 import kotlin.math.roundToInt
 
 /**
- * Одна кликабельная зона на карте.
- * Координаты — в долях от размера картинки: 0f = край, 1f = противоположный край.
- * Такие координаты не ломаются при смене разрешения и размера экрана.
+ * одна кликабельная зона на карте.
+ * координаты в долях от размера картинки (0f..1f), поэтому не ломаются при любых размерах экрана.
  */
 data class MapHotspot(
     val id: String,
@@ -46,7 +45,7 @@ data class MapHotspot(
     val label: String = ""
 )
 
-// Координаты зданий на карте
+// координаты зданий на карте (Школа, Лавка, Дом)
 val DEFAULT_MAP_HOTSPOTS: List<MapHotspot> = listOf(
     MapHotspot(id = "shop",   left = 0.7222f, top = 0.5852f, right = 0.9463f, bottom = 0.6955f, label = "Лавка"),
     MapHotspot(id = "quests", left = 0.0787f, top = 0.4377f, right = 0.4324f, bottom = 0.6232f, label = "Школа"),
@@ -54,32 +53,27 @@ val DEFAULT_MAP_HOTSPOTS: List<MapHotspot> = listOf(
 )
 
 /**
- * Карта-картинка с кликабельными зонами поверх (Школа, Дом, Лавка).
- *
- * @param mapRes            Ресурс карты (R.drawable.day)
- * @param imageAspectRatio  ширина / высота картинки
- * @param hotspots          список зон
- * @param onClickHotspot    что вызвать при тапе по зоне
- * @param debug             true — рисует полупрозрачные рамки, помогает отлаживать
+ * интерактивная карта города с кликабельными зонами.
+ * заполняет экран целиком без белых полос и без случайного скролла.
  */
 @Suppress("UnusedBoxWithConstraintsScope")
 @Composable
 fun MapWithHotspots(
     @DrawableRes mapRes: Int,
-    imageAspectRatio: Float,
+    imageAspectRatio: Float = 1073f / 2088f,
     hotspots: List<MapHotspot>,
     onClickHotspot: (MapHotspot) -> Unit,
     modifier: Modifier = Modifier,
     debug: Boolean = false
 ) {
+    // растягиваем карту по размеру родительского контейнера экрана
     BoxWithConstraints(
-        modifier = modifier
-            .aspectRatio(imageAspectRatio)
+        modifier = modifier.aspectRatio(imageAspectRatio)
     ) {
         val w = maxWidth
         val h = maxHeight
 
-        // 1. Сама карта
+        // 1. Сама карта: заполняет экран целиком, избегая белых полос
         Image(
             painter = painterResource(id = mapRes),
             contentDescription = "Карта приключений",
@@ -87,7 +81,7 @@ fun MapWithHotspots(
             modifier = Modifier.fillMaxSize()
         )
 
-        // 2. Кликабельные зоны
+        // 2. Кликабельные зоны: масштабируются строго пропорционально w и h
         hotspots.forEach { spot ->
             val spotWidth  = w * (spot.right - spot.left)
             val spotHeight = h * (spot.bottom - spot.top)
@@ -115,7 +109,7 @@ fun MapWithHotspots(
             )
         }
 
-        // 3. Debug-оверлей: тапы логируются и рисуются точками
+        // 3. Отладочный слой для проверки тапов
         if (debug) {
             var debugTaps by remember { mutableStateOf(listOf<Offset>()) }
 

@@ -66,7 +66,12 @@ fun NavBarWithHotspots(
     debug: Boolean = false
 ) {
     BoxWithConstraints(
-        modifier = modifier.aspectRatio(imageAspectRatio)
+        modifier = modifier
+            .aspectRatio(imageAspectRatio)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { /* блокируем случайные клики мимо кнопок на нижней панели */ }
     ) {
         val w = maxWidth
         val h = maxHeight

@@ -46,7 +46,6 @@ import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import ru.finpet.kids.R
-import ru.finpet.kids.core.designsystem.FinButton
 import kotlin.math.roundToInt
 
 data class SkinOption(val id: String, val title: String)
