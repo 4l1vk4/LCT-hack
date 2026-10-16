@@ -47,7 +47,6 @@ import ru.finpet.kids.feature.calendar.components.CalendarMonthGrid
 import ru.finpet.kids.feature.calendar.dialogs.AddNoteDialog
 import ru.finpet.kids.feature.calendar.dialogs.AddRecurringExpenseDialog
 import ru.finpet.kids.feature.calendar.dialogs.DayDetailsDialog
-import ru.finpet.kids.feature.calendar.dialogs.NextDayConfirmDialog
 import ru.finpet.kids.feature.calendar.dialogs.RecurringExpensesDialog
 
 /**
@@ -70,7 +69,8 @@ fun CalendarScreen(
     onNavigateToTask: ((CalendarNoteEntity) -> Unit)? = null,
     onCompleteChecklistTask: (note: CalendarNoteEntity, rewardCoins: Int) -> Unit = { _, _ -> },
     onAddRecurring: (title: String, cost: Int, frequencyDays: Int, icon: String) -> Unit = { _, _, _, _ -> },
-    onDeleteRecurring: (RecurringExpenseEntity) -> Unit = {}
+    onDeleteRecurring: (RecurringExpenseEntity) -> Unit = {},
+    demoMode: Boolean = false
 ) {
     val balance = profile?.balance ?: 50
     val currentDayIndex = profile?.currentPeriodIndex ?: 1
@@ -199,30 +199,33 @@ fun CalendarScreen(
             )
         }
 
-        // --- 4. КНОПКА «СЛЕДУЮЩИЙ ДЕНЬ» ПОД КАЛЕНДАРЕМ ---
+        // 4. кнопка скипа периода (только в демо-моде)
         item(key = "next_day_action") {
-            Spacer(modifier = Modifier.height(14.dp))
-            val completeButtonText = when {
-                nextDayNumber > monthInfo.daysInMonth -> {
-                    "🏆 Завершить месяц (${monthInfo.monthName} • День $currentDayIndex)"
+            if (demoMode) {
+                Spacer(modifier = Modifier.height(14.dp))
+                val completeButtonText = when {
+                    nextDayNumber > monthInfo.daysInMonth -> {
+                        "🏆 Завершить месяц (${monthInfo.monthName} • День $currentDayIndex)"
+                    }
+                    isNextMonday -> {
+                        "🌅 Следующий день (День $nextDayNumber • +200 монет!)"
+                    }
+                    else -> {
+                        "🌅 Следующий день (День $nextDayNumber)"
+                    }
                 }
-                isNextMonday -> {
-                    "🌅 Следующий день (День $nextDayNumber • +200 монет!)"
-                }
-                else -> {
-                    "🌅 Следующий день (День $nextDayNumber)"
-                }
+
+                PixelButton(
+                    text = completeButtonText,
+                    onClick = onCompletePeriod,
+                    containerColor = PixelGreenCrop,
+                    textColor = Color.White,
+                    borderColor = Color(0xFF1B5E20),
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 15.sp
+                )
             }
 
-            PixelButton(
-                text = completeButtonText,
-                onClick = { activeDialog = CalendarDialog.NextDayConfirm(nextDayNumber) },
-                containerColor = PixelGreenCrop,
-                textColor = Color.White,
-                borderColor = Color(0xFF1B5E20),
-                modifier = Modifier.fillMaxWidth(),
-                fontSize = 15.sp
-            )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = if (isNextMonday) "🎉 Завтра понедельник: выплата 200 монет карманных денег!"
@@ -250,12 +253,14 @@ fun CalendarScreen(
                 notes = selectedDayNotes,
                 recurringExpenses = selectedDayRecurring,
                 isNextMonday = isNextMonday,
+                demoMode = demoMode,
                 onToggleNote = onToggleNote,
                 onCompleteChecklistTask = onCompleteChecklistTask,
                 onOpenAddNote = { activeDialog = CalendarDialog.AddNote(dayNum) },
                 onDeleteNote = onDeleteNote,
                 onCompletePeriod = {
-                    activeDialog = CalendarDialog.NextDayConfirm(nextDayNumber)
+                    activeDialog = null
+                    onCompletePeriod()
                 },
                 onNavigateToTask = onNavigateToTask,
                 onDismiss = { activeDialog = null }
@@ -310,21 +315,6 @@ fun CalendarScreen(
                 onConfirm = { plan ->
                     onConfirmBudget(plan)
                     activeDialog = null
-                },
-                onDismiss = { activeDialog = null }
-            )
-        }
-
-        is CalendarDialog.NextDayConfirm -> {
-            NextDayConfirmDialog(
-                currentDay = currentDayIndex,
-                nextDay = dialog.nextDay,
-                currentPeriod = currentPeriod,
-                isNextMonday = isNextMonday,
-                monthInfo = monthInfo,
-                onConfirm = {
-                    activeDialog = null
-                    onCompletePeriod()
                 },
                 onDismiss = { activeDialog = null }
             )

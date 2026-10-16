@@ -260,4 +260,27 @@ class EconomyUseCasesTest {
         assertTrue("Питомец должен убежать при падении настроения до 0%", profDay2?.isPetRunaway == true)
         assertEquals(0, profDay2?.mood)
     }
+
+    @Test
+    fun `CompletePeriodUseCase freezes pet growth while pet is runaway`() = runTest {
+        repository.saveProfile(
+            ProfileEntity(
+                satiety = 100,
+                health = 100,
+                mood = 0,
+                carePoints = 5,
+                growthStage = "BABY",
+                isPetRunaway = true,
+                runawayDaysLeft = 2,
+                balance = 200,
+                currentPeriodIndex = 1
+            )
+        )
+
+        completePeriodUseCase()
+
+        val updatedProfile = repository.getProfileSync()
+        assertEquals("Очки заботы не должны увеличиваться пока кот сбежал", 5, updatedProfile?.carePoints)
+        assertEquals("Стадия взросления не должна меняться пока кот сбежал", "BABY", updatedProfile?.growthStage)
+    }
 }

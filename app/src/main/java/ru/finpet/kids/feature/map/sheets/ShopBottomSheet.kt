@@ -86,7 +86,7 @@ fun ShopBottomSheet(
     }
 
     PixelLocationModalSheet(
-        title = "🏪 Лавка дядюшки Барсика",
+        title = "🏪 Лавка товаров",
         subtitle = "Полезный корм, игрушки и поручения родителей",
         headerDrawableRes = R.drawable.location_shop_header,
         badgeText = "$balance монет",

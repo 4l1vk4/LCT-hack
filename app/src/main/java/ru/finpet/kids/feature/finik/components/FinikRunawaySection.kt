@@ -71,7 +71,7 @@ fun FinikRunawaySection(
 
         Text(
             text = "Настроение упало до 0%. Поставь миску корма у двери (цена x2 от обычного корма: 60 монет). Питомец вернётся через 1–3 дня, если ставить миску каждый день!",
-            fontSize = 13.sp,
+            fontSize = 14.sp,
             color = TextSecondary,
             textAlign = TextAlign.Center,
             lineHeight = 18.sp,

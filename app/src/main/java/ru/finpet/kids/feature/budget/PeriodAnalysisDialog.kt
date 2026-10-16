@@ -42,8 +42,8 @@ import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
-import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
 import ru.finpet.kids.core.domain.model.PeriodResolution
 
 /**
@@ -95,58 +95,159 @@ fun PeriodAnalysisDialog(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 1. Главный баннер процента выполнения
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(
-                                if (compliance.totalPercent >= 75) Color(0xFFE8F5E9)
-                                else Color(0xFFFFF8E1)
-                            )
-                            .border(
-                                1.dp,
-                                if (compliance.totalPercent >= 75) PixelGreenCrop else PixelParchmentBorder,
-                                RoundedCornerShape(6.dp)
-                            )
-                            .padding(10.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                    // 1. Сообщение о новом месяце
+                    if (resolution.isMonthTransition) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(PixelParchmentMedium)
+                                .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
+                                .padding(10.dp)
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = complianceEmoji, fontSize = 20.sp)
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = complianceBadgeTitle,
-                                    fontFamily = AppFontFamily,
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 15.sp,
-                                    color = PixelTextDark
-                                )
-                            }
-                            if (compliance.feedback.isNotBlank()) {
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(text = "🏆", fontSize = 18.sp)
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = if (resolution.newMonthName.isNotBlank()) "Новый месяц: ${resolution.newMonthName}!" else "Наступил новый месяц!",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp,
+                                        color = PixelTextDark
+                                    )
+                                }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = compliance.feedback,
-                                    fontSize = 13.sp,
+                                    text = "Поздравляем с завершением месяца! Все заметки и итоги сохранены в календаре, а питомец перешел на День 1.",
+                                    fontSize = 14.sp,
                                     color = PixelTextDark,
-                                    textAlign = TextAlign.Center,
-                                    lineHeight = 17.sp
+                                    lineHeight = 18.sp
                                 )
                             }
                         }
+                        Spacer(modifier = Modifier.height(10.dp))
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    // 2. Сообщение о дне выплат (понедельник)
+                    if (resolution.isIncomeDay || resolution.periodIncome > 0) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(PixelParchmentMedium)
+                                .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
+                                .padding(10.dp)
+                        ) {
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(text = "🎉", fontSize = 18.sp)
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Понедельник — выплата карманных!",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp,
+                                        color = PixelTextDark
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Наступает новая неделя! Тебе начислено +${resolution.periodIncome} монет карманных денег.",
+                                    fontSize = 14.sp,
+                                    color = PixelTextDark,
+                                    lineHeight = 18.sp
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
 
-                    // 2. Блок «План vs Факт» по 3 категориям баночек
+                    // 3. Предупреждение если бюджет не был составлен на этот день
+                    val isBudgetUnplanned = plan.plannedMandatory == 0 && plan.plannedOptional == 0 && plan.plannedSavings == 0
+                    if (isBudgetUnplanned) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFFFFF3E0))
+                                .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(6.dp))
+                                .padding(10.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.Top) {
+                                Text(text = "⚠️", fontSize = 18.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = "План бюджета не был составлен!",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp,
+                                        color = Color(0xFFE65100)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Переходить в новый день без распределения бюджета — не очень хорошая практика. Всегда планируй обязательные расходы и накопления заранее, чтобы питомец был сыт и копилка росла!",
+                                        fontSize = 15.sp,
+                                        color = PixelTextDark,
+                                        lineHeight = 17.sp
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+
+                    // 4. Главный баннер соблюдения бюджета (только если план БЫЛ составлен!)
+                    if (!isBudgetUnplanned) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(
+                                    if (compliance.totalPercent >= 75) Color(0xFFE8F5E9)
+                                    else Color(0xFFFFF8E1)
+                                )
+                                .border(
+                                    1.dp,
+                                    if (compliance.totalPercent >= 75) PixelGreenCrop else PixelParchmentBorder,
+                                    RoundedCornerShape(6.dp)
+                                )
+                                .padding(10.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(text = complianceEmoji, fontSize = 20.sp)
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = complianceBadgeTitle,
+                                        fontFamily = AppFontFamily,
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 16.sp,
+                                        color = PixelTextDark
+                                    )
+                                }
+                                if (compliance.feedback.isNotBlank()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = compliance.feedback,
+                                        fontSize = 15.sp,
+                                        color = PixelTextDark,
+                                        textAlign = TextAlign.Center,
+                                        lineHeight = 17.sp
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+
+                    // 5. Блок «Разбор трат за день» (остаётся всегда)
                     Text(
                         text = "РАЗБОР ТРАТ ЗА ДЕНЬ",
                         fontFamily = AppFontFamily,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
+                        fontSize = 16.sp,
                         color = PixelTextMuted,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -165,28 +266,31 @@ fun PeriodAnalysisDialog(
                         PlanFactRow(
                             icon = "🍲",
                             title = "Обязательное",
-                            planVal = plan.plannedMandatory,
+                            planVal = if (!isBudgetUnplanned) plan.plannedMandatory else null,
                             actualVal = actual.actualMandatory,
                             color = PixelRedBerry,
-                            isOk = actual.actualMandatory >= plan.plannedMandatory || actual.hasPurchasedFood
+                            isOk = if (!isBudgetUnplanned) (actual.actualMandatory >= plan.plannedMandatory || actual.hasPurchasedFood) else null,
+                            actualPrefix = if (isBudgetUnplanned) "Потрачено: " else "Факт: "
                         )
                         // Хотелки (сладости, радости)
                         PlanFactRow(
                             icon = "✨",
                             title = "Хотелки",
-                            planVal = plan.plannedOptional,
+                            planVal = if (!isBudgetUnplanned) plan.plannedOptional else null,
                             actualVal = actual.actualOptional,
                             color = PixelBlueWater,
-                            isOk = actual.actualOptional <= plan.plannedOptional
+                            isOk = if (!isBudgetUnplanned) (actual.actualOptional <= plan.plannedOptional) else null,
+                            actualPrefix = if (isBudgetUnplanned) "Потрачено: " else "Факт: "
                         )
                         // Накопления (копилка)
                         PlanFactRow(
                             icon = "🎯",
                             title = "В копилку",
-                            planVal = plan.plannedSavings,
+                            planVal = if (!isBudgetUnplanned) plan.plannedSavings else null,
                             actualVal = actual.actualSavings,
                             color = PixelGreenCrop,
-                            isOk = actual.actualSavings >= plan.plannedSavings
+                            isOk = if (!isBudgetUnplanned) (actual.actualSavings >= plan.plannedSavings) else null,
+                            actualPrefix = if (isBudgetUnplanned) "Отложено: " else "Факт: "
                         )
                     }
 
@@ -216,7 +320,7 @@ fun PeriodAnalysisDialog(
                                 )
                                 Text(
                                     text = "Очки заботы",
-                                    fontSize = 12.sp,
+                                    fontSize = 14.sp,
                                     color = PixelTextMuted
                                 )
                             }
@@ -233,45 +337,21 @@ fun PeriodAnalysisDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                val effectiveMood = PetEconomyCalculator.calculateEffectiveMood(
+                                    mood = newStats.mood,
+                                    satiety = newStats.satiety,
+                                    health = newStats.health
+                                )
                                 Text(
-                                    text = "${newStats.mood}% 🐾",
+                                    text = "$effectiveMood% 🐾",
                                     fontWeight = FontWeight.Black,
                                     fontSize = 16.sp,
                                     color = PixelGreenCrop
                                 )
                                 Text(
                                     text = "Настроение",
-                                    fontSize = 12.sp,
+                                    fontSize = 14.sp,
                                     color = PixelTextMuted
-                                )
-                            }
-                        }
-                    }
-
-                    // Начисление карманных денег при понедельнике
-                    if (resolution.periodIncome > 0) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(PixelWoodDark)
-                                .padding(1.dp)
-                                .background(PixelGoldGlow)
-                                .padding(8.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Text(text = "🪙", fontSize = 18.sp)
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Карманные деньги на неделю: +${resolution.periodIncome} монет!",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp,
-                                    color = PixelTextDark
                                 )
                             }
                         }
@@ -299,10 +379,11 @@ fun PeriodAnalysisDialog(
 private fun PlanFactRow(
     icon: String,
     title: String,
-    planVal: Int,
+    planVal: Int? = null,
     actualVal: Int,
     color: Color,
-    isOk: Boolean
+    isOk: Boolean? = null,
+    actualPrefix: String = "Факт: "
 ) {
     Row(
         modifier = Modifier
@@ -319,28 +400,32 @@ private fun PlanFactRow(
             Text(
                 text = title,
                 fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
+                fontSize = 15.sp,
                 color = color
             )
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
+            if (planVal != null) {
+                Text(
+                    text = "План: $planVal",
+                    fontSize = 14.sp,
+                    color = PixelTextMuted
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
             Text(
-                text = "План: $planVal",
-                fontSize = 12.sp,
-                color = PixelTextMuted
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Факт: $actualVal",
-                fontSize = 12.sp,
+                text = "$actualPrefix$actualVal",
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = PixelTextDark
             )
             Spacer(modifier = Modifier.width(4.dp))
-            CoinIcon(modifier = Modifier.size(12.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(text = if (isOk) "✅" else "⚠️", fontSize = 12.sp)
+            CoinIcon(modifier = Modifier.size(16.dp))
+            if (isOk != null) {
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = if (isOk) "✅" else "⚠️", fontSize = 12.sp)
+            }
         }
     }
 }

@@ -69,5 +69,9 @@ data class PeriodResolution(
     val summaryFeedback: String,
     val plan: BudgetPlan = BudgetPlan(0, 0, 0),
     val actual: ActualExpenses = ActualExpenses(0, 0, 0),
-    val closedDayIndex: Int = 1
+    val closedDayIndex: Int = 1,
+    val isMonthTransition: Boolean = false,
+    val closedMonthName: String = "",
+    val newMonthName: String = "",
+    val isIncomeDay: Boolean = false
 )

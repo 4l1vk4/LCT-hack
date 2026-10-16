@@ -58,7 +58,6 @@ data class HelpHotspot(
     val labelFontSize: Float   // размер шрифта
 )
 
-// ⚠️ Просто подгоняй числа, ничего не считай вручную.
 val DEFAULT_HELP_HOTSPOTS: List<HelpHotspot> = listOf(
     HelpHotspot(
         id = "instructions",
@@ -66,7 +65,7 @@ val DEFAULT_HELP_HOTSPOTS: List<HelpHotspot> = listOf(
         hitLeft = 0.02f, hitTop = 0.15f, hitRight = 0.42f, hitBottom = 0.85f,
         // Текст «Инструкция»
         label = "Инструкция",
-        labelCX = 0.09f,        // ← X левого края текста
+        labelCX = 0.13f,        // ← X левого края текста
         labelCY = 0.15f,        // ← Y верха текста
         labelWidth = 0.40f,     // ← ширина
         labelFontSize = 15f     // ← размер шрифта
@@ -77,7 +76,7 @@ val DEFAULT_HELP_HOTSPOTS: List<HelpHotspot> = listOf(
         hitLeft = 0.45f, hitTop = 0.15f, hitRight = 0.82f, hitBottom = 0.85f,
         // Текст «Настройки»
         label = "Настройки",
-        labelCX = 0.53f,
+        labelCX = 0.55f,
         labelCY = 0.15f,
         labelWidth = 0.40f,
         labelFontSize = 15f
@@ -145,7 +144,7 @@ fun HelpPanelWithHotspots(
                     }
             )
 
-            // Текст — рисуется АБСОЛЮТНО, не привязан к хитбоксу
+            // Текст рисуется абсолютно, не привязан к хитбоксу
             Text(
                 text = spot.label,
                 fontSize = spot.labelFontSize.sp,
@@ -158,7 +157,7 @@ fun HelpPanelWithHotspots(
             )
         }
 
-        // 4. Debug — лог тапов
+        // 4. лог тапов
         if (debug) {
             var debugTaps by remember { mutableStateOf(listOf<Offset>()) }
             Box(

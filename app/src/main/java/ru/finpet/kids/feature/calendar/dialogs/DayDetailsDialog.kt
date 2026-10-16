@@ -66,6 +66,7 @@ fun DayDetailsDialog(
     notes: List<CalendarNoteEntity>,
     recurringExpenses: List<RecurringExpenseEntity> = emptyList(),
     isNextMonday: Boolean = false,
+    demoMode: Boolean = false,
     onToggleNote: (CalendarNoteEntity) -> Unit,
     onCompleteChecklistTask: (note: CalendarNoteEntity, rewardCoins: Int) -> Unit,
     onOpenAddNote: () -> Unit,
@@ -385,8 +386,8 @@ fun DayDetailsDialog(
                         )
                     }
 
-                    // 5. Завершение дня (только если день — СЕГОДНЯ)
-                    if (isToday) {
+                    // 5. Завершение дня (только если день — СЕГОДНЯ и включен демо-режим)
+                    if (isToday && demoMode) {
                         item {
                             Spacer(modifier = Modifier.height(4.dp))
                             val completeButtonText = if (isNextMonday) {

@@ -10,7 +10,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -21,8 +20,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -47,46 +48,63 @@ data class MapHotspot(
 
 // координаты зданий на карте (Школа, Лавка, Дом)
 val DEFAULT_MAP_HOTSPOTS: List<MapHotspot> = listOf(
-    MapHotspot(id = "shop",   left = 0.7222f, top = 0.5852f, right = 0.9463f, bottom = 0.6955f, label = "Лавка"),
-    MapHotspot(id = "quests", left = 0.0787f, top = 0.4377f, right = 0.4324f, bottom = 0.6232f, label = "Школа"),
-    MapHotspot(id = "home",   left = 0.6343f, top = 0.7540f, right = 0.8611f, bottom = 0.9206f, label = "Дом")
+    MapHotspot(id = "shop",   left = 0.7194f, top = 0.6803f, right = 0.9509f, bottom = 0.7544f, label = "Лавка"),
+    MapHotspot(id = "quests", left = 0.0926f, top = 0.5871f, right = 0.4352f, bottom = 0.7024f, label = "Школа"),
+    MapHotspot(id = "home",   left = 0.6361f, top = 0.7874f, right = 0.8815f, bottom = 0.8951f, label = "Дом")
 )
 
 /**
  * интерактивная карта города с кликабельными зонами.
- * заполняет экран целиком без белых полос и без случайного скролла.
+ * заполняет экран целиком без белых полос, привязана к низу (обрезается только верхушка с небом).
  */
-@Suppress("UnusedBoxWithConstraintsScope")
 @Composable
 fun MapWithHotspots(
     @DrawableRes mapRes: Int,
-    imageAspectRatio: Float = 1073f / 2088f,
+    imageAspectRatio: Float = 1073f / 3248f,
     hotspots: List<MapHotspot>,
     onClickHotspot: (MapHotspot) -> Unit,
     modifier: Modifier = Modifier,
+    anchor: Alignment.Vertical = Alignment.Bottom,
     debug: Boolean = false
 ) {
-    // растягиваем карту по размеру родительского контейнера экрана
+    // контейнер карты, обрезает картинку по границам экрана без белых полос
     BoxWithConstraints(
-        modifier = modifier.aspectRatio(imageAspectRatio)
+        modifier = modifier
+            .fillMaxSize()
+            .clipToBounds()
     ) {
         val w = maxWidth
         val h = maxHeight
 
-        // 1. Сама карта: заполняет экран целиком, избегая белых полос
+        // масштабируем изображение так, чтобы полностью заполнить ширину экрана,
+        // а при необходимости и высоту (cover).
+        val targetHeight = w / imageAspectRatio
+        val renderedHeight = if (targetHeight >= h) targetHeight else h
+        val renderedWidth = if (targetHeight >= h) w else h * imageAspectRatio
+
+        // смещения: привязываем карту к низу экрана, чтобы обрезался только верх (небо)
+        val leftOffset = (w - renderedWidth) / 2
+        val topOffset = when (anchor) {
+            Alignment.Top -> 0.dp
+            Alignment.CenterVertically -> (h - renderedHeight) / 2
+            else -> h - renderedHeight // Alignment.Bottom
+        }
+
+        // 1. сама карта: заполняет экран целиком, прижата строго к низу экрана без отступов
         Image(
             painter = painterResource(id = mapRes),
             contentDescription = "Карта приключений",
-            contentScale = ContentScale.FillBounds,
+            contentScale = ContentScale.Crop,
+            alignment = Alignment.BottomCenter,
             modifier = Modifier.fillMaxSize()
         )
 
-        // 2. Кликабельные зоны: масштабируются строго пропорционально w и h
+        // 2. кликабельные зоны: масштабируются и позиционируются строго относительно картинки карты
         hotspots.forEach { spot ->
-            val spotWidth  = w * (spot.right - spot.left)
-            val spotHeight = h * (spot.bottom - spot.top)
-            val offsetX    = w * spot.left
-            val offsetY    = h * spot.top
+            val spotWidth  = renderedWidth * (spot.right - spot.left)
+            val spotHeight = renderedHeight * (spot.bottom - spot.top)
+            val offsetX    = leftOffset + renderedWidth * spot.left
+            val offsetY    = topOffset + renderedHeight * spot.top
 
             Box(
                 modifier = Modifier
@@ -109,18 +127,28 @@ fun MapWithHotspots(
             )
         }
 
-        // 3. Отладочный слой для проверки тапов
+        // 3. отладочный слой для проверки тапов и калибровки координат
         if (debug) {
             var debugTaps by remember { mutableStateOf(listOf<Offset>()) }
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) {
+                    .pointerInput(renderedWidth, renderedHeight, leftOffset, topOffset) {
+                        val leftPx = leftOffset.toPx()
+                        val topPx = topOffset.toPx()
+                        val rWidthPx = renderedWidth.toPx()
+                        val rHeightPx = renderedHeight.toPx()
+
                         detectTapGestures { offset ->
-                            val nx = offset.x / size.width
-                            val ny = offset.y / size.height
-                            Log.d("MAP", "tap: nx=$nx ny=$ny  (px=${offset.x.roundToInt()},${offset.y.roundToInt()})")
+                            val nx = (offset.x - leftPx) / rWidthPx
+                            val ny = (offset.y - topPx) / rHeightPx
+                            Log.d(
+                                "MAP",
+                                "tap: image(nx=%.4ff, ny=%.4ff) screen(px=%d,%d)".format(
+                                    nx, ny, offset.x.roundToInt(), offset.y.roundToInt()
+                                )
+                            )
                             debugTaps = debugTaps + offset
                         }
                     }

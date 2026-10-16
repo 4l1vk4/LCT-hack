@@ -54,10 +54,7 @@ fun AdultScreen(
     report: CompetencyReport?,
     adultSectionUseCase: AdultSectionUseCase,
     onGrantBonus: (coins: Int, reason: String) -> Unit,
-    onNextDemoPeriod: () -> Unit = {},
-    onResetProfile: () -> Unit,
-    demoMode: Boolean = false,
-    onToggleDemoMode: (Boolean) -> Unit = {}
+    onResetProfile: () -> Unit
 ) {
     // держим состояние разблокировки в рамках сессии экрана
     var isUnlocked by remember { mutableStateOf(false) }
@@ -154,73 +151,7 @@ fun AdultScreen(
                 CompetencyCard(competency = comp)
             }
 
-            // блок управления демо-режимом (для ускоренного тестирования экспертами и жюри)
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = "Демо-режим",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
 
-                FinCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    backgroundColor = if (demoMode) Color(0xFFE8F5E9) else Color.White,
-                    borderColor = if (demoMode) FreshGreen else Color(0xFFE0E0E0)
-                ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Демо-режим",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
-                                )
-                                Text(
-                                    text = "Быстрое переключение игровых дней без ожидания",
-                                    fontSize = 12.sp,
-                                    color = TextSecondary
-                                )
-                            }
-                            Switch(
-                                checked = demoMode,
-                                onCheckedChange = onToggleDemoMode,
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = FreshGreen
-                                )
-                            )
-                        }
-
-                        // кнопка ручного перехода к следующему дню
-                        if (demoMode) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Button(
-                                onClick = onNextDemoPeriod,
-                                colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp)
-                            ) {
-                                Text(
-                                    text = "⏭️ Пропустить один период",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    }
-                }
-            }
 
             // сброс данных до начального состояния
             item {

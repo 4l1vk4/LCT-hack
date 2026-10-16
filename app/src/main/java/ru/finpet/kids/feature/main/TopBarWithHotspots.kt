@@ -55,25 +55,25 @@ private val MENU_HOTSPOT = TopBarHotspot(
 )
 
 // Текст баланса (слева, поверх монетки на картинке)
-private const val MONEY_CX = 0.12f
-private const val MONEY_CY = 0.18f
+private const val MONEY_CX = 0.11f
+private const val MONEY_CY = 0.38f
 private const val MONEY_FONT_SIZE = 15f
 
 // Полоска орбов (в центре)
 private const val ORB_BAR_LEFT = 0.27f     // где начинается ряд
-private const val ORB_BAR_CENTER_Y = 0.49f // по вертикали — центр
-private const val ORB_SIZE_RATIO = 0.40f   // размер орба (доля от высоты панели)
+private const val ORB_BAR_CENTER_Y = 0.623f // по вертикали — центр
+private const val ORB_SIZE_RATIO = 0.30f   // размер орба (доля от высоты панели)
 private const val ORB_STEP_RATIO = 0.5f   // сдвиг вправо между орбами (доля от размера)
 private const val ORB_PERCENT_STEP = 5     // 1 орб = 5% настроения
 
 private const val MOOD_FACE_CX = 0.876f
-private const val MOOD_FACE_CY = 0.50f
+private const val MOOD_FACE_CY = 0.623f
 private const val MOOD_FACE_WIDTH_RATIO = 0.07f   // ширина (доля ШИРИНЫ панели)
 
 // Проценты настроения (справа от последнего орба)
 private const val PERCENT_FONT_SIZE = 13f
 private const val PERCENT_CX = 0.68f
-private const val PERCENT_CY = 0.15f
+private const val PERCENT_CY = 0.38f
 
 @Suppress("UnusedBoxWithConstraintsScope")
 @Composable
@@ -104,9 +104,17 @@ fun TopBarWithHotspots(
         )
 
         val moneyFontSize = when {
-            balance > 9999 -> 10f
-            balance > 999  -> 12f
+            balance > 9999 -> 12f
+            balance > 999  -> 14f
             else           -> MONEY_FONT_SIZE
+        }
+
+        val moneyOffsetX = when {
+            balance > 9999 -> 5.dp
+            balance > 999  -> 6.dp
+            balance > 99   -> 10.dp
+            balance > 9    -> 14.dp
+            else           -> 20.dp
         }
 
         // 2. Баланс
@@ -117,7 +125,7 @@ fun TopBarWithHotspots(
             color = Color(0xFF381F0E),
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(x = w * MONEY_CX + 6.dp, y = h * MONEY_CY - 3.dp)
+                .offset(x = w * MONEY_CX + moneyOffsetX, y = h * MONEY_CY - 3.dp)
         )
 
         // 3. Орбы настроения — накладываем N штук в ряд

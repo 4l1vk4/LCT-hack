@@ -171,7 +171,7 @@ fun GlossaryDialog(
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "Нажми на слово, чтобы узнать его значение!",
-                                fontSize = 11.sp,
+                                fontSize = 16.sp,
                                 fontFamily = AppFontFamily,
                                 color = PixelTextMuted,
                                 lineHeight = 15.sp
@@ -252,7 +252,7 @@ fun GlossaryDialog(
 
                                     Text(
                                         text = term.definition,
-                                        fontSize = 13.sp,
+                                        fontSize = 17.sp,
                                         color = PixelTextDark,
                                         lineHeight = 18.sp
                                     )
@@ -272,7 +272,7 @@ fun GlossaryDialog(
                                                 Spacer(modifier = Modifier.width(6.dp))
                                                 Text(
                                                     text = term.example,
-                                                    fontSize = 11.sp,
+                                                    fontSize = 14.sp,
                                                     fontWeight = FontWeight.SemiBold,
                                                     color = PixelGreenCrop,
                                                     lineHeight = 15.sp

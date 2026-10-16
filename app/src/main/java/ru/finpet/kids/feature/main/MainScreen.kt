@@ -43,6 +43,7 @@ import ru.finpet.kids.feature.finik.FinikScreen
 import ru.finpet.kids.feature.map.MapScreen
 import ru.finpet.kids.feature.calendar.CalendarMonthInfo
 import ru.finpet.kids.feature.settings.SettingsScreen
+import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
 import ru.finpet.kids.core.domain.model.BudgetPlan
 import ru.finpet.kids.feature.budget.BudgetPlanningDialog
 import ru.finpet.kids.feature.budget.PeriodAnalysisDialog
@@ -104,6 +105,7 @@ fun MainScreen(
     val ready = onboarding as? OnboardingState.Ready
 
     var selectedTab by rememberSaveable { mutableIntStateOf(2) } // По умолчанию вкладка 3: Финни в кресле
+    var previousTabBeforeSettings by rememberSaveable { mutableIntStateOf(2) }
     val showWardrobe = remember { mutableStateOf(false) }
     var navBarHeight by remember { mutableStateOf(140.dp) }
     val density = LocalDensity.current
@@ -124,6 +126,7 @@ fun MainScreen(
     val musicEnabled by viewModel.musicEnabled.collectAsStateWithLifecycle()
     val musicVolume by viewModel.musicVolume.collectAsStateWithLifecycle()
     val demoMode by viewModel.demoMode.collectAsStateWithLifecycle()
+    val isNightMode by viewModel.isNightMode.collectAsStateWithLifecycle()
     val virtualDate by viewModel.virtualDate.collectAsStateWithLifecycle()
     val calendarMonthInfo = remember(virtualDate) { CalendarMonthInfo.of(YearMonth.from(virtualDate)) }
     val moneyEvent by viewModel.moneyEvent.collectAsStateWithLifecycle()
@@ -136,6 +139,19 @@ fun MainScreen(
     var mapTargetShopItemId by remember { mutableStateOf<String?>(null) }
     var mapTargetQuestId by remember { mutableStateOf<String?>(null) }
     var finikOpenAdvice by remember { mutableStateOf(false) }
+
+    // переход в настройки с сохранением предыдущей вкладки
+    val openSettings: () -> Unit = {
+        if (selectedTab != 4) {
+            previousTabBeforeSettings = selectedTab
+        }
+        selectedTab = 4
+    }
+
+    // закрытие настроек: возврат на предыдущую вкладку (или на Финни, если были в настройках)
+    val closeSettings: () -> Unit = {
+        selectedTab = if (previousTabBeforeSettings != 4) previousTabBeforeSettings else 2
+    }
 
     // переход из задач дня сразу в нужное здание с автоматическим скроллом к целевому действию
     val onNavigateToTask: (CalendarNoteEntity) -> Unit = { note ->
@@ -202,6 +218,7 @@ fun MainScreen(
 
     val balance = profile?.balance ?: 50
     val currentTabBgColor = when (selectedTab) {
+        0 -> if (isNightMode) Color(0xFF0D0D1A) else SoftBackground
         1 -> Color(0xFFE8DAC2) // тёплый цвет фона календаря
         else -> SoftBackground
     }
@@ -215,33 +232,38 @@ fun MainScreen(
                     if (selectedTab != 0) {
                         TopBarWithHotspots(
                             topBarRes = R.drawable.top,
-                            imageAspectRatio = 1073f / 104f,
+                            imageAspectRatio = 1073f / 145f,
                             balance = balance,
                             moodPercent = profile?.let { p ->
-                                var m = (p.mood * 0.60f + p.satiety * 0.20f + p.health * 0.20f)
-                                if (p.satiety < 50) m -= (50 - p.satiety) * 0.5f
-                                if (p.health < 60) m -= (60 - p.health) * 0.6f
-                                m.roundToInt().coerceIn(0, 100)
+                                PetEconomyCalculator.calculateEffectiveMood(p.mood, p.satiety, p.health)
                             } ?: 70,
                             onOpenInstructions = { showTutorialFromMenu = true },
-                            onOpenSettings = { selectedTab = 4 },
+                            onOpenSettings = openSettings,
                             menuExpanded = helpPanelOpen,
                             onToggleMenu = { helpPanelOpen = !helpPanelOpen },
                             debug = false,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(currentTabBgColor)
-                                .padding(top = 15.dp)
+                                .background(
+                                    if (helpPanelOpen) {
+                                        // Затемнение фона за верхней панелькой в тон оверлею
+                                        Color.Black.copy(alpha = 0.25f)
+                                    } else {
+                                        currentTabBgColor
+                                    }
+                                )
+                                .padding(top = 0.dp)
                         )
                     }
                 }
                 // Нижнего бара в Scaffold нет: стеклянный док парит ПОВЕРХ контента,
                 // списки уже имеют нижний отступ 84dp и просвечивают сквозь стекло
             ) { innerPadding ->
+                val contentTopPadding = if (selectedTab == 0) 0.dp else innerPadding.calculateTopPadding()
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = innerPadding.calculateTopPadding())
+                        .padding(top = contentTopPadding)
                 ) {
                     val currentDayIndex = profile?.currentPeriodIndex ?: 1
                     val todayNotes = remember(calendarNotes, currentDayIndex) {
@@ -264,6 +286,8 @@ fun MainScreen(
                             targetGoalId = mapTargetGoalId,
                             targetShopItemId = mapTargetShopItemId,
                             targetQuestId = mapTargetQuestId,
+                            isNight = isNightMode,
+                            demoMode = demoMode,
                             onModalDismissed = {
                                 mapInitialModal = null
                                 mapTargetGoalId = null
@@ -323,7 +347,8 @@ fun MainScreen(
                                     icon
                                 )
                             },
-                            onDeleteRecurring = { exp -> viewModel.deleteRecurringExpense(exp) }
+                            onDeleteRecurring = { exp -> viewModel.deleteRecurringExpense(exp) },
+                            demoMode = demoMode
                         )
                     }
                     KeepAliveTab(
@@ -376,10 +401,7 @@ fun MainScreen(
                                     reason
                                 )
                             },
-                            onNextDemoPeriod = { viewModel.completePeriod() },
-                            onResetProfile = { viewModel.resetDemoProfile() },
-                            demoMode = demoMode,
-                            onToggleDemoMode = { enabled -> viewModel.toggleDemo(enabled) }
+                            onResetProfile = { viewModel.resetDemoProfile() }
                         )
                     }
                     KeepAliveTab(
@@ -392,9 +414,14 @@ fun MainScreen(
                             soundEnabled = soundEnabled,
                             musicEnabled = musicEnabled,
                             musicVolume = musicVolume,
+                            demoMode = demoMode,
                             onToggleSound = { viewModel.toggleSound(it) },
                             onToggleMusic = { viewModel.toggleMusic(it) },
-                            onMusicVolumeChange = { viewModel.setMusicVolume(it) }
+                            onMusicVolumeChange = { viewModel.setMusicVolume(it) },
+                            onToggleDemoMode = { viewModel.toggleDemo(it) },
+                            isNightMode = isNightMode,
+                            onToggleNightMode = { viewModel.toggleNightMode(it) },
+                            onClose = closeSettings
                         )
                     }
                     // Стеклянный док поверх контента: последний в Box = рисуется сверху
@@ -410,9 +437,10 @@ fun MainScreen(
                     ) {
                         NavBarWithHotspots(
                             navRes = R.drawable.menu,
-                            imageAspectRatio = 1073f / 278f,
+                            imageAspectRatio = 1073f / 174f,
                             hotspots = DEFAULT_NAV_HOTSPOTS,
                             onSelectTab = onSelectTab,
+                            showImage = selectedTab != 0,
                             debug = false,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -455,7 +483,7 @@ fun MainScreen(
                                 },
                                 onSettings = {
                                     helpPanelOpen = false
-                                    selectedTab = 4    // или как ты открываешь настройки
+                                    openSettings()
                                 },
                                 onClose = { helpPanelOpen = false },
                                 modifier = Modifier

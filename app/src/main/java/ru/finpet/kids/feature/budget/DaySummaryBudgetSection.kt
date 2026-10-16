@@ -98,28 +98,33 @@ fun DaySummaryBudgetSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Звёзды бюджета: ${stars.count}/3",
-                fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
-                color = PixelTextDark
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Звёзды бюджета: ${stars.count}/3",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = PixelTextDark
+                )
+            }
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text(
                     text = "${if (stars.careStar) "⭐" else "⚪"} Забота",
-                    fontSize = 11.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = if (stars.careStar) PixelGreenCrop else PixelTextMuted
                 )
                 Text(
                     text = "${if (stars.dreamStar) "⭐" else "⚪"} Мечта",
-                    fontSize = 11.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = if (stars.dreamStar) PixelBlueWater else PixelTextMuted
                 )
                 Text(
                     text = "${if (stars.wisdomStar) "⭐" else "⚪"} Мудрость",
-                    fontSize = 11.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = if (stars.wisdomStar) PixelGoldDark else PixelRedBerry
                 )
@@ -136,52 +141,52 @@ fun DaySummaryBudgetSection(
             Column {
                 Text(
                     text = "🍲 Обязательное:",
-                    fontSize = 11.sp,
+                    fontSize = 14.sp,
                     color = PixelTextDark
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "${actual.actualMandatory} / ${plan.plannedMandatory}",
-                        fontSize = 11.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = PixelTextDark
                     )
                     Spacer(modifier = Modifier.width(2.dp))
-                    CoinIcon(modifier = Modifier.size(11.dp))
+                    CoinIcon(modifier = Modifier.size(14.dp))
                 }
             }
             Column {
                 Text(
                     text = "🎈 Желаемое:",
-                    fontSize = 11.sp,
+                    fontSize = 14.sp,
                     color = PixelTextDark
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "${actual.actualOptional} / ${plan.plannedOptional}",
-                        fontSize = 11.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = PixelTextDark
                     )
                     Spacer(modifier = Modifier.width(2.dp))
-                    CoinIcon(modifier = Modifier.size(11.dp))
+                    CoinIcon(modifier = Modifier.size(14.dp))
                 }
             }
             Column {
                 Text(
                     text = "🏦 В копилку:",
-                    fontSize = 11.sp,
+                    fontSize = 14.sp,
                     color = PixelTextDark
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "${actual.actualSavings} / ${plan.plannedSavings}",
-                        fontSize = 11.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = PixelTextDark
                     )
                     Spacer(modifier = Modifier.width(2.dp))
-                    CoinIcon(modifier = Modifier.size(11.dp))
+                    CoinIcon(modifier = Modifier.size(14.dp))
                 }
             }
         }
@@ -200,7 +205,7 @@ fun DaySummaryBudgetSection(
         ) {
             Text(
                 text = "Соответствие плану: ${compliance.totalPercent}%\n${compliance.feedback}",
-                fontSize = 11.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = if (compliance.isDisciplined) PixelGreenCrop else PixelTextDark,
                 lineHeight = 15.sp

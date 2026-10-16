@@ -40,10 +40,10 @@ data class NavHotspot(
 
 // Координаты вкладок на нарисованной панели.
 val DEFAULT_NAV_HOTSPOTS: List<NavHotspot> = listOf(
-    NavHotspot("map",      0.111f, 0.250f, 0.280f, 0.761f),
-    NavHotspot("plans",    0.338f, 0.222f, 0.468f, 0.733f),
-    NavHotspot("finik",    0.525f, 0.178f, 0.664f, 0.733f),
-    NavHotspot("family",   0.722f, 0.122f, 0.872f, 0.761f)
+    NavHotspot("map",      0.088f, 0.126f, 0.208f, 0.869f),
+    NavHotspot("calendar", 0.306f, 0.154f, 0.449f, 0.771f),
+    NavHotspot("finik",    0.530f, 0.114f, 0.664f, 0.811f),
+    NavHotspot("family",   0.775f, 0.069f, 0.917f, 0.840f)
 )
 
 /**
@@ -63,7 +63,8 @@ fun NavBarWithHotspots(
     hotspots: List<NavHotspot>,
     onSelectTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    debug: Boolean = false
+    showImage: Boolean = true,
+    debug: Boolean = true
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -76,13 +77,15 @@ fun NavBarWithHotspots(
         val w = maxWidth
         val h = maxHeight
 
-        // Картинка панели
-        Image(
-            painter = painterResource(id = navRes),
-            contentDescription = "Навигация",
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize()
-        )
+        // картинка панели: скрывается, если фон карты уже содержит нарисованную панель
+        if (showImage) {
+            Image(
+                painter = painterResource(id = navRes),
+                contentDescription = "Навигация",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
         // Невидимые кликабельные зоны
         hotspots.forEachIndexed { index, spot ->

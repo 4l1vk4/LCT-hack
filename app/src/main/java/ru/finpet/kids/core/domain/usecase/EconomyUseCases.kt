@@ -216,8 +216,14 @@ class CompletePeriodUseCase @Inject constructor(
         var finalMood = resolution.newStats.mood
         var finalSatiety = resolution.newStats.satiety
         var finalHealth = resolution.newStats.health
+        var finalCarePoints = resolution.newStats.carePoints
+        var finalGrowthStage = resolution.newStats.stage.name
 
         if (profile.isPetRunaway) {
+            // пока питомец сбежал — он не растет и не получает очки заботы
+            finalCarePoints = profile.carePoints
+            finalGrowthStage = profile.growthStage
+
             if (profile.bowlPlacedToday) {
                 val daysRemaining = profile.runawayDaysLeft - 1
                 if (daysRemaining <= 0) {
@@ -255,8 +261,8 @@ class CompletePeriodUseCase @Inject constructor(
             profile.copy(
                 balance = profile.balance + resolution.periodIncome,
                 currentPeriodIndex = nextPeriodIndex,
-                carePoints = resolution.newStats.carePoints,
-                growthStage = resolution.newStats.stage.name,
+                carePoints = finalCarePoints,
+                growthStage = finalGrowthStage,
                 satiety = finalSatiety,
                 health = finalHealth,
                 mood = finalMood,

@@ -45,8 +45,12 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
+import ru.finpet.kids.feature.calendar.CalendarMonthInfo
 import ru.finpet.kids.feature.finik.parseAccessories
 
 sealed interface OnboardingState {
@@ -99,6 +103,46 @@ class MainViewModel @Inject constructor(
     private val _virtualDate = MutableStateFlow<LocalDate>(LocalDate.now())
     val virtualDate: StateFlow<LocalDate> = _virtualDate.asStateFlow()
 
+    // ночной режим: с 22:00 до 06:00 по времени устройства + возможность ручного переключения в демо
+    private val _isNightOverride = MutableStateFlow<Boolean?>(null)
+    val isNightOverride: StateFlow<Boolean?> = _isNightOverride.asStateFlow()
+
+    private fun isCurrentTimeNight(time: LocalTime = LocalTime.now()): Boolean {
+        val hour = time.hour
+        return hour >= 22 || hour < 6
+    }
+
+    val demoMode: StateFlow<Boolean> = settingsRepository.isDemoMode
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val isNightMode: StateFlow<Boolean> = combine(
+        flow {
+            while (true) {
+                emit(LocalTime.now())
+                delay(30_000L)
+            }
+        },
+        _isNightOverride,
+        demoMode
+    ) { time, override, isDemo ->
+        if (isDemo && override != null) {
+            override
+        } else if (isDemo && override == null) {
+            false // при включении демо-режима по умолчанию даем день для тестирования
+        } else {
+            override ?: isCurrentTimeNight(time)
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        isCurrentTimeNight()
+    )
+
+    fun toggleNightMode(enabled: Boolean? = null) {
+        val current = _isNightOverride.value ?: isCurrentTimeNight()
+        _isNightOverride.value = enabled ?: !current
+    }
+
     private val _moneyEvent = MutableStateFlow<MoneyEvent?>(null)
     val moneyEvent: StateFlow<MoneyEvent?> = _moneyEvent.asStateFlow()
 
@@ -148,9 +192,6 @@ class MainViewModel @Inject constructor(
     val musicVolume: StateFlow<Float> = settingsRepository.musicVolume
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0.7f)
 
-    val demoMode: StateFlow<Boolean> = settingsRepository.isDemoMode
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
     val onboardingState: StateFlow<OnboardingState> = combine(
         settingsRepository.selectedSkin,
         settingsRepository.petName,
@@ -199,6 +240,8 @@ class MainViewModel @Inject constructor(
                 dbInit.await()
                 // Синхронизируем виртуальное и реальное время
                 initVirtualTime()
+                // Демо-режим всегда выключен при запуске приложения
+                settingsRepository.setDemoMode(false)
                 // Календарь зависит только от готовой БД и времени
                 ensureCalendarDataInitialized()
                 _purchases.value = purchasesDeferred.await()
@@ -468,6 +511,26 @@ class MainViewModel @Inject constructor(
                     runawayDaysLeft = daysLeft
                 )
             )
+
+            // Добавляем в обязательные расходы текущего периода покупку корма для возвращения котика
+            val curPeriod = repository.getPeriodSync(prof.currentPeriodIndex) ?: PeriodEntity(prof.currentPeriodIndex)
+            repository.savePeriod(
+                curPeriod.copy(
+                    actualMandatory = curPeriod.actualMandatory + bowlPrice
+                )
+            )
+
+            // Записываем заметку в календарь дня
+            calendarDao.insertNote(
+                CalendarNoteEntity(
+                    dayIndex = prof.currentPeriodIndex,
+                    title = "Миска корма для возвращения ${prof.petName}",
+                    cost = bowlPrice,
+                    category = "PET_FOOD",
+                    isCompleted = true
+                )
+            )
+
             loadCurrentPeriod()
         }
     }
@@ -537,6 +600,7 @@ class MainViewModel @Inject constructor(
             val monthChanged = nextDate.month != curDate.month
             val nextDayIndex = nextDate.dayOfMonth
             val nextYM = YearMonth.from(nextDate)
+            val curYM = YearMonth.from(curDate)
 
             if (monthChanged) {
                 seedCalendarNotesForMonth(nextYM)
@@ -544,8 +608,16 @@ class MainViewModel @Inject constructor(
 
             val result = completePeriodUseCase(nextDayIndex = nextDayIndex, yearMonth = nextYM)
             if (result != null) {
-                _periodAnalysisEvent.value = result
-                if (result.periodIncome > 0) {
+                val isIncome = result.periodIncome > 0
+                val enrichedResult = result.copy(
+                    isMonthTransition = monthChanged,
+                    closedMonthName = CalendarMonthInfo.of(curYM).monthName,
+                    newMonthName = CalendarMonthInfo.of(nextYM).monthName,
+                    isIncomeDay = isIncome
+                )
+                // Всплывающее окно анализа после завершения периода
+                _periodAnalysisEvent.value = enrichedResult
+                if (isIncome) {
                     showMoneyEvent(
                         amount = result.periodIncome,
                         source = "Карманные деньги на неделю (понедельник)"
@@ -674,7 +746,12 @@ class MainViewModel @Inject constructor(
     }
 
     fun toggleDemo(enabled: Boolean) {
-        viewModelScope.launch { settingsRepository.setDemoMode(enabled) }
+        viewModelScope.launch {
+            settingsRepository.setDemoMode(enabled)
+            if (!enabled) {
+                _isNightOverride.value = null
+            }
+        }
     }
 
     private fun choreTitle(choreId: String): String = when (choreId) {

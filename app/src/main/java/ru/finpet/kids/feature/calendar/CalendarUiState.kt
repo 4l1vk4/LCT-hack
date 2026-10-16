@@ -13,7 +13,6 @@ sealed interface CalendarDialog {
     data object RecurringExpenses : CalendarDialog
     data object AddRecurringExpense : CalendarDialog
     data object BudgetPlanning : CalendarDialog
-    data class NextDayConfirm(val nextDay: Int) : CalendarDialog
 }
 
 data class CalendarMonthInfo(

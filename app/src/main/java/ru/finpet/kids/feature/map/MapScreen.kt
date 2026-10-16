@@ -1,6 +1,8 @@
 package ru.finpet.kids.feature.map
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -57,6 +60,8 @@ fun MapScreen(
     targetGoalId: String? = null,
     targetShopItemId: String? = null,
     targetQuestId: String? = null,
+    isNight: Boolean = false,
+    demoMode: Boolean = false,
     onModalDismissed: () -> Unit = {},
     onBuyItem: (PurchaseItem) -> Unit,
     onAnswerQuest: (questId: String, optionId: String) -> Unit,
@@ -68,10 +73,17 @@ fun MapScreen(
 ) {
     // какая локация сейчас открыта: "SHOP", "QUESTS" или "GOALS"
     var activeModal by remember(initialModal) { mutableStateOf<String?>(initialModal) }
+    var showNightDialog by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(initialModal) {
+    LaunchedEffect(initialModal, isNight) {
         if (initialModal != null) {
-            activeModal = initialModal
+            if (isNight) {
+                showNightDialog = initialModal
+                activeModal = null
+                onModalDismissed()
+            } else {
+                activeModal = initialModal
+            }
         }
     }
     var notEnoughMoneyInfo by remember { mutableStateOf<Pair<Int, Int>?>(null) } // сколько не хватает, цена
@@ -81,31 +93,75 @@ fun MapScreen(
     val balance = profile?.balance ?: 50
     val petName = profile?.petName ?: "Финни"
 
+    val mapRes = if (isNight) R.drawable.night else R.drawable.day
+    val mapAspectRatio = 1073f / 3248f
+    val mapBgColor = if (isNight) Color(0xFF0D0D1A) else Color(0xFF67BDEF)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF67BDEF))
+            .background(mapBgColor)
     ) {
         MapWithHotspots(
-            mapRes = R.drawable.day,
+            mapRes = mapRes,
+            imageAspectRatio = mapAspectRatio,
             hotspots = DEFAULT_MAP_HOTSPOTS,
             debug = DEBUG_HOTSPOTS,
             onClickHotspot = { spot ->
                 when (spot.id) {
                     "shop" -> {
-                        // если кот убежал, в магазин не пускаем — сначала нужно вернуть питомца
-                        if (profile?.isPetRunaway == true) {
+                        if (isNight) {
+                            showNightDialog = "SHOP"
+                        } else if (profile?.isPetRunaway == true && !demoMode) {
+                            // если кот убежал и не демо-режим, в магазин не пускаем — сначала нужно вернуть питомца
                             showNoPetDialog = true
                         } else {
                             activeModal = "SHOP"
                         }
                     }
-                    "quests" -> activeModal = "QUESTS"
-                    "home", "bank" -> activeModal = "GOALS"
+                    "quests" -> {
+                        if (isNight) {
+                            showNightDialog = "QUESTS"
+                        } else {
+                            activeModal = "QUESTS"
+                        }
+                    }
+                    "home", "bank" -> {
+                        if (isNight) {
+                            showNightDialog = "BANK"
+                        } else {
+                            activeModal = "GOALS"
+                        }
+                    }
                 }
             },
             modifier = Modifier.fillMaxSize()
         )
+
+        // ночной индикатор режима (22:00 – 06:00)
+        if (isNight) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 16.dp)
+                    .background(Color(0xDD121324), RoundedCornerShape(20.dp))
+                    .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(20.dp))
+                    .padding(horizontal = 14.dp, vertical = 7.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(text = "🌙", fontSize = 14.sp)
+                    Text(
+                        text = "Ночь в городе (22:00 – 06:00)",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
     }
 
     // шторка школы финграмотности (квесты и словарик)
@@ -264,6 +320,58 @@ fun MapScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = FreshGreen)
                 ) {
                     Text("Спасибо, понятно! 👍")
+                }
+            }
+        )
+    }
+
+    // предупреждение: здания закрыты ночью
+    showNightDialog?.let { target ->
+        val isShop = target == "SHOP"
+        val isQuests = target == "QUESTS"
+        AlertDialog(
+            onDismissRequest = { showNightDialog = null },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "🌙", fontSize = 22.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = when {
+                            isShop -> "Лавка закрыта"
+                            isQuests -> "Школа закрыта"
+                            else -> "Банк закрыт"
+                        },
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+            },
+            text = {
+                Text(
+                    text = when {
+                        isShop -> "Ночью (с 22:00 до 06:00) лавка закрыта. Продавец и питомец спят 💤\n\nПриходи за покупками утром с 6:00!"
+                        isQuests -> "Ночью (с 22:00 до 06:00) школа закрыта. Все уроки и финансовые квесты начнутся утром с 6:00 💤\n\nОтдыхай и набирайся сил перед новым днем!"
+                        else -> "Ночью (с 22:00 до 06:00) банк и копилка закрыты. Все операции с накоплениями будут доступны утром с 6:00 💤\n\nГород спит, отдыхай до утра!"
+                    },
+                    fontSize = 16.sp,
+                    lineHeight = 22.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showNightDialog = null },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = when {
+                            isShop -> JoyOrange
+                            isQuests -> FreshGreen
+                            else -> Color(0xFF1E88E5)
+                        }
+                    )
+                ) {
+                    Text(
+                        "Понятно 👍",
+                        fontSize = 18.sp
+                    )
                 }
             }
         )
