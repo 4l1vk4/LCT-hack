@@ -15,6 +15,7 @@ enum class CalendarTaskCategory(
     SCHOOL("SCHOOL", "📚", "Школа", isSystem = true),
     GROCERIES("GROCERIES", "🛒", "Лавка • Сдача", isSystem = true),
     PET_QUESTION("PET_QUESTION", "🐱", "У питомца", isSystem = true),
+    BUDGET_PLAN("BUDGET_PLAN", "📊", "План", isSystem = true),
     MANDATORY("MANDATORY", "📝", "Обязательное", isSystem = false),
     OPTIONAL("OPTIONAL", "✨", "Желаемое", isSystem = false),
     SAVINGS("SAVINGS", "🎯", "В копилку", isSystem = false);

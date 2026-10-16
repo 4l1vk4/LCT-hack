@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -69,6 +68,7 @@ fun BudgetPlanningDialog(
     balance: Int,
     currentDay: Int,
     initialPlan: BudgetPlan,
+    isConfirmed: Boolean = false,
     onConfirm: (BudgetPlan) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -190,6 +190,38 @@ fun BudgetPlanningDialog(
                         }
                     }
 
+                    if (isConfirmed) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Color(0xFFE8F5E9))
+                                    .border(1.dp, PixelGreenCrop, RoundedCornerShape(6.dp))
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(text = "🔒", fontSize = 18.sp)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column {
+                                        Text(
+                                            text = "Бюджет на сегодня утверждён!",
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF1B5E20)
+                                        )
+                                        Text(
+                                            text = "Распределение монет зафиксировано. Новый план можно составить в следующий день.",
+                                            fontSize = 13.sp,
+                                            color = Color(0xFF2E7D32),
+                                            lineHeight = 16.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     // остаток в кошельке и статус перерасхода
                     item {
                         Column(
@@ -256,76 +288,78 @@ fun BudgetPlanningDialog(
                         }
                     }
 
-                    // готовые детские пресеты распределения
-                    item {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                text = "✨ БЫСТРЫЕ ПРЕСЕТЫ:",
-                                fontFamily = AppFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = PixelTextMuted
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                PresetCard(
-                                    icon = "🌟",
-                                    title = "Умный хозяин",
-                                    proportions = "50 / 30 / 20",
-                                    containerColor = PixelGoldGlow,
-                                    borderColor = PixelGoldDark,
-                                    modifier = Modifier.weight(1f),
-                                    onClick = {
-                                        // 50% обязательное, 30% накопления, 20% радости
-                                        mandatory = ((balance * 0.50f) / 10).toInt() * 10
-                                        savings = ((balance * 0.30f) / 10).toInt() * 10
-                                        optional = ((balance * 0.20f) / 10).toInt() * 10
-                                    }
+                    if (!isConfirmed) {
+                        // готовые детские пресеты распределения
+                        item {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    text = "✨ БЫСТРЫЕ ПРЕСЕТЫ:",
+                                    fontFamily = AppFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = PixelTextMuted
                                 )
-                                PresetCard(
-                                    icon = "🎯",
-                                    title = "Турбо-копилка",
-                                    proportions = "35 / 55 / 10",
-                                    containerColor = PixelParchmentLight,
-                                    borderColor = PixelBlueWater,
-                                    modifier = Modifier.weight(1f),
-                                    onClick = {
-                                        // акцент на быстрое накопление цели
-                                        mandatory = ((balance * 0.35f) / 10).toInt() * 10
-                                        savings = ((balance * 0.55f) / 10).toInt() * 10
-                                        optional = ((balance * 0.10f) / 10).toInt() * 10
-                                    }
-                                )
-                                PresetCard(
-                                    icon = "⚖️",
-                                    title = "Поровну",
-                                    proportions = "по 33%",
-                                    containerColor = PixelParchmentMedium,
-                                    borderColor = PixelParchmentBorder,
-                                    modifier = Modifier.weight(1f),
-                                    onClick = {
-                                        val share = (balance / 30) * 10
-                                        mandatory = share
-                                        optional = share
-                                        savings = share
-                                    }
-                                )
-                                PresetCard(
-                                    icon = "↺",
-                                    title = "Сброс",
-                                    proportions = "по 0",
-                                    containerColor = PixelParchmentMedium,
-                                    borderColor = PixelParchmentBorder,
-                                    modifier = Modifier.weight(0.75f),
-                                    onClick = {
-                                        mandatory = 0
-                                        optional = 0
-                                        savings = 0
-                                    }
-                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    PresetCard(
+                                        icon = "🌟",
+                                        title = "Умный хозяин",
+                                        proportions = "50 / 30 / 20",
+                                        containerColor = PixelGoldGlow,
+                                        borderColor = PixelGoldDark,
+                                        modifier = Modifier.weight(1f),
+                                        onClick = {
+                                            // 50% обязательное, 30% накопления, 20% радости
+                                            mandatory = ((balance * 0.50f) / 10).toInt() * 10
+                                            savings = ((balance * 0.30f) / 10).toInt() * 10
+                                            optional = ((balance * 0.20f) / 10).toInt() * 10
+                                        }
+                                    )
+                                    PresetCard(
+                                        icon = "🎯",
+                                        title = "Турбо-копилка",
+                                        proportions = "35 / 55 / 10",
+                                        containerColor = PixelParchmentLight,
+                                        borderColor = PixelBlueWater,
+                                        modifier = Modifier.weight(1f),
+                                        onClick = {
+                                            // акцент на быстрое накопление цели
+                                            mandatory = ((balance * 0.35f) / 10).toInt() * 10
+                                            savings = ((balance * 0.55f) / 10).toInt() * 10
+                                            optional = ((balance * 0.10f) / 10).toInt() * 10
+                                        }
+                                    )
+                                    PresetCard(
+                                        icon = "⚖️",
+                                        title = "Поровну",
+                                        proportions = "по 33%",
+                                        containerColor = PixelParchmentMedium,
+                                        borderColor = PixelParchmentBorder,
+                                        modifier = Modifier.weight(1f),
+                                        onClick = {
+                                            val share = (balance / 30) * 10
+                                            mandatory = share
+                                            optional = share
+                                            savings = share
+                                        }
+                                    )
+                                    PresetCard(
+                                        icon = "↺",
+                                        title = "Сброс",
+                                        proportions = "по 0",
+                                        containerColor = PixelParchmentMedium,
+                                        borderColor = PixelParchmentBorder,
+                                        modifier = Modifier.weight(0.75f),
+                                        onClick = {
+                                            mandatory = 0
+                                            optional = 0
+                                            savings = 0
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -340,6 +374,7 @@ fun BudgetPlanningDialog(
                             amount = mandatory,
                             walletBalance = balance,
                             color = PixelGreenCrop,
+                            isReadOnly = isConfirmed,
                             onMinus = { if (mandatory >= 10) mandatory -= 10 },
                             onPlus10 = { mandatory += 10 },
                             onPlus20 = { mandatory += 20 }
@@ -356,6 +391,7 @@ fun BudgetPlanningDialog(
                             amount = optional,
                             walletBalance = balance,
                             color = PixelGoldDark,
+                            isReadOnly = isConfirmed,
                             onMinus = { if (optional >= 10) optional -= 10 },
                             onPlus10 = { optional += 10 },
                             onPlus20 = { optional += 20 }
@@ -372,6 +408,7 @@ fun BudgetPlanningDialog(
                             amount = savings,
                             walletBalance = balance,
                             color = PixelBlueWater,
+                            isReadOnly = isConfirmed,
                             onMinus = { if (savings >= 10) savings -= 10 },
                             onPlus10 = { savings += 10 },
                             onPlus20 = { savings += 20 }
@@ -381,39 +418,51 @@ fun BudgetPlanningDialog(
                     // кнопки закрытия и подтверждения плана
                     item {
                         Spacer(modifier = Modifier.height(4.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
+                        if (isConfirmed) {
                             PixelButton(
-                                text = "✕ Закрыть",
+                                text = "✓ Понятно",
                                 onClick = onDismiss,
-                                containerColor = PixelWoodMedium,
-                                textColor = PixelParchmentLight,
-                                borderColor = PixelWoodDark,
-                                modifier = Modifier.weight(1f),
-                                fontSize = 17.sp
-                            )
-                            PixelButton(
-                                text = if (isOverBudget) "⚠️ Перерасход" else "📜 Утвердить план",
-                                onClick = {
-                                    if (isValid) {
-                                        onConfirm(
-                                            BudgetPlan(
-                                                plannedMandatory = mandatory,
-                                                plannedOptional = optional,
-                                                plannedSavings = savings
-                                            )
-                                        )
-                                    }
-                                },
-                                enabled = isValid,
-                                containerColor = if (isValid) PixelGreenCrop else Color(0xFFB0BEC5),
+                                containerColor = PixelGreenCrop,
                                 textColor = Color.White,
-                                borderColor = if (isValid) Color(0xFF1B5E20) else Color(0xFF78909C),
-                                modifier = Modifier.weight(1.6f),
+                                borderColor = Color(0xFF1B5E20),
+                                modifier = Modifier.fillMaxWidth(),
                                 fontSize = 17.sp
                             )
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                PixelButton(
+                                    text = "✕ Закрыть",
+                                    onClick = onDismiss,
+                                    containerColor = PixelWoodMedium,
+                                    textColor = PixelParchmentLight,
+                                    borderColor = PixelWoodDark,
+                                    modifier = Modifier.weight(1f),
+                                    fontSize = 17.sp
+                                )
+                                PixelButton(
+                                    text = if (isOverBudget) "⚠️ Перерасход" else "📜 Утвердить план",
+                                    onClick = {
+                                        if (isValid) {
+                                            onConfirm(
+                                                BudgetPlan(
+                                                    plannedMandatory = mandatory,
+                                                    plannedOptional = optional,
+                                                    plannedSavings = savings
+                                                )
+                                            )
+                                        }
+                                    },
+                                    enabled = isValid,
+                                    containerColor = if (isValid) PixelGreenCrop else Color(0xFFB0BEC5),
+                                    textColor = Color.White,
+                                    borderColor = if (isValid) Color(0xFF1B5E20) else Color(0xFF78909C),
+                                    modifier = Modifier.weight(1.6f),
+                                    fontSize = 17.sp
+                                )
+                            }
                         }
                     }
                 }
@@ -480,6 +529,7 @@ private fun MagicJarCard(
     amount: Int,
     walletBalance: Int,
     color: Color,
+    isReadOnly: Boolean = false,
     onMinus: () -> Unit,
     onPlus10: () -> Unit,
     onPlus20: () -> Unit
@@ -515,28 +565,27 @@ private fun MagicJarCard(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = PixelTextDark
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(color.copy(alpha = 0.2f))
+                        .padding(horizontal = 4.dp, vertical = 1.dp)
+                ) {
                     Text(
-                        text = title,
+                        text = categoryLabel,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 17.sp,
-                        color = PixelTextDark
+                        color = color
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(color.copy(alpha = 0.2f))
-                            .padding(horizontal = 4.dp, vertical = 1.dp)
-                    ) {
-                        Text(
-                            text = categoryLabel,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = color
-                        )
-                    }
                 }
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     fontSize = 15.sp,
@@ -566,7 +615,7 @@ private fun MagicJarCard(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // шкала наполнения баночки относительно всех денег в кошельке
+        // шкала наполнения баночки относительно всех денег в кошельке (без зеленых точек)
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -586,52 +635,60 @@ private fun MagicJarCard(
                 )
             }
             Spacer(modifier = Modifier.height(3.dp))
-            LinearProgressIndicator(
-                progress = { fillRatio },
-                color = color,
-                trackColor = PixelParchmentBorder,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp))
-            )
+                    .background(PixelParchmentBorder)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(fillRatio.coerceIn(0f, 1f))
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(color)
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        if (!isReadOnly) {
+            Spacer(modifier = Modifier.height(8.dp))
 
-        // кнопки быстрого добавления (+10, +20, -10)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            PixelButton(
-                text = "-10",
-                onClick = onMinus,
-                enabled = amount >= 10,
-                containerColor = PixelParchmentMedium,
-                textColor = PixelTextDark,
-                borderColor = PixelParchmentBorder,
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            PixelButton(
-                text = "+10",
-                onClick = onPlus10,
-                containerColor = color,
-                textColor = Color.White,
-                borderColor = PixelWoodDark,
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            PixelButton(
-                text = "+20",
-                onClick = onPlus20,
-                containerColor = color,
-                textColor = Color.White,
-                borderColor = PixelWoodDark,
-                fontSize = 16.sp
-            )
+            // кнопки быстрого добавления (+10, +20, -10)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PixelButton(
+                    text = "-10",
+                    onClick = onMinus,
+                    enabled = amount >= 10,
+                    containerColor = PixelParchmentMedium,
+                    textColor = PixelTextDark,
+                    borderColor = PixelParchmentBorder,
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                PixelButton(
+                    text = "+10",
+                    onClick = onPlus10,
+                    containerColor = color,
+                    textColor = Color.White,
+                    borderColor = PixelWoodDark,
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                PixelButton(
+                    text = "+20",
+                    onClick = onPlus20,
+                    containerColor = color,
+                    textColor = Color.White,
+                    borderColor = PixelWoodDark,
+                    fontSize = 16.sp
+                )
+            }
         }
     }
 }

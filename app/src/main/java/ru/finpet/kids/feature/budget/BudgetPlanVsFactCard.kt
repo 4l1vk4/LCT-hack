@@ -7,13 +7,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.CoinText
 import ru.finpet.kids.core.designsystem.PixelBlueWater
 import ru.finpet.kids.core.designsystem.PixelButton
@@ -60,7 +62,7 @@ fun BudgetPlanVsFactCard(
     plan: BudgetPlan,
     actual: ActualExpenses,
     compliance: BudgetCompliance,
-    onEditPlan: () -> Unit,
+    onEditPlan: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null
 ) {
     val stars = remember(plan, actual) { calculateBudgetStars(plan, actual) }
@@ -73,7 +75,7 @@ fun BudgetPlanVsFactCard(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // верхняя сводная плашка: запланировано vs фактически потрачено
+            // верхняя сводная плашка: компактно и последовательно «План: 150 🪙 ➔ Факт: 120 🪙»
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -84,38 +86,44 @@ fun BudgetPlanVsFactCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "План: ",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        color = PixelTextDark,
-                        fontFamily = AppFontFamily
-                    )
-                    CoinText(
-                        prefix = "${plan.totalPlanned}",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        color = PixelTextDark,
-                        fontFamily = AppFontFamily
-                    )
-                    Text(
-                        text = "• Факт: ",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        color = PixelTextDark,
-                        fontFamily = AppFontFamily
-                    )
-                    CoinText(
-                        prefix = "${actual.totalActual}",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        color = PixelTextDark,
-                        fontFamily = AppFontFamily
-                    )
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "План:",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = PixelTextDark,
+                            fontFamily = AppFontFamily
+                        )
+                        CoinText(
+                            prefix = "${plan.totalPlanned}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = PixelTextDark,
+                            fontFamily = AppFontFamily
+                        )
+                        Text(
+                            text = "➔ Факт:",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = PixelTextDark,
+                            fontFamily = AppFontFamily
+                        )
+                        CoinText(
+                            prefix = "${actual.totalActual}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = if (actual.totalActual <= plan.totalPlanned) PixelGreenCrop else PixelRedBerry,
+                            fontFamily = AppFontFamily
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = if (compliance.isDisciplined) "🌟 Отличная дисциплина трат!" else "💡 Следи за покупками в Лавке",
-                        fontSize = 11.sp,
+                        fontSize = 13.sp,
                         color = PixelTextMuted
                     )
                 }
@@ -139,6 +147,27 @@ fun BudgetPlanVsFactCard(
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 13.sp,
                         fontFamily = AppFontFamily
+                    )
+                }
+            }
+
+            // блок расшифровки процентов для ребенка: экономия не снижает процент!
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color(0xFFF1F8E9))
+                    .border(1.dp, PixelGreenCrop.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "🎯", fontSize = 14.sp)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Точность бюджета (${compliance.totalPercent}%): совпадение трат с планом в баночках. Экономия монеток и пополнение копилки не снижают процент!",
+                        fontSize = 13.sp,
+                        color = Color(0xFF1B5E20),
+                        lineHeight = 15.sp
                     )
                 }
             }
@@ -215,7 +244,6 @@ fun BudgetPlanVsFactCard(
             CategoryComparisonRow(
                 icon = "🍲",
                 title = "«Миска жизни» (Обязательное)",
-                starStatus = if (stars.careStar) "⭐" else "⚪",
                 planned = plan.plannedMandatory,
                 actual = actual.actualMandatory,
                 color = PixelGreenCrop,
@@ -226,7 +254,6 @@ fun BudgetPlanVsFactCard(
             CategoryComparisonRow(
                 icon = "🎈",
                 title = "«Сундучок радости» (Желаемое)",
-                starStatus = if (stars.wisdomStar) "⭐" else "⚪",
                 planned = plan.plannedOptional,
                 actual = actual.actualOptional,
                 color = PixelGoldDark,
@@ -237,7 +264,6 @@ fun BudgetPlanVsFactCard(
             CategoryComparisonRow(
                 icon = "🏦",
                 title = "«Копилка мечты» (В копилку)",
-                starStatus = if (stars.dreamStar) "⭐" else "⚪",
                 planned = plan.plannedSavings,
                 actual = actual.actualSavings,
                 color = PixelBlueWater,
@@ -276,14 +302,33 @@ fun BudgetPlanVsFactCard(
                         modifier = Modifier.weight(1f)
                     )
                 }
-                PixelButton(
-                    text = "✏️ Изменить план",
-                    onClick = onEditPlan,
-                    containerColor = PixelParchmentMedium,
-                    textColor = PixelTextDark,
-                    borderColor = PixelParchmentBorder,
-                    modifier = Modifier.weight(if (onDismiss != null) 1.5f else 1f)
-                )
+                if (onEditPlan != null) {
+                    PixelButton(
+                        text = "✏️ Изменить план",
+                        onClick = onEditPlan,
+                        containerColor = PixelParchmentMedium,
+                        textColor = PixelTextDark,
+                        borderColor = PixelParchmentBorder,
+                        modifier = Modifier.weight(if (onDismiss != null) 1.5f else 1f)
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .weight(if (onDismiss != null) 1.5f else 1f)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color(0xFFE8F5E9))
+                            .border(1.dp, PixelGreenCrop, RoundedCornerShape(4.dp))
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "🔒 План утверждён",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1B5E20)
+                        )
+                    }
+                }
             }
         }
     }
@@ -298,7 +343,7 @@ fun BudgetPlanVsFactDialog(
     plan: BudgetPlan,
     actual: ActualExpenses,
     compliance: BudgetCompliance,
-    onEditPlan: () -> Unit,
+    onEditPlan: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     Dialog(
@@ -359,7 +404,7 @@ private fun BudgetStarChip(
             }
             Text(
                 text = if (isEarned) activeDesc else inactiveDesc,
-                fontSize = 8.sp,
+                fontSize = 12.sp,
                 color = if (isEarned) Color(0xFFC8E6C9) else Color(0xFFB0BEC5),
                 textAlign = TextAlign.Center,
                 maxLines = 1
@@ -375,7 +420,6 @@ private fun BudgetStarChip(
 private fun CategoryComparisonRow(
     icon: String,
     title: String,
-    starStatus: String,
     planned: Int,
     actual: Int,
     color: Color,
@@ -407,27 +451,38 @@ private fun CategoryComparisonRow(
                     color = PixelTextDark
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = starStatus, fontSize = 14.sp)
             }
-            CoinText(
-                prefix = "$actual / $planned",
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "$actual / $planned",
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 16.sp,
                 color = if (isOverspent) PixelRedBerry else color,
                 fontFamily = AppFontFamily
             )
+            Spacer(modifier = Modifier.width(3.dp))
+            CoinIcon(modifier = Modifier.size(16.dp))
         }
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        LinearProgressIndicator(
-            progress = { progress },
-            color = if (isOverspent) PixelRedBerry else color,
-            trackColor = PixelParchmentBorder,
+        // шкала выполнения категории (без зеленых точек на конце)
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(6.dp)
                 .clip(RoundedCornerShape(3.dp))
-        )
+                .background(PixelParchmentBorder)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(progress.coerceIn(0f, 1f))
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(if (isOverspent) PixelRedBerry else color)
+            )
+        }
     }
 }

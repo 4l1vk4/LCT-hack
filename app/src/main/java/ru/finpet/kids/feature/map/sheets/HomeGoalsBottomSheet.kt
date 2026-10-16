@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,7 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -310,15 +310,21 @@ fun HomeGoalsBottomSheet(
                                 }
 
                                 Spacer(modifier = Modifier.height(8.dp))
-                                LinearProgressIndicator(
-                                    progress = { progress },
+                                Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(12.dp)
-                                        .clip(RoundedCornerShape(6.dp)),
-                                    color = FreshGreen,
-                                    trackColor = Color(0xFFEEEEEE)
-                                )
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(Color(0xFFEEEEEE))
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .fillMaxWidth(progress.coerceIn(0f, 1f))
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(FreshGreen)
+                                    )
+                                }
 
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(

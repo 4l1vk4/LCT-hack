@@ -198,7 +198,7 @@ class CompletePeriodUseCase @Inject constructor(
             actual = actual,
             nextDayIndex = nextPeriodIndex,
             yearMonth = yearMonth
-        )
+        ).copy(closedDayIndex = profile.currentPeriodIndex)
 
         // Закрываем текущий период
         repository.savePeriod(

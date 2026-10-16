@@ -569,6 +569,7 @@ fun FinikScreen(
                 balance = profile?.balance ?: 0,
                 currentDay = profile?.currentPeriodIndex ?: 1,
                 initialPlan = initialPlan,
+                isConfirmed = isBudgetConfirmed,
                 onConfirm = { newPlan ->
                     onConfirmBudget(newPlan)
                     showBudgetPlanningDialog = false
@@ -601,9 +602,11 @@ fun FinikScreen(
                 plan = plan,
                 actual = actual,
                 compliance = compliance,
-                onEditPlan = {
-                    showPlanVsFactDialog = false
-                    showBudgetPlanningDialog = true
+                onEditPlan = if (isBudgetConfirmed) null else {
+                    {
+                        showPlanVsFactDialog = false
+                        showBudgetPlanningDialog = true
+                    }
                 },
                 onDismiss = { showPlanVsFactDialog = false }
             )

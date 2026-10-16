@@ -174,12 +174,13 @@ fun CalendarScreen(
                 val compliance = remember(plan, actual) {
                     PetEconomyCalculator.calculateCompliance(plan, actual)
                 }
+                val isConfirmed = currentPeriod?.isBudgetConfirmed == true
                 BudgetPlanVsFactCard(
                     currentDay = currentDayIndex,
                     plan = plan,
                     actual = actual,
                     compliance = compliance,
-                    onEditPlan = { activeDialog = CalendarDialog.BudgetPlanning }
+                    onEditPlan = if (isConfirmed) null else { { activeDialog = CalendarDialog.BudgetPlanning } }
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
@@ -300,10 +301,12 @@ fun CalendarScreen(
                     plannedSavings = currentPeriod?.plannedSavings ?: 0
                 )
             }
+            val isConfirmed = currentPeriod?.isBudgetConfirmed == true
             BudgetPlanningDialog(
                 balance = balance,
                 currentDay = currentDayIndex,
                 initialPlan = initialPlan,
+                isConfirmed = isConfirmed,
                 onConfirm = { plan ->
                     onConfirmBudget(plan)
                     activeDialog = null

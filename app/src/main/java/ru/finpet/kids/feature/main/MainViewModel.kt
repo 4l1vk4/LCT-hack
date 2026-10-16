@@ -24,6 +24,7 @@ import ru.finpet.kids.core.data.repository.PurchaseItem
 import ru.finpet.kids.core.data.repository.QuestItem
 import ru.finpet.kids.core.data.repository.SettingsRepository
 import ru.finpet.kids.core.domain.model.BudgetPlan
+import ru.finpet.kids.core.domain.model.PeriodResolution
 import ru.finpet.kids.core.domain.repository.FinPetRepository
 import ru.finpet.kids.core.domain.usecase.AdultSectionUseCase
 import ru.finpet.kids.core.domain.usecase.CompetencyReport
@@ -108,6 +109,13 @@ class MainViewModel @Inject constructor(
 
     fun dismissMoneyEvent() {
         _moneyEvent.value = null
+    }
+
+    private val _periodAnalysisEvent = MutableStateFlow<PeriodResolution?>(null)
+    val periodAnalysisEvent: StateFlow<PeriodResolution?> = _periodAnalysisEvent.asStateFlow()
+
+    fun dismissPeriodAnalysis() {
+        _periodAnalysisEvent.value = null
     }
 
     val goals: StateFlow<List<GoalEntity>> = repository.getAllGoals()
@@ -269,8 +277,16 @@ class MainViewModel @Inject constructor(
         val currentYM = YearMonth.from(_virtualDate.value)
         val notesCount = calendarDao.getNotesCount()
         val petQuestionsCount = calendarDao.getPetQuestionNotesCount()
-        if (notesCount == 0 || petQuestionsCount == 0) {
+        val hasBudgetTasks = calendarDao.getNoteByDayAndCategory(1, "BUDGET_PLAN") != null
+        if (notesCount == 0 || petQuestionsCount == 0 || !hasBudgetTasks) {
             seedCalendarNotesForMonth(currentYM)
+        }
+        val prof = repository.getProfileSync()
+        if (prof != null) {
+            val period = repository.getPeriodSync(prof.currentPeriodIndex)
+            if (period?.isBudgetConfirmed == true) {
+                calendarDao.completeChecklistTaskByCategory(prof.currentPeriodIndex, "BUDGET_PLAN")
+            }
         }
     }
 
@@ -282,6 +298,17 @@ class MainViewModel @Inject constructor(
         for (day in 1..daysInMonth) {
             val date = yearMonth.atDay(day)
             val isWeekend = date.dayOfWeek in listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
+
+            // 0. Распределить бюджет на день
+            allNotes.add(
+                CalendarNoteEntity(
+                    dayIndex = day,
+                    title = "Распределить бюджет на день",
+                    cost = 0,
+                    category = "BUDGET_PLAN",
+                    isCompleted = false
+                )
+            )
 
             // 1. Ежедневный сытный корм для питомца
             allNotes.add(
@@ -341,6 +368,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             val prof = repository.getProfileSync() ?: return@launch
             confirmBudgetUseCase(prof.currentPeriodIndex, plan)
+            calendarDao.completeChecklistTaskByCategory(prof.currentPeriodIndex, "BUDGET_PLAN")
             loadCurrentPeriod()
         }
     }
@@ -515,11 +543,14 @@ class MainViewModel @Inject constructor(
             }
 
             val result = completePeriodUseCase(nextDayIndex = nextDayIndex, yearMonth = nextYM)
-            if (result != null && result.periodIncome > 0) {
-                showMoneyEvent(
-                    amount = result.periodIncome,
-                    source = "Карманные деньги на неделю (понедельник)"
-                )
+            if (result != null) {
+                _periodAnalysisEvent.value = result
+                if (result.periodIncome > 0) {
+                    showMoneyEvent(
+                        amount = result.periodIncome,
+                        source = "Карманные деньги на неделю (понедельник)"
+                    )
+                }
             }
             loadCurrentPeriod()
         }

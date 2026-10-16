@@ -216,7 +216,7 @@ fun CoinText(
     fontFamily: FontFamily? = null,
     prefix: String = "",
     suffix: String = "",
-    modifier: Modifier = Modifier.size(28.dp)
+    modifier: Modifier = Modifier
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -230,6 +230,6 @@ fun CoinText(
             color = color
         )
         Spacer(modifier = Modifier.width(3.dp))
-        CoinIcon(modifier = Modifier.size(fontSize.value.dp * 1.2f))
+        CoinIcon(modifier = Modifier.size((fontSize.value * 1.15f).dp.coerceIn(12.dp, 24.dp)))
     }
 }

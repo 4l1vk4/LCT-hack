@@ -87,6 +87,26 @@ class PetEconomyCalculatorTest {
     }
 
     @Test
+    fun `calculateCompliance rewards economizing and exceeding savings without penalty`() {
+        // Запланировали 30 на еду, 30 на хотелки, 40 в копилку.
+        // Фактически: еду купили за 30, на хотелки сэкономили и потратили только 10, а в копилку отложили 60 (больше плана!)
+        val plan = BudgetPlan(plannedMandatory = 30, plannedOptional = 30, plannedSavings = 40)
+        val actual = ActualExpenses(
+            actualMandatory = 30,
+            actualOptional = 10,
+            actualSavings = 60,
+            hasPurchasedFood = true
+        )
+
+        val compliance = PetEconomyCalculator.calculateCompliance(plan, actual)
+        assertEquals(100, compliance.totalPercent)
+        assertEquals(1.0f, compliance.mandatoryScore)
+        assertEquals(1.0f, compliance.optionalScore)
+        assertEquals(1.0f, compliance.savingsScore)
+        assertTrue(compliance.isDisciplined)
+    }
+
+    @Test
     fun `calculateCompliance never produces negative percent on severe overspending`() {
         val plan = BudgetPlan(plannedMandatory = 10, plannedOptional = 10, plannedSavings = 10)
         val actual = ActualExpenses(actualMandatory = 100, actualOptional = 100, actualSavings = 0)

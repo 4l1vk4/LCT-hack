@@ -66,5 +66,8 @@ data class PeriodResolution(
     val compliance: BudgetCompliance,
     val carePointsEarned: Int,
     val periodIncome: Int = 100,
-    val summaryFeedback: String
+    val summaryFeedback: String,
+    val plan: BudgetPlan = BudgetPlan(0, 0, 0),
+    val actual: ActualExpenses = ActualExpenses(0, 0, 0),
+    val closedDayIndex: Int = 1
 )

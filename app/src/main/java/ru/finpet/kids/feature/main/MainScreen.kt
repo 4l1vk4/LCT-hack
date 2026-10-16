@@ -43,6 +43,9 @@ import ru.finpet.kids.feature.finik.FinikScreen
 import ru.finpet.kids.feature.map.MapScreen
 import ru.finpet.kids.feature.calendar.CalendarMonthInfo
 import ru.finpet.kids.feature.settings.SettingsScreen
+import ru.finpet.kids.core.domain.model.BudgetPlan
+import ru.finpet.kids.feature.budget.BudgetPlanningDialog
+import ru.finpet.kids.feature.budget.PeriodAnalysisDialog
 import java.time.YearMonth
 import androidx.compose.foundation.layout.WindowInsets
 import ru.finpet.kids.R
@@ -124,6 +127,8 @@ fun MainScreen(
     val virtualDate by viewModel.virtualDate.collectAsStateWithLifecycle()
     val calendarMonthInfo = remember(virtualDate) { CalendarMonthInfo.of(YearMonth.from(virtualDate)) }
     val moneyEvent by viewModel.moneyEvent.collectAsStateWithLifecycle()
+    val periodAnalysis by viewModel.periodAnalysisEvent.collectAsStateWithLifecycle()
+    var showBudgetPlanningDialog by remember { mutableStateOf(false) }
     var helpPanelOpen by remember { mutableStateOf(false) }
     var showTutorialFromMenu by remember { mutableStateOf(false) }
     var mapInitialModal by remember { mutableStateOf<String?>(null) }
@@ -135,6 +140,9 @@ fun MainScreen(
     // переход из задач дня сразу в нужное здание с автоматическим скроллом к целевому действию
     val onNavigateToTask: (CalendarNoteEntity) -> Unit = { note ->
         when (note.category) {
+            "BUDGET_PLAN" -> {
+                showBudgetPlanningDialog = true
+            }
             "PET_FOOD" -> {
                 mapInitialModal = "SHOP"
                 mapTargetShopItemId = "food_basic"
@@ -465,6 +473,42 @@ fun MainScreen(
                     petName = ready?.petName ?: profile?.petName ?: "Финни",
                     skinId = currentSkinId,
                     onFinish = { showTutorialFromMenu = false }
+                )
+            }
+
+            // Всплывающее окно анализа после завершения периода
+            periodAnalysis?.let { resolution ->
+                PeriodAnalysisDialog(
+                    resolution = resolution,
+                    onConfirm = {
+                        viewModel.dismissPeriodAnalysis()
+                        showBudgetPlanningDialog = true
+                    }
+                )
+            }
+
+            // Диалог составления нового бюджета на день
+            if (showBudgetPlanningDialog) {
+                val currentPeriodVal = currentPeriod
+                val initialPlan = remember(currentPeriodVal) {
+                    BudgetPlan(
+                        plannedMandatory = currentPeriodVal?.plannedMandatory ?: 0,
+                        plannedOptional = currentPeriodVal?.plannedOptional ?: 0,
+                        plannedSavings = currentPeriodVal?.plannedSavings ?: 0
+                    )
+                }
+                val currentDay = profile?.currentPeriodIndex ?: 1
+                val isConfirmed = currentPeriod?.isBudgetConfirmed == true
+                BudgetPlanningDialog(
+                    balance = balance,
+                    currentDay = currentDay,
+                    initialPlan = initialPlan,
+                    isConfirmed = isConfirmed,
+                    onConfirm = { plan ->
+                        viewModel.confirmBudget(plan)
+                        showBudgetPlanningDialog = false
+                    },
+                    onDismiss = { showBudgetPlanningDialog = false }
                 )
             }
         }

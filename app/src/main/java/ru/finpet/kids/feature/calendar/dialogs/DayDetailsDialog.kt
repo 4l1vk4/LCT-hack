@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -136,16 +135,23 @@ fun DayDetailsDialog(
                         }
 
                         Spacer(modifier = Modifier.height(6.dp))
-                        // Шкала прогресса выполнения чек-листа дня
-                        LinearProgressIndicator(
-                            progress = { if (totalCount > 0) completedCount.toFloat() / totalCount else 0f },
-                            color = PixelGreenCrop,
-                            trackColor = PixelParchmentBorder,
+                        // Шкала прогресса выполнения чек-листа дня (без точек на конце)
+                        val progressFraction = if (totalCount > 0) (completedCount.toFloat() / totalCount).coerceIn(0f, 1f) else 0f
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(8.dp)
                                 .clip(RoundedCornerShape(4.dp))
-                        )
+                                .background(PixelParchmentBorder)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .fillMaxWidth(progressFraction)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(PixelGreenCrop)
+                            )
+                        }
                     }
 
                     // 2. Регулярные платежи дня (если есть)
@@ -331,6 +337,7 @@ fun DayDetailsDialog(
                                             } else {
                                                 val badgeLabel = when {
                                                     note.category == "GROCERIES" -> "Лавка • Сдача"
+                                                    note.category == "BUDGET_PLAN" -> "Баночки"
                                                     else -> category.defaultBadge
                                                 }
                                                 Text(

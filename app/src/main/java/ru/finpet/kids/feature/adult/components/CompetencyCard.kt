@@ -1,14 +1,16 @@
 package ru.finpet.kids.feature.adult.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -67,16 +69,22 @@ fun CompetencyCard(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            // прогресс-бар компетенции
-            LinearProgressIndicator(
-                progress = { (competency.scorePercent / 100f).coerceIn(0f, 1f) },
+            // прогресс-бар компетенции (без точек на конце)
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                color = accentColor,
-                trackColor = Color(0xFFEEEEEE)
-            )
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color(0xFFEEEEEE))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth((competency.scorePercent / 100f).coerceIn(0f, 1f))
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(accentColor)
+                )
+            }
 
             Spacer(modifier = Modifier.height(6.dp))
 

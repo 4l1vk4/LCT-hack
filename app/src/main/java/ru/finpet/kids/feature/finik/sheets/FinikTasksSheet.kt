@@ -150,6 +150,7 @@ fun FinikTasksSheet(
                     val taskBadge = when {
                         note.category == "GROCERIES" -> "Лавка • Сдача"
                         note.category == "PET_FOOD" -> "Лавка • 30"
+                        note.category == "BUDGET_PLAN" -> "Баночки"
                         else -> category.defaultBadge
                     }
 

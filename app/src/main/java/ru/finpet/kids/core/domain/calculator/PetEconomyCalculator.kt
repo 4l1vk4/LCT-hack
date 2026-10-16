@@ -144,28 +144,56 @@ object PetEconomyCalculator {
         }
     }
 
-    // считаем точность соблюдения бюджета по 3 корзинам (без деления на 0)
+    // считаем точность соблюдения бюджета по 3 корзинам (экономия и перевыполнение накоплений не штрафуются)
     fun calculateCompliance(plan: BudgetPlan, actual: ActualExpenses): BudgetCompliance {
-        fun categoryScore(p: Int, a: Int): Float {
-            return when {
-                p == 0 && a == 0 -> 1.0f
-                p == 0 -> max(0.0f, 1.0f - (a / 50.0f))
-                else -> max(0.0f, 1.0f - (abs(a - p).toFloat() / p.toFloat()))
+        // обязательные траты: штрафуем за перерасход или если не куплен минимум для питомца
+        val mandScore = when {
+            plan.plannedMandatory == 0 && actual.actualMandatory == 0 -> 1.0f
+            actual.actualMandatory <= plan.plannedMandatory -> {
+                // если потратили в пределах плана — проверяем, покормлен ли питомец
+                if (actual.hasPurchasedFood || actual.actualMandatory >= MIN_FOOD_COST || plan.plannedMandatory == 0) {
+                    1.0f
+                } else {
+                    // потратили меньше, но еду не купили
+                    (actual.actualMandatory.toFloat() / max(plan.plannedMandatory, 1).toFloat()).coerceIn(0.5f, 1.0f)
+                }
+            }
+            else -> {
+                // перерасход обязательных трат
+                val diff = actual.actualMandatory - plan.plannedMandatory
+                max(0.0f, 1.0f - diff.toFloat() / max(plan.plannedMandatory, 30).toFloat())
             }
         }
 
-        val mandScore = categoryScore(plan.plannedMandatory, actual.actualMandatory)
-        val optScore = categoryScore(plan.plannedOptional, actual.actualOptional)
-        val savScore = categoryScore(plan.plannedSavings, actual.actualSavings)
+        // спонтанные траты (хотелки): если сэкономили и потратили меньше плана — отлично (100%), штраф только за перерасход
+        val optScore = when {
+            plan.plannedOptional == 0 && actual.actualOptional == 0 -> 1.0f
+            actual.actualOptional <= plan.plannedOptional -> 1.0f
+            else -> {
+                val diff = actual.actualOptional - plan.plannedOptional
+                max(0.0f, 1.0f - diff.toFloat() / max(plan.plannedOptional, 20).toFloat())
+            }
+        }
+
+        // накопления: если отложили столько же или БОЛЬШЕ плана — отлично (100%), штраф только если отложили меньше
+        val savScore = when {
+            plan.plannedSavings == 0 && actual.actualSavings == 0 -> 1.0f
+            actual.actualSavings >= plan.plannedSavings -> 1.0f
+            else -> {
+                if (plan.plannedSavings > 0) {
+                    (actual.actualSavings.toFloat() / plan.plannedSavings.toFloat()).coerceIn(0.0f, 1.0f)
+                } else 1.0f
+            }
+        }
 
         val totalPercent = (((mandScore + optScore + savScore) / 3.0f) * 100.0f).roundToInt().coerceIn(0, 100)
         val isDisciplined = totalPercent >= 75
 
         val feedback = when {
-            totalPercent >= 90 -> "Превосходно! Твой бюджет соблюдён почти идеально!"
-            totalPercent >= 75 -> "Отличная работа! Ты уверенно управляешь своими монетками."
+            totalPercent >= 90 -> "Превосходно! Твой бюджет соблюдён почти идеально, а экономия пошла на пользу!"
+            totalPercent >= 75 -> "Отличная работа! Ты уверенно управляешь своими монетками и бережёшь бюджет."
             totalPercent >= 50 -> "Неплохо, но траты немного разошлись с планом. Попробуем ещё раз!"
-            else -> "План не совсем сошёлся с покупками. В следующем периоде сначала купи главное!"
+            else -> "План не совсем сошёлся с покупками. В следующем периоде сначала купи главное и не перерасходуй хотелки!"
         }
 
         return BudgetCompliance(
@@ -263,7 +291,9 @@ object PetEconomyCalculator {
             compliance = compliance,
             carePointsEarned = carePointsEarned,
             periodIncome = periodIncome,
-            summaryFeedback = summaryFeedback
+            summaryFeedback = summaryFeedback,
+            plan = plan,
+            actual = actual
         )
     }
 
