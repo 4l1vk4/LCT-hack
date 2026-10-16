@@ -57,8 +57,7 @@ val AVAILABLE_SKINS = listOf(
 )
 
 /**
- * Хитбокс стрелки на фоне choose_character.png.
- * Координаты — в долях от размера картинки (0..1).
+ * область нажатия стрелок на фоне экрана выбора.
  */
 private data class Hotspot(
     val left: Float,
@@ -71,10 +70,10 @@ private val LEFT_ARROW  = Hotspot(0.0065f, 0.5737f, 0.1296f, 0.6784f)
 private val RIGHT_ARROW = Hotspot(0.8630f, 0.5737f, 0.9648f, 0.6722f)
 private val PLAY_BUTTON = Hotspot(0.185f, 0.774f, 0.835f, 0.873f)
 
-// Где рисовать кота (в долях от размера картинки)
-private const val CAT_CENTER_X = 0.5f     // центр по X
-private const val CAT_CENTER_Y = 0.6f    // центр по Y
-private const val CAT_WIDTH_RATIO = 0.55f // ширина кота = 55% ширины фона
+// координаты кота
+private const val CAT_CENTER_X = 0.5f
+private const val CAT_CENTER_Y = 0.6f
+private const val CAT_WIDTH_RATIO = 0.55f
 
 private const val DEBUG = false
 
@@ -121,7 +120,7 @@ fun SkinPickerScreen(
             val w = maxWidth
             val h = maxHeight
 
-            // 1. Фон: заголовок + стрелки
+            // фоновое изображение
             Image(
                 painter = painterResource(R.drawable.choose_character),
                 contentDescription = "Выбор питомца",
@@ -129,7 +128,7 @@ fun SkinPickerScreen(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // 2. Кот в центре — плавный переход
+            // отображение кота в центре
             val catW = w * CAT_WIDTH_RATIO
             val catH = catW
 

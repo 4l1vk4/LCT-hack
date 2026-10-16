@@ -46,7 +46,7 @@ data class MapHotspot(
     val label: String = ""
 )
 
-// координаты зданий на карте (Школа, Лавка, Дом)
+// координаты зданий на карте (школа, лавка, дом)
 val DEFAULT_MAP_HOTSPOTS: List<MapHotspot> = listOf(
     MapHotspot(id = "shop",   left = 0.7194f, top = 0.6803f, right = 0.9509f, bottom = 0.7544f, label = "Лавка"),
     MapHotspot(id = "quests", left = 0.0926f, top = 0.5871f, right = 0.4352f, bottom = 0.7024f, label = "Школа"),
@@ -55,7 +55,6 @@ val DEFAULT_MAP_HOTSPOTS: List<MapHotspot> = listOf(
 
 /**
  * интерактивная карта города с кликабельными зонами.
- * заполняет экран целиком без белых полос, привязана к низу (обрезается только верхушка с небом).
  */
 @Composable
 fun MapWithHotspots(
@@ -67,7 +66,7 @@ fun MapWithHotspots(
     anchor: Alignment.Vertical = Alignment.Bottom,
     debug: Boolean = false
 ) {
-    // контейнер карты, обрезает картинку по границам экрана без белых полос
+    // контейнер карты с обрезкой по границам экрана
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
@@ -76,13 +75,12 @@ fun MapWithHotspots(
         val w = maxWidth
         val h = maxHeight
 
-        // масштабируем изображение так, чтобы полностью заполнить ширину экрана,
-        // а при необходимости и высоту (cover).
+        // масштабирование изображения под ширину и высоту экрана
         val targetHeight = w / imageAspectRatio
         val renderedHeight = if (targetHeight >= h) targetHeight else h
         val renderedWidth = if (targetHeight >= h) w else h * imageAspectRatio
 
-        // смещения: привязываем карту к низу экрана, чтобы обрезался только верх (небо)
+        // смещения: привязка карты к низу экрана
         val leftOffset = (w - renderedWidth) / 2
         val topOffset = when (anchor) {
             Alignment.Top -> 0.dp
@@ -90,7 +88,7 @@ fun MapWithHotspots(
             else -> h - renderedHeight // Alignment.Bottom
         }
 
-        // 1. сама карта: заполняет экран целиком, прижата строго к низу экрана без отступов
+        // фоновое изображение карты
         Image(
             painter = painterResource(id = mapRes),
             contentDescription = "Карта приключений",

@@ -117,7 +117,7 @@ fun PixelLocationModalSheet(
                     )
                 }
 
-                // крестик закрытия справа — тач-зона 48x48 dp, чтобы ребенку было легко попасть
+                // крестик закрытия
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)

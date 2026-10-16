@@ -191,7 +191,7 @@ fun SettingsScreen(
                                 color = TextPrimary
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            // Подсветка статуса ВКЛ / ВЫКЛ
+                            // статус демо-режима
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
@@ -204,7 +204,7 @@ fun SettingsScreen(
                                     .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
                                 Text(
-                                    text = if (demoMode) "🟢 ВКЛ" else "⚪ ВЫКЛ",
+                                    text = if (demoMode) "🟢 вкл" else "⚪ выкл",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (demoMode) Color(0xFF1B5E20) else Color(0xFF757575)

@@ -157,7 +157,7 @@ fun GlossaryDialog(
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
 
-                    // Подсказка сверху
+                    // подсказка
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -181,7 +181,7 @@ fun GlossaryDialog(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Список терминов
+                    // список терминов
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -284,7 +284,7 @@ fun GlossaryDialog(
                             }
                         }
 
-                        // Кнопка закрытия
+                        // кнопка закрытия
                         item {
                             Spacer(modifier = Modifier.height(4.dp))
                             PixelButton(

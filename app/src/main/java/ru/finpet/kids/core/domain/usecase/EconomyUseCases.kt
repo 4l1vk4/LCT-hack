@@ -220,14 +220,14 @@ class CompletePeriodUseCase @Inject constructor(
         var finalGrowthStage = resolution.newStats.stage.name
 
         if (profile.isPetRunaway) {
-            // пока питомец сбежал — он не растет и не получает очки заботы
+            // пока питомец в побеге, очки заботы и рост заморожены
             finalCarePoints = profile.carePoints
             finalGrowthStage = profile.growthStage
 
             if (profile.bowlPlacedToday) {
                 val daysRemaining = profile.runawayDaysLeft - 1
                 if (daysRemaining <= 0) {
-                    // Питомец возвращается домой!
+                    // возвращение питомца домой
                     newIsPetRunaway = false
                     newRunawayDaysLeft = 0
                     finalMood = 60
@@ -238,12 +238,12 @@ class CompletePeriodUseCase @Inject constructor(
                     newIsPetRunaway = true
                 }
             } else {
-                // Миска не была поставлена — питомец не вернется, пока не поставят корм
+                // без миски корма питомец не возвращается
                 newIsPetRunaway = true
                 newRunawayDaysLeft = profile.runawayDaysLeft
             }
         } else {
-            // Если питомец был дома, но настроение упало до 0% — он убегает
+            // побег питомца при нулевом настроении
             val effectiveMood = PetEconomyCalculator.calculateEffectiveMood(
                 mood = resolution.newStats.mood,
                 satiety = resolution.newStats.satiety,

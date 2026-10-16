@@ -38,7 +38,7 @@ data class NavHotspot(
     val bottom: Float
 )
 
-// Координаты вкладок на нарисованной панели.
+// координаты вкладок на панели навигации
 val DEFAULT_NAV_HOTSPOTS: List<NavHotspot> = listOf(
     NavHotspot("map",      0.088f, 0.126f, 0.208f, 0.869f),
     NavHotspot("calendar", 0.306f, 0.154f, 0.449f, 0.771f),
@@ -47,13 +47,7 @@ val DEFAULT_NAV_HOTSPOTS: List<NavHotspot> = listOf(
 )
 
 /**
- * Нарисованная панель меню + невидимые кликабельные зоны.
- *
- * @param navRes          R.drawable.nav_bar
- * @param imageAspectRatio  ширина / высота картинки
- * @param hotspots        список зон
- * @param onSelectTab     что вызвать (0..4)
- * @param debug           true — рисует красные рамки, помогает отлаживать
+ * панель навигации с невидимыми кликабельными зонами.
  */
 @Suppress("UnusedBoxWithConstraintsScope")
 @Composable
@@ -72,12 +66,12 @@ fun NavBarWithHotspots(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
-            ) { /* блокируем случайные клики мимо кнопок на нижней панели */ }
+            ) { /* блокировка кликов мимо кнопок на нижней панели */ }
     ) {
         val w = maxWidth
         val h = maxHeight
 
-        // картинка панели: скрывается, если фон карты уже содержит нарисованную панель
+        // фоновая картинка панели
         if (showImage) {
             Image(
                 painter = painterResource(id = navRes),
@@ -87,7 +81,7 @@ fun NavBarWithHotspots(
             )
         }
 
-        // Невидимые кликабельные зоны
+        // кликабельные зоны вкладок
         hotspots.forEachIndexed { index, spot ->
             Box(
                 modifier = Modifier
@@ -106,7 +100,7 @@ fun NavBarWithHotspots(
             )
         }
 
-        // Debug-оверлей для замера координат
+        // оверлей для отладки координат
         if (debug) {
             var debugTaps by remember { mutableStateOf(listOf<Offset>()) }
             Box(

@@ -54,23 +54,23 @@ private val MENU_HOTSPOT = TopBarHotspot(
     left = 0.91f, top = 0.10f, right = 0.99f, bottom = 0.90f
 )
 
-// Текст баланса (слева, поверх монетки на картинке)
+// отображение баланса
 private const val MONEY_CX = 0.11f
 private const val MONEY_CY = 0.38f
 private const val MONEY_FONT_SIZE = 15f
 
-// Полоска орбов (в центре)
-private const val ORB_BAR_LEFT = 0.27f     // где начинается ряд
-private const val ORB_BAR_CENTER_Y = 0.623f // по вертикали — центр
-private const val ORB_SIZE_RATIO = 0.30f   // размер орба (доля от высоты панели)
-private const val ORB_STEP_RATIO = 0.5f   // сдвиг вправо между орбами (доля от размера)
-private const val ORB_PERCENT_STEP = 5     // 1 орб = 5% настроения
+// индикатор орбов настроения
+private const val ORB_BAR_LEFT = 0.27f
+private const val ORB_BAR_CENTER_Y = 0.623f
+private const val ORB_SIZE_RATIO = 0.30f
+private const val ORB_STEP_RATIO = 0.5f
+private const val ORB_PERCENT_STEP = 5
 
 private const val MOOD_FACE_CX = 0.876f
 private const val MOOD_FACE_CY = 0.623f
-private const val MOOD_FACE_WIDTH_RATIO = 0.07f   // ширина (доля ШИРИНЫ панели)
+private const val MOOD_FACE_WIDTH_RATIO = 0.07f
 
-// Проценты настроения (справа от последнего орба)
+// проценты настроения
 private const val PERCENT_FONT_SIZE = 13f
 private const val PERCENT_CX = 0.68f
 private const val PERCENT_CY = 0.38f
@@ -95,7 +95,7 @@ fun TopBarWithHotspots(
         val w = maxWidth
         val h = maxHeight
 
-        // 1. Фон панели
+        // фоновое изображение панели
         Image(
             painter = painterResource(topBarRes),
             contentDescription = "Верхняя панель",
@@ -117,7 +117,7 @@ fun TopBarWithHotspots(
             else           -> 20.dp
         }
 
-        // 2. Баланс
+        // текущий баланс
         Text(
             text = "$balance",
             fontSize = moneyFontSize.sp,
@@ -128,7 +128,7 @@ fun TopBarWithHotspots(
                 .offset(x = w * MONEY_CX + moneyOffsetX, y = h * MONEY_CY - 3.dp)
         )
 
-        // 3. Орбы настроения — накладываем N штук в ряд
+        // ряд орбов настроения
         val orbCount = (moodPercent / ORB_PERCENT_STEP).coerceIn(0, 100 / ORB_PERCENT_STEP)
 
         val orbSizeDp = h * ORB_SIZE_RATIO
@@ -144,7 +144,6 @@ fun TopBarWithHotspots(
                     painter = painterResource(R.drawable.orb),
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
-                    // Тонируем однотонный orb.png в цвет настроения
                     colorFilter = ColorFilter.tint(tint, BlendMode.SrcIn),
                     modifier = Modifier
                         .align(Alignment.TopStart)
@@ -154,7 +153,7 @@ fun TopBarWithHotspots(
             }
         }
 
-        // 3.1. Проценты справа от последнего орба
+        // процентное значение настроения
         Text(
             text = "$moodPercent%",
             fontSize = PERCENT_FONT_SIZE.sp,
@@ -168,7 +167,7 @@ fun TopBarWithHotspots(
                 )
         )
 
-        // 3.2. Смайлик настроения (слева от кнопки меню)
+        // иконка настроения
         val faceWidth = w * MOOD_FACE_WIDTH_RATIO
         Image(
             painter = painterResource(moodFaceFor(moodPercent)),
@@ -183,7 +182,7 @@ fun TopBarWithHotspots(
                 .size(faceWidth)
         )
 
-        // 4. Хитбокс кнопки меню
+        // область нажатия кнопки меню
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -198,7 +197,7 @@ fun TopBarWithHotspots(
                 ) { onToggleMenu() }
         )
 
-        // 6. Debug
+        // режим отладки
         if (debug) {
             Box(
                 modifier = Modifier

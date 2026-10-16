@@ -113,7 +113,7 @@ fun MapScreen(
                         if (isNight) {
                             showNightDialog = "SHOP"
                         } else if (profile?.isPetRunaway == true && !demoMode) {
-                            // если кот убежал и не демо-режим, в магазин не пускаем — сначала нужно вернуть питомца
+                            // проверка состояния сбежавшего кота в обычном режиме
                             showNoPetDialog = true
                         } else {
                             activeModal = "SHOP"

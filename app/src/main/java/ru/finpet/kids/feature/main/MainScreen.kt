@@ -104,15 +104,13 @@ fun MainScreen(
 
     val ready = onboarding as? OnboardingState.Ready
 
-    var selectedTab by rememberSaveable { mutableIntStateOf(2) } // По умолчанию вкладка 3: Финни в кресле
+    var selectedTab by rememberSaveable { mutableIntStateOf(2) } // по умолчанию вкладка финни
     var previousTabBeforeSettings by rememberSaveable { mutableIntStateOf(2) }
     val showWardrobe = remember { mutableStateOf(false) }
     var navBarHeight by remember { mutableStateOf(140.dp) }
     val density = LocalDensity.current
 
-    // Все подписки — один раз наверху и lifecycle-aware. Раньше collectAsState()
-    // создавались внутри веток when(tab): каждое переключение открывало новых
-    // коллекторов и перезапускало чтение с диска. Теперь данные общие и тёплые.
+    // единые подписки на данные профиля и состояния
     val profile by viewModel.profile.collectAsStateWithLifecycle()
     val purchases by viewModel.purchases.collectAsStateWithLifecycle()
     val quests by viewModel.quests.collectAsStateWithLifecycle()
@@ -148,12 +146,12 @@ fun MainScreen(
         selectedTab = 4
     }
 
-    // закрытие настроек: возврат на предыдущую вкладку (или на Финни, если были в настройках)
+    // закрытие настроек и возврат к предыдущей вкладке
     val closeSettings: () -> Unit = {
         selectedTab = if (previousTabBeforeSettings != 4) previousTabBeforeSettings else 2
     }
 
-    // переход из задач дня сразу в нужное здание с автоматическим скроллом к целевому действию
+    // переход из задач дня в целевое здание с фокусом на действие
     val onNavigateToTask: (CalendarNoteEntity) -> Unit = { note ->
         when (note.category) {
             "BUDGET_PLAN" -> {
@@ -192,17 +190,14 @@ fun MainScreen(
         }
     }
 
-    // Keep-alive вкладок: один раз показанная вкладка остаётся в композиции
-    // (состояние скролла, диалоги, введённый текст), переключение — только
-    // смена видимости, без новой композиции списков. Стартуем только с Финни,
-    // остальные прогреваем по одной после первого кадра, чтобы не ронять TTID.
+    // сохранение состояния вкладок после первого показа
     val seenTabs = remember { mutableStateListOf(2) }
     if (!seenTabs.contains(selectedTab)) seenTabs.add(selectedTab)
     LaunchedEffect(Unit) {
         for (i in 0..4) {
             if (!seenTabs.contains(i)) {
                 seenTabs.add(i)
-                // Пауза между прогревами: каждая вкладка компонуется в своём кадре
+                // постепенный прогрев вкладок по кадрам
                 delay(48)
             }
         }
@@ -210,8 +205,7 @@ fun MainScreen(
     val stateHolder = rememberSaveableStateHolder()
     val onSelectTab: (Int) -> Unit = remember { { selectedTab = it } }
 
-    // Отчёт компетенций пересчитывается только когда вкладка «Родителям»
-    // действительно открыта, а не после каждого действия в других вкладках.
+    // обновление отчета компетенций при переходе во вкладку родителей
     LaunchedEffect(selectedTab) {
         if (selectedTab == 3) viewModel.refreshReport()
     }
@@ -219,7 +213,7 @@ fun MainScreen(
     val balance = profile?.balance ?: 50
     val currentTabBgColor = when (selectedTab) {
         0 -> if (isNightMode) Color(0xFF0D0D1A) else SoftBackground
-        1 -> Color(0xFFE8DAC2) // тёплый цвет фона календаря
+        1 -> Color(0xFFE8DAC2) // теплый фон календаря
         else -> SoftBackground
     }
     CompositionLocalProvider(LocalBottomBarHeight provides navBarHeight) {
@@ -246,7 +240,7 @@ fun MainScreen(
                                 .fillMaxWidth()
                                 .background(
                                     if (helpPanelOpen) {
-                                        // Затемнение фона за верхней панелькой в тон оверлею
+                                        // затемнение фона за верхней панелью под цвет оверлея
                                         Color.Black.copy(alpha = 0.25f)
                                     } else {
                                         currentTabBgColor
@@ -256,8 +250,7 @@ fun MainScreen(
                         )
                     }
                 }
-                // Нижнего бара в Scaffold нет: стеклянный док парит ПОВЕРХ контента,
-                // списки уже имеют нижний отступ 84dp и просвечивают сквозь стекло
+                // нижняя навигация рисуется поверх контента
             ) { innerPadding ->
                 val contentTopPadding = if (selectedTab == 0) 0.dp else innerPadding.calculateTopPadding()
                 Box(
@@ -365,8 +358,7 @@ fun MainScreen(
                             petName = ready?.petName,
                             accessoryId = profile?.accessoryId ?: "none",
                             onToggleAccessory = { accId -> viewModel.toggleAccessory(accId) },
-                            // Анимации персонажа работают только на видимой вкладке —
-                            // скрытый Финни не тратит CPU на бесконечные перерисовки
+                            // анимации персонажа включены только на активной вкладке
                             animationsEnabled = selectedTab == 2,
                             isBudgetConfirmed = currentPeriod?.isBudgetConfirmed == true,
                             currentPeriod = currentPeriod,
@@ -424,7 +416,7 @@ fun MainScreen(
                             onClose = closeSettings
                         )
                     }
-                    // Стеклянный док поверх контента: последний в Box = рисуется сверху
+                    // нижняя панель поверх контента
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -433,7 +425,7 @@ fun MainScreen(
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
-                            ) { /* блокируем случайное прокликивание сквозь нижнюю панель и системные отступы */ }
+                            ) { /* блокировка прокликивания сквозь нижнюю панель */ }
                     ) {
                         NavBarWithHotspots(
                             navRes = R.drawable.menu,
@@ -462,7 +454,7 @@ fun MainScreen(
                         )
                     }
 
-                    // Оверлей справки — поверх всего, на весь экран
+                    // оверлей справки поверх контента
                     if (helpPanelOpen) {
                         Box(
                             modifier = Modifier
@@ -488,7 +480,7 @@ fun MainScreen(
                                 onClose = { helpPanelOpen = false },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 0.dp),   // ← позиция под топбаром
+                                    .padding(top = 0.dp),
                                 debug = false
                             )
                         }
@@ -504,7 +496,7 @@ fun MainScreen(
                 )
             }
 
-            // Всплывающее окно анализа после завершения периода
+            // всплывающий диалог анализа периода
             periodAnalysis?.let { resolution ->
                 PeriodAnalysisDialog(
                     resolution = resolution,
@@ -515,7 +507,7 @@ fun MainScreen(
                 )
             }
 
-            // Диалог составления нового бюджета на день
+            // диалог планирования бюджета на день
             if (showBudgetPlanningDialog) {
                 val currentPeriodVal = currentPeriod
                 val initialPlan = remember(currentPeriodVal) {
@@ -544,10 +536,7 @@ fun MainScreen(
 }
 
 /**
- * Вкладка, сохраняющая композицию после первого показа.
- * Скрытая вкладка измеряется в 0x0: не рисуется, не перехватывает тачи,
- * но композиция, скролл и SaveableState остаются живы.
- * Переключение = только relayout, без рекомпозиции контента.
+ * сохранение композиции вкладки после первого показа.
  */
 @Composable
 private fun KeepAliveTab(

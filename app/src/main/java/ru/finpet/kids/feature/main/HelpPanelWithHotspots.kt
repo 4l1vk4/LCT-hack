@@ -38,43 +38,34 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 
 /**
- * Элемент панели. Всё задаётся явно в долях от размера картинки (0..1).
- * Меняешь числа — двигаешь/растягиваешь.
+ * элемент панели в долях от размера (0..1).
  */
 data class HelpHotspot(
     val id: String,
-
-    // ─── Кликабельная зона (иконка + текст) ───
     val hitLeft: Float,
     val hitTop: Float,
     val hitRight: Float,
     val hitBottom: Float,
-
-    // ─── Текст внутри зоны ───
     val label: String,
-    val labelCX: Float,        // X-позиция ЛЕВОГО края текста (доля ширины)
-    val labelCY: Float,        // Y-позиция ВЕРХА текста (доля высоты)
-    val labelWidth: Float,     // ширина блока текста (доля ширины)
-    val labelFontSize: Float   // размер шрифта
+    val labelCX: Float,
+    val labelCY: Float,
+    val labelWidth: Float,
+    val labelFontSize: Float
 )
 
 val DEFAULT_HELP_HOTSPOTS: List<HelpHotspot> = listOf(
     HelpHotspot(
         id = "instructions",
-        // Кликабельная зона (иконка + текст справа)
         hitLeft = 0.02f, hitTop = 0.15f, hitRight = 0.42f, hitBottom = 0.85f,
-        // Текст «Инструкция»
         label = "Инструкция",
-        labelCX = 0.13f,        // ← X левого края текста
-        labelCY = 0.15f,        // ← Y верха текста
-        labelWidth = 0.40f,     // ← ширина
-        labelFontSize = 15f     // ← размер шрифта
+        labelCX = 0.13f,
+        labelCY = 0.15f,
+        labelWidth = 0.40f,
+        labelFontSize = 15f
     ),
     HelpHotspot(
         id = "settings",
-        // Кликабельная зона (иконка + текст слева)
         hitLeft = 0.45f, hitTop = 0.15f, hitRight = 0.82f, hitBottom = 0.85f,
-        // Текст «Настройки»
         label = "Настройки",
         labelCX = 0.55f,
         labelCY = 0.15f,
@@ -87,7 +78,7 @@ val DEFAULT_HELP_HOTSPOTS: List<HelpHotspot> = listOf(
         label = "",
         labelCX = 0f, labelCY = 0f,
         labelWidth = 0f, labelFontSize = 0f
-)
+    )
 )
 
 @Suppress("UnusedBoxWithConstraintsScope")

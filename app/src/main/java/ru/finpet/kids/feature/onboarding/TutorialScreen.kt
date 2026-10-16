@@ -45,12 +45,12 @@ import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.TextPrimary
 
-// Где на картинке голова кота (доля)
+// положение головы кота
 private const val CAT_HEAD_CX = 0.50f
 private const val CAT_HEAD_CY = 0.3f
 private const val CAT_WIDTH_RATIO = 0.45f
 
-// Где рисовать текст (доля от размера экрана) — центр
+// положение текста на экране
 private const val TEXT_CX = 0.50f
 private const val TEXT_CY = 0.55f
 private const val TEXT_WIDTH_RATIO = 0.75f
@@ -81,7 +81,7 @@ fun TutorialScreen(
         if (step < steps.lastIndex) step++ else onFinish()
     }
 
-    // Пульс облака при смене шага
+    // анимация облака при смене шага
     var pulseOn by remember { mutableStateOf(false) }
     LaunchedEffect(step) {
         pulseOn = false
@@ -174,8 +174,8 @@ fun TutorialScreen(
                         .size(12.dp)
                         .clip(CircleShape)
                         .background(
-                            if (isFilled) JoyOrange                       // оранжевая — заполненная
-                            else Color(0xFFFFFDF7)                         // кремовая — пустая
+                            if (isFilled) JoyOrange
+                            else Color(0xFFFFFDF7)
                         )
                         .border(
                             width = 1.5.dp,
@@ -186,7 +186,7 @@ fun TutorialScreen(
             }
         }
 
-        // 5. Кнопка «Пропустить» — по центру снизу
+        // кнопка пропуска обучения
         if (step < steps.lastIndex) {
             Box(
                 modifier = Modifier

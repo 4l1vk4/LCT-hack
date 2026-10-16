@@ -86,9 +86,7 @@ class MainViewModel @Inject constructor(
 
     private var isProcessingGroceries = false
 
-    // Eagerly: подписка на Room/DataStore стартует сразу при создании VM в фоне,
-    // а не в момент первого открытия вкладки — переключение вкладок не ждёт диск.
-    // Сами запросы Room выполняет на своём пуле, главный поток не блокируется.
+    // подписка на данные профиля
     val profile: StateFlow<ProfileEntity?> = repository.getProfile()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -228,21 +226,16 @@ class MainViewModel @Inject constructor(
 
 
     init {
-        // Вся инициализация — на IO-пуле и максимально параллельно:
-        // парсинг JSON не ждёт БД, БД-верх не ждёт парсинг.
-        // После FinPetApp.preload() кэши уже тёплые и это отрабатывает за миллисекунды.
+        // фоновая инициализация кэша и базы данных
         viewModelScope.launch(Dispatchers.IO) {
             coroutineScope {
                 val dbInit = async { contentRepository.ensureDataInitialized() }
-                // JSON-кэш греется параллельно с БД (независимые операции)
                 val purchasesDeferred = async { contentRepository.getPurchases() }
                 val questsDeferred = async { contentRepository.getQuests() }
                 dbInit.await()
-                // Синхронизируем виртуальное и реальное время
+                // синхронизация времени и состояния режима
                 initVirtualTime()
-                // Демо-режим всегда выключен при запуске приложения
                 settingsRepository.setDemoMode(false)
-                // Календарь зависит только от готовой БД и времени
                 ensureCalendarDataInitialized()
                 _purchases.value = purchasesDeferred.await()
                 _quests.value = questsDeferred.await()
@@ -342,7 +335,7 @@ class MainViewModel @Inject constructor(
             val date = yearMonth.atDay(day)
             val isWeekend = date.dayOfWeek in listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
 
-            // 0. Распределить бюджет на день
+            // 0. распределение бюджета на день
             allNotes.add(
                 CalendarNoteEntity(
                     dayIndex = day,
@@ -353,7 +346,7 @@ class MainViewModel @Inject constructor(
                 )
             )
 
-            // 1. Ежедневный сытный корм для питомца
+            // 1. ежедневный сытный корм для питомца
             allNotes.add(
                 CalendarNoteEntity(
                     dayIndex = day,
@@ -364,7 +357,7 @@ class MainViewModel @Inject constructor(
                 )
             )
 
-            // 2. В будни — 2 урока в Школе; в выходные (сб-вс) — спросить вопросы у питомца
+            // 2. в будни уроки в школе, в выходные вопросы питомцу
             if (isWeekend) {
                 allNotes.add(
                     CalendarNoteEntity(
@@ -387,7 +380,7 @@ class MainViewModel @Inject constructor(
                 )
             }
 
-            // 3. Продукты по поручению родителей (спавнится 3 раза в неделю: Вт, Чт, Сб)
+            // 3. покупка продуктов по поручению родителей
             if (date.dayOfWeek in listOf(DayOfWeek.TUESDAY, DayOfWeek.THURSDAY, DayOfWeek.SATURDAY)) {
                 allNotes.add(
                     CalendarNoteEntity(
@@ -404,7 +397,7 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun loadCurrentPeriod() {
-        // currentPeriod обновляется автоматически через реактивный Flow из Room
+        // автообновление через flow
     }
 
     fun confirmBudget(plan: BudgetPlan) {
@@ -422,8 +415,7 @@ class MainViewModel @Inject constructor(
             val currentDay = prof.currentPeriodIndex
 
             if (item.id == "groceries_parents") {
-                // Защита от бесконечного клика и абуза:
-                // Задание родителей можно выполнить только ОДИН раз в день, когда оно активно и ещё не выполнено!
+                // проверка повторного выполнения задания родителей
                 if (isProcessingGroceries) return@launch
                 isProcessingGroceries = true
                 try {
@@ -432,8 +424,7 @@ class MainViewModel @Inject constructor(
                         return@launch
                     }
 
-                    // По поручению родителей: деньги дают родители (цена 0),
-                    // а сдача (5, 10 или 15 монет) с рандомным шансом остаётся ребёнку!
+                    // начисление сдачи ребенку
                     val change = listOf(5, 10, 15).random()
                     repository.saveProfile(prof.copy(balance = prof.balance + change))
                     calendarDao.updateChecklistNoteByCategory(currentDay, "GROCERIES", isCompleted = true, cost = change)
@@ -441,8 +432,6 @@ class MainViewModel @Inject constructor(
                 } finally {
                     isProcessingGroceries = false
                 }
-                // По поручению родителей: деньги дают родители (цена 0),
-                // а сдача (5, 10 или 15 монет) с рандомным шансом остаётся ребёнку!
                 val change = listOf(5, 10, 15).random()
                 repository.saveProfile(prof.copy(balance = prof.balance + change))
                 calendarDao.updateChecklistNoteByCategory(currentDay, "GROCERIES", isCompleted = true, cost = change)
@@ -465,7 +454,7 @@ class MainViewModel @Inject constructor(
                 healthBonus = item.healthBonus
             )
 
-            // Если куплен корм для питомца — автоматически отмечаем сегодняшнее задание
+            // автоотметка задания при покупке корма
             if (item.id == "food_basic" || (item.category == "MANDATORY" && item.id.contains("food"))) {
                 calendarDao.completeChecklistTaskByCategory(currentDay, "PET_FOOD")
             }
@@ -512,7 +501,7 @@ class MainViewModel @Inject constructor(
                 )
             )
 
-            // Добавляем в обязательные расходы текущего периода покупку корма для возвращения котика
+            // учет миски в обязательных расходах периода
             val curPeriod = repository.getPeriodSync(prof.currentPeriodIndex) ?: PeriodEntity(prof.currentPeriodIndex)
             repository.savePeriod(
                 curPeriod.copy(
@@ -520,7 +509,7 @@ class MainViewModel @Inject constructor(
                 )
             )
 
-            // Записываем заметку в календарь дня
+            // запись в календарь дня
             calendarDao.insertNote(
                 CalendarNoteEntity(
                     dayIndex = prof.currentPeriodIndex,
@@ -615,7 +604,7 @@ class MainViewModel @Inject constructor(
                     newMonthName = CalendarMonthInfo.of(nextYM).monthName,
                     isIncomeDay = isIncome
                 )
-                // Всплывающее окно анализа после завершения периода
+                // диалог анализа периода
                 _periodAnalysisEvent.value = enrichedResult
                 if (isIncome) {
                     showMoneyEvent(
@@ -717,18 +706,14 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Пересчёт отчёта для вкладки «Родителям».
-     * Вызывается при открытии вкладки, а не после каждого действия:
-     * раньше каждый тап (покупка/квест/взнос) платил 4 полных чтения таблиц.
-     */
+    // пересчет отчета компетенций
     fun refreshReport() {
         viewModelScope.launch(Dispatchers.IO) {
             refreshReportSync()
         }
     }
 
-    // generateReport — 5 параллельных SQL-агрегатов, только вне главного потока
+    // расчет отчета вне главного потока
     private suspend fun refreshReportSync() {
         _competencyReport.value = competencyTracker.generateReport()
     }
@@ -765,15 +750,15 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             val prof = repository.getProfileSync() ?: return@launch
 
-            // "none" — снять всё
+            // снятие всех аксессуаров
             val newValue = if (accessoryId == "none") {
                 "none"
             } else {
                 val current = parseAccessories(prof.accessoryId).map { it.id }.toMutableSet()
                 if (accessoryId in current) {
-                    current.remove(accessoryId)     // toggle off
+                    current.remove(accessoryId)
                 } else {
-                    current.add(accessoryId)        // toggle on
+                    current.add(accessoryId)
                 }
                 if (current.isEmpty()) "none"
                 else current.joinToString(",")
