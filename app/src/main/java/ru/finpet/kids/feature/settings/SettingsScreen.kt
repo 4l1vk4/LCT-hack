@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.TextPrimary
@@ -312,6 +313,63 @@ fun SettingsScreen(
                                     checkedTrackColor = JoyOrange
                                 )
                             )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "🔔 Проверка push-уведомлений:",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        val context = LocalContext.current
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    ru.finpet.kids.core.notification.FinPetNotificationManager.showNotification(
+                                        context,
+                                        ru.finpet.kids.core.notification.NotificationType.MORNING
+                                    )
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                            ) {
+                                Text("8:00 Утро", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(
+                                onClick = {
+                                    ru.finpet.kids.core.notification.FinPetNotificationManager.showNotification(
+                                        context,
+                                        ru.finpet.kids.core.notification.NotificationType.INACTIVITY
+                                    )
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                            ) {
+                                Text("20:00 Пропуск", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(
+                                onClick = {
+                                    ru.finpet.kids.core.notification.FinPetNotificationManager.showNotification(
+                                        context,
+                                        ru.finpet.kids.core.notification.NotificationType.EVENING
+                                    )
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                            ) {
+                                Text("21:00 Вечер", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }

@@ -102,6 +102,7 @@ class SettingsRepository @Inject constructor(
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.PET_NAME] = name
         }
+        ru.finpet.kids.core.notification.NotificationPreferences.cachePetName(context, name)
     }
 
     val isTutorialCompleted: Flow<Boolean> = context.dataStore.data.map { prefs ->

@@ -1,5 +1,6 @@
 package ru.finpet.kids.feature.finik.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -21,10 +22,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
@@ -46,17 +50,15 @@ fun FinikRunawaySection(
             .fillMaxWidth()
             .padding(vertical = 12.dp)
     ) {
-        // аватарка грустного сбежавшего котика
-        Box(
+        // изображение сбежавшего котика (облачко пыли после побега)
+        Image(
+            painter = painterResource(id = R.drawable.cat_runaway),
+            contentDescription = "Кот убежал",
+            contentScale = ContentScale.Fit,
             modifier = Modifier
-                .size(150.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFFFEBEE))
-                .border(3.dp, Color(0xFFFFCDD2), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = "😿", fontSize = 68.sp)
-        }
+                .size(190.dp)
+                .padding(vertical = 4.dp)
+        )
 
         Spacer(modifier = Modifier.height(14.dp))
 

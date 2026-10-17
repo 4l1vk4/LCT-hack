@@ -30,6 +30,12 @@ class FinPetApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Инициализируем канал уведомлений и планируем push-уведомления
+        ru.finpet.kids.core.notification.FinPetNotificationManager.createNotificationChannel(this)
+        ru.finpet.kids.core.notification.NotificationScheduler.scheduleAll(this)
+        ru.finpet.kids.core.notification.NotificationPreferences.recordAppOpen(this)
+
         // Греем всё тяжёлое (Room, JSON контента, DataStore) в фоне, пока
         // система рисует Splash. К моменту создания MainActivity данные
         // уже в памяти — первый кадр не ждёт диск.
@@ -45,6 +51,13 @@ class FinPetApp : Application() {
             runCatching {
                 // 3. Первое чтение DataStore — самое дорогое, делаем его здесь
                 settingsRepository.get().isSoundEnabled.first()
+            }
+            runCatching {
+                // 4. Кэшируем имя питомца для уведомлений
+                val name = settingsRepository.get().petName.first()
+                if (!name.isNullOrBlank()) {
+                    ru.finpet.kids.core.notification.NotificationPreferences.cachePetName(this@FinPetApp, name)
+                }
             }
         }
     }
