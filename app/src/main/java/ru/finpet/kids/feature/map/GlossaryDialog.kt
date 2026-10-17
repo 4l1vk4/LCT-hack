@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.LightningIcon
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
@@ -225,7 +226,11 @@ fun GlossaryDialog(
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(text = term.icon, fontSize = 20.sp)
+                                        if (term.icon == "⚡") {
+                                            LightningIcon(modifier = Modifier.size(22.dp))
+                                        } else {
+                                            Text(text = term.icon, fontSize = 20.sp)
+                                        }
                                     }
 
                                     Spacer(modifier = Modifier.width(12.dp))

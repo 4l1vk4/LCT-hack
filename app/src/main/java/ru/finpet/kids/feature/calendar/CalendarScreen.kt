@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
@@ -29,6 +30,7 @@ import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
+import ru.finpet.kids.core.designsystem.ExclamationIcon
 import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
@@ -37,6 +39,7 @@ import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
 import ru.finpet.kids.core.domain.model.ActualExpenses
 import ru.finpet.kids.core.domain.model.BudgetPlan
@@ -93,6 +96,7 @@ fun CalendarScreen(
 
     val nextDayNumber = currentDayIndex + 1
     val isNextMonday = PetEconomyCalculator.isMonday(nextDayNumber, monthInfo.yearMonth)
+    val isConfirmed = currentPeriod?.isBudgetConfirmed == true
 
     LazyColumn(
         modifier = Modifier
@@ -105,7 +109,6 @@ fun CalendarScreen(
 
         // --- 2. БЛОК ПЛАНИРОВАНИЯ БЮДЖЕТА / ПЛАН VS ФАКТ (ТЗ 2.5.5) ---
         item(key = "budget_plan_section") {
-            val isConfirmed = currentPeriod?.isBudgetConfirmed == true
             val plan = remember(currentPeriod) {
                 BudgetPlan(
                     plannedMandatory = currentPeriod?.plannedMandatory ?: 0,
@@ -124,14 +127,14 @@ fun CalendarScreen(
             if (!isConfirmed) {
                 StardewBoard(
                     headerTitle = "ПЛАН БЮДЖЕТА НА ДЕНЬ $currentDayIndex",
-                    headerIcon = "📜"
+                    headerIcon = ""
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "⚠️", fontSize = 24.sp)
+                            WarningIcon(modifier = Modifier.size(26.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
@@ -156,7 +159,8 @@ fun CalendarScreen(
                             textColor = PixelTextDark,
                             borderColor = PixelGoldDark,
                             modifier = Modifier.fillMaxWidth(),
-                            fontSize = 12.sp
+                            fontSize = 12.sp,
+                            leadingIcon = { ExclamationIcon(modifier = Modifier.size(16.dp)) }
                         )
                     }
                 }
@@ -164,7 +168,6 @@ fun CalendarScreen(
                 val compliance = remember(plan, actual) {
                     PetEconomyCalculator.calculateCompliance(plan, actual)
                 }
-                val isConfirmed = currentPeriod?.isBudgetConfirmed == true
                 BudgetPlanVsFactCard(
                     currentDay = currentDayIndex,
                     plan = plan,

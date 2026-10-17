@@ -436,6 +436,9 @@ fun MainScreen(
                                 indication = null
                             ) { /* блокировка прокликивания сквозь нижнюю панель */ }
                     ) {
+                        val isPetRunaway = profile?.isPetRunaway == true
+                        val calendarHasWarning = currentPeriod?.isBudgetConfirmed != true
+                        val mapHasWarning = !isPetRunaway && ((profile?.satiety ?: 100) <= 30 || (profile?.mood ?: 100) <= 30 || (profile?.health ?: 100) <= 30)
                         NavBarWithHotspots(
                             navRes = R.drawable.menu,
                             imageAspectRatio = 1073f / 174f,
@@ -443,6 +446,8 @@ fun MainScreen(
                             onSelectTab = onSelectTab,
                             selectedTab = selectedTab,
                             showImage = selectedTab != 0,
+                            calendarHasWarning = calendarHasWarning,
+                            mapHasWarning = mapHasWarning,
                             debug = false,
                             modifier = Modifier
                                 .fillMaxWidth()

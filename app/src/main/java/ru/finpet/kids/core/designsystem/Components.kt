@@ -96,6 +96,72 @@ fun CoinIcon(
 }
 
 @Composable
+fun CalendarIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.calender_emodji),
+        contentDescription = "Календарь",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun HeartIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.heart_emodji),
+        contentDescription = "Здоровье",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun WarningIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.warning_sign_emodji),
+        contentDescription = "Внимание",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun LightningIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.lightning_emodji),
+        contentDescription = "Энергия",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun DiagramIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.diagramm_emodji),
+        contentDescription = "Диаграмма",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun ExclamationIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.exclimation_sign_emodji),
+        contentDescription = "Важно",
+        modifier = modifier
+    )
+}
+
+@Composable
 fun CoinBadge(
     coins: Int,
     modifier: Modifier = Modifier,

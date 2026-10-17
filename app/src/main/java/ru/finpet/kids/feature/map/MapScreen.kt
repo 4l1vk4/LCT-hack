@@ -106,10 +106,13 @@ fun MapScreen(
             .fillMaxSize()
             .background(mapBgColor)
     ) {
+        val isRunaway = profile?.isPetRunaway == true
+        val anyStatLow = (profile?.satiety ?: 100) <= 30 || (profile?.mood ?: 100) <= 30 || (profile?.health ?: 100) <= 30
         MapWithHotspots(
             mapRes = mapRes,
             imageAspectRatio = mapAspectRatio,
             hotspots = DEFAULT_MAP_HOTSPOTS,
+            hasShopWarning = anyStatLow && !isRunaway,
             debug = DEBUG_HOTSPOTS,
             onClickHotspot = { spot ->
                 when (spot.id) {

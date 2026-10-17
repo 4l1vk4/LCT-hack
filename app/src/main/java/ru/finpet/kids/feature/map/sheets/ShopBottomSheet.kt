@@ -43,11 +43,15 @@ import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import ru.finpet.kids.core.data.repository.PurchaseItem
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.ExclamationIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
+import ru.finpet.kids.core.designsystem.HeartIcon
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.LightningIcon
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.SkyBlue
+import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.feature.map.components.PixelLocationModalSheet
@@ -206,8 +210,6 @@ fun ShopBottomSheet(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    CoinIcon(modifier = Modifier.size(22.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "В кошельке: $balance ",
                         fontSize = 19.sp,
@@ -248,6 +250,15 @@ fun ShopBottomSheet(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
+                            val curSatiety = profile?.satiety ?: 100
+                            val curMood = profile?.mood ?: 100
+                            val curHealth = profile?.health ?: 100
+
+                            val boostsLowSatiety = curSatiety <= 30 && item.satietyBonus > 0
+                            val boostsLowMood = curMood <= 30 && item.moodBonus > 0
+                            val boostsLowHealth = curHealth <= 30 && item.healthBonus > 0
+                            val canBoostAnyLowStat = boostsLowSatiety || boostsLowMood || boostsLowHealth
+
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = item.name,
@@ -255,6 +266,10 @@ fun ShopBottomSheet(
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimary
                                 )
+                                if (canBoostAnyLowStat) {
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    ExclamationIcon(modifier = Modifier.size(18.dp))
+                                }
                                 if (isGroceriesCompleted) {
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Surface(
@@ -287,9 +302,37 @@ fun ShopBottomSheet(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                if (item.satietyBonus > 0) Text("🍎 +${item.satietyBonus}", fontSize = 16.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
-                                if (item.moodBonus > 0) Text("⚡ +${item.moodBonus}", fontSize = 16.sp, color = SkyBlue, fontWeight = FontWeight.Bold)
-                                if (item.healthBonus > 0) Text("❤️ +${item.healthBonus}", fontSize = 16.sp, color = FreshGreen, fontWeight = FontWeight.Bold)
+                                if (item.satietyBonus > 0) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (boostsLowSatiety) {
+                                            ExclamationIcon(modifier = Modifier.size(15.dp))
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                        }
+                                        Text("🍎 +${item.satietyBonus}", fontSize = 16.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                                if (item.moodBonus > 0) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (boostsLowMood) {
+                                            ExclamationIcon(modifier = Modifier.size(15.dp))
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                        }
+                                        LightningIcon(modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(2.dp))
+                                        Text("+${item.moodBonus}", fontSize = 16.sp, color = SkyBlue, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                                if (item.healthBonus > 0) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (boostsLowHealth) {
+                                            ExclamationIcon(modifier = Modifier.size(15.dp))
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                        }
+                                        HeartIcon(modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(2.dp))
+                                        Text("+${item.healthBonus}", fontSize = 16.sp, color = FreshGreen, fontWeight = FontWeight.Bold)
+                                    }
+                                }
                                 if (isGroceriesItem && !isGroceriesCompleted && !isGroceriesUnavailable) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         CoinIcon(modifier = Modifier.size(16.dp))
@@ -427,12 +470,16 @@ fun ShopBottomSheet(
                             CoinIcon(modifier = Modifier.size(23.dp))
                         }
                         Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "⚠️ Поручение можно выполнить только 1 раз за день!",
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 19.sp,
-                            color = JoyOrange
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            WarningIcon(modifier = Modifier.size(19.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Поручение можно выполнить только 1 раз за день!",
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 19.sp,
+                                color = JoyOrange
+                            )
+                        }
                     } else {
                         Text(
                             text = item.description,
@@ -485,18 +532,26 @@ fun ShopBottomSheet(
                                 )
                             }
                             if (item.moodBonus > 0) {
-                                Text(
-                                    text = "⚡ Настроение: ${formatStatGain(curMood, item.moodBonus)}",
-                                    fontSize = 18.sp,
-                                    color = TextSecondary
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    LightningIcon(modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Настроение: ${formatStatGain(curMood, item.moodBonus)}",
+                                        fontSize = 18.sp,
+                                        color = TextSecondary
+                                    )
+                                }
                             }
                             if (item.healthBonus > 0) {
-                                Text(
-                                    text = "❤️ Здоровье: ${formatStatGain(curHealth, item.healthBonus)}",
-                                    fontSize = 18.sp,
-                                    color = TextSecondary
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    HeartIcon(modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Здоровье: ${formatStatGain(curHealth, item.healthBonus)}",
+                                        fontSize = 18.sp,
+                                        color = TextSecondary
+                                    )
+                                }
                             }
                         }
                     }

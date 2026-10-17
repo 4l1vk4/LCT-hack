@@ -54,6 +54,7 @@ import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.PixelWoodLight
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.domain.model.BudgetPlan
 
 /**
@@ -274,16 +275,27 @@ fun BudgetPlanningDialog(
                                     )
                                     .padding(horizontal = 8.dp, vertical = 5.dp)
                             ) {
-                                Text(
-                                    text = if (isOverBudget) {
-                                        "⚠️ Превышение бюджета на ${-remainder} монет! Уменьши суммы в баночках."
-                                    } else {
-                                        "👛 Свободно в кошельке: $remainder монет останется на руках."
-                                    },
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isOverBudget) PixelRedBerry else PixelGreenCrop
-                                )
+                                if (isOverBudget) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        WarningIcon(modifier = Modifier.size(18.dp))
+                                        Text(
+                                            text = "Превышение бюджета на ${-remainder} монет! Уменьши суммы в баночках.",
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = PixelRedBerry
+                                        )
+                                    }
+                                } else {
+                                    Text(
+                                        text = "👛 Свободно в кошельке: $remainder монет останется на руках.",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PixelGreenCrop
+                                    )
+                                }
                             }
                         }
                     }
@@ -443,7 +455,10 @@ fun BudgetPlanningDialog(
                                     fontSize = 17.sp
                                 )
                                 PixelButton(
-                                    text = if (isOverBudget) "⚠️ Перерасход" else "📜 Утвердить план",
+                                    text = if (isOverBudget) "Перерасход" else "📜 Утвердить план",
+                                    leadingIcon = if (isOverBudget) {
+                                        { WarningIcon(modifier = Modifier.size(16.dp)) }
+                                    } else null,
                                     onClick = {
                                         if (isValid) {
                                             onConfirm(

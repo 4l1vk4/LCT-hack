@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -91,7 +92,7 @@ fun StardewBoard(
                     contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = headerIcon, fontSize = 16.sp)
+                        RenderBoardIcon(headerIcon)
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = headerTitle,
@@ -102,13 +103,26 @@ fun StardewBoard(
                             letterSpacing = 1.sp
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(text = headerIcon, fontSize = 16.sp)
+                        RenderBoardIcon(headerIcon)
                     }
                 }
                 Spacer(modifier = Modifier.height(10.dp))
             }
             content()
         }
+    }
+}
+
+@Composable
+fun RenderBoardIcon(icon: String, modifier: Modifier = Modifier.size(26.dp)) {
+    when (icon) {
+        "📅" -> CalendarIcon(modifier = modifier)
+        "📊" -> DiagramIcon(modifier = modifier)
+        "⚠️" -> WarningIcon(modifier = modifier)
+        "⚡" -> LightningIcon(modifier = modifier)
+        "❤️" -> HeartIcon(modifier = modifier)
+        "❗", "!" -> ExclamationIcon(modifier = modifier)
+        else -> Text(text = icon, fontSize = 26.sp)
     }
 }
 
@@ -124,7 +138,8 @@ fun PixelButton(
     textColor: Color = PixelTextDark,
     borderColor: Color = PixelGoldDark,
     enabled: Boolean = true,
-    fontSize: TextUnit = 13.sp
+    fontSize: TextUnit = 13.sp,
+    leadingIcon: (@Composable () -> Unit)? = null
 ) {
     val actualBg = if (enabled) containerColor else Color(0xFFCCCCCC)
     val actualBorder = if (enabled) borderColor else Color(0xFF999999)
@@ -140,13 +155,19 @@ fun PixelButton(
             .padding(horizontal = 14.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = text,
-            fontFamily = AppFontFamily,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = fontSize,
-            color = if (enabled) textColor else Color(0xFF666666),
-            textAlign = TextAlign.Center
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (leadingIcon != null) {
+                leadingIcon()
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+            Text(
+                text = text,
+                fontFamily = AppFontFamily,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = fontSize,
+                color = if (enabled) textColor else Color(0xFF666666),
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }

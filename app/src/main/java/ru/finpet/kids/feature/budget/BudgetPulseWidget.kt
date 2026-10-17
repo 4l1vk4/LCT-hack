@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.DiagramIcon
 import ru.finpet.kids.core.designsystem.PixelBlueWater
 import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
@@ -82,7 +84,7 @@ fun BudgetPulseWidget(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "📊", fontSize = 14.sp)
+                    DiagramIcon(modifier = Modifier.size(26.dp))
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
                         text = "ПУЛЬС БЮДЖЕТА",

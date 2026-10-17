@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,7 +50,14 @@ fun OrbStatBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = icon, fontSize = 16.sp)
+                when (icon) {
+                    "⚡" -> LightningIcon(modifier = Modifier.size(16.dp))
+                    "❤️" -> HeartIcon(modifier = Modifier.size(16.dp))
+                    "📅" -> CalendarIcon(modifier = Modifier.size(16.dp))
+                    "📊" -> DiagramIcon(modifier = Modifier.size(16.dp))
+                    "⚠️" -> WarningIcon(modifier = Modifier.size(16.dp))
+                    else -> Text(text = icon, fontSize = 16.sp)
+                }
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = label,
@@ -57,13 +65,23 @@ fun OrbStatBar(
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
+                if (safeValue < 30) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    ExclamationIcon(modifier = Modifier.size(16.dp))
+                }
             }
-            Text(
-                text = "$safeValue%",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = tintColor
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (safeValue < 30) {
+                    ExclamationIcon(modifier = Modifier.size(14.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+                Text(
+                    text = "$safeValue%",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (safeValue < 30) Color(0xFFD32F2F) else tintColor
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(4.dp))

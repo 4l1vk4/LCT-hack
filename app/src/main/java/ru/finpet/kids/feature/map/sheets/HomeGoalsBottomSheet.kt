@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.R
+import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.data.local.entity.GoalEntity
 import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
@@ -541,7 +542,15 @@ fun HomeGoalsBottomSheet(
     withdrawWarningGoal?.let { goal ->
         AlertDialog(
             onDismissRequest = { withdrawWarningGoal = null },
-            title = { Text(text = "⚠️ Забрать монеты из копилки?", fontWeight = FontWeight.Bold, fontSize = 22.sp) },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    WarningIcon(modifier = Modifier.size(24.dp))
+                    Text(text = "Забрать монеты из копилки?", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                }
+            },
             text = {
                 Text(
                     text = "Если забрать 50 монет, покупка «${goal.title}» отложится на 1 день!\n\nТочно хочешь забрать монеты обратно в кошелек?",

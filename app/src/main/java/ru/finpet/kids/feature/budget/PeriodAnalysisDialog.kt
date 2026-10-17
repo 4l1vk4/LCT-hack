@@ -43,6 +43,7 @@ import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
 import ru.finpet.kids.core.domain.model.PeriodResolution
 
@@ -173,7 +174,7 @@ fun PeriodAnalysisDialog(
                                 .padding(10.dp)
                         ) {
                             Row(verticalAlignment = Alignment.Top) {
-                                Text(text = "⚠️", fontSize = 18.sp)
+                                WarningIcon(modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
                                     Text(
@@ -394,7 +395,11 @@ private fun PlanFactRow(
             CoinIcon(modifier = Modifier.size(16.dp))
             if (isOk != null) {
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = if (isOk) "✅" else "⚠️", fontSize = 12.sp)
+                if (isOk) {
+                    Text(text = "✅", fontSize = 12.sp)
+                } else {
+                    WarningIcon(modifier = Modifier.size(14.dp))
+                }
             }
         }
     }

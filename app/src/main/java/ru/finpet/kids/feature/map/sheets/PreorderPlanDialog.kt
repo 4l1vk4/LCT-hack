@@ -40,8 +40,11 @@ import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import ru.finpet.kids.core.data.repository.PurchaseItem
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.ExclamationIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
+import ru.finpet.kids.core.designsystem.HeartIcon
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.LightningIcon
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
@@ -107,6 +110,10 @@ fun PreorderPlanDialog(
     onDismiss: () -> Unit
 ) {
     var showConfirmDialog by remember { mutableStateOf(false) }
+
+    val curSatiety = profile?.satiety ?: 100
+    val curMood = profile?.mood ?: 100
+    val curHealth = profile?.health ?: 100
 
     // исключаем поручение родителей из предзакупок
     val eligibleItems = remember(items) {
@@ -205,12 +212,25 @@ fun PreorderPlanDialog(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = item.name,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 15.sp,
-                                            color = if (isSelected) Color(0xFF374151) else PixelTextDark
-                                        )
+                                        val boostsLowSatiety = curSatiety <= 30 && item.satietyBonus > 0
+                                        val boostsLowMood = curMood <= 30 && item.moodBonus > 0
+                                        val boostsLowHealth = curHealth <= 30 && item.healthBonus > 0
+                                        val canBoostAnyLowStat = boostsLowSatiety || boostsLowMood || boostsLowHealth
+
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Text(
+                                                text = item.name,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 15.sp,
+                                                color = if (isSelected) Color(0xFF374151) else PixelTextDark
+                                            )
+                                            if (canBoostAnyLowStat) {
+                                                ExclamationIcon(modifier = Modifier.size(16.dp))
+                                            }
+                                        }
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
@@ -222,13 +242,39 @@ fun PreorderPlanDialog(
                                                 color = if (isSelected) Color(0xFF4B5563) else JoyOrange
                                             )
                                             if (item.satietyBonus > 0) {
-                                                Text("🍎 +${item.satietyBonus}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = JoyOrange)
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                                ) {
+                                                    if (boostsLowSatiety) {
+                                                        ExclamationIcon(modifier = Modifier.size(12.dp))
+                                                    }
+                                                    Text("🍎 +${item.satietyBonus}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = JoyOrange)
+                                                }
                                             }
                                             if (item.moodBonus > 0) {
-                                                Text("⚡ +${item.moodBonus}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = SkyBlue)
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                                ) {
+                                                    if (boostsLowMood) {
+                                                        ExclamationIcon(modifier = Modifier.size(12.dp))
+                                                    }
+                                                    LightningIcon(modifier = Modifier.size(13.dp))
+                                                    Text("+${item.moodBonus}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = SkyBlue)
+                                                }
                                             }
                                             if (item.healthBonus > 0) {
-                                                Text("❤️ +${item.healthBonus}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = FreshGreen)
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                                ) {
+                                                    if (boostsLowHealth) {
+                                                        ExclamationIcon(modifier = Modifier.size(12.dp))
+                                                    }
+                                                    HeartIcon(modifier = Modifier.size(13.dp))
+                                                    Text("+${item.healthBonus}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = FreshGreen)
+                                                }
                                             }
                                         }
                                     }
@@ -399,10 +445,22 @@ fun QuickBuyConfirmDialog(
                                             Text("🍎 Сытость +${item.satietyBonus}", fontSize = 15.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
                                         }
                                         if (item.moodBonus > 0) {
-                                            Text("⚡ Настроение +${item.moodBonus}", fontSize = 15.sp, color = SkyBlue, fontWeight = FontWeight.Bold)
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                            ) {
+                                                LightningIcon(modifier = Modifier.size(16.dp))
+                                                Text("Настроение +${item.moodBonus}", fontSize = 15.sp, color = SkyBlue, fontWeight = FontWeight.Bold)
+                                            }
                                         }
                                         if (item.healthBonus > 0) {
-                                            Text("❤️ Здоровье +${item.healthBonus}", fontSize = 15.sp, color = FreshGreen, fontWeight = FontWeight.Bold)
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                            ) {
+                                                HeartIcon(modifier = Modifier.size(16.dp))
+                                                Text("Здоровье +${item.healthBonus}", fontSize = 15.sp, color = FreshGreen, fontWeight = FontWeight.Bold)
+                                            }
                                         }
                                     }
                                 }
@@ -479,18 +537,30 @@ fun QuickBuyConfirmDialog(
                                         color = JoyOrange,
                                         fontFamily = AppFontFamily
                                     )
-                                    Text(
-                                        text = "⚡ Настроение: ${formatStatGain(curMood, totalMood)}",
-                                        fontSize = 16.sp,
-                                        color = SkyBlue,
-                                        fontFamily = AppFontFamily
-                                    )
-                                    Text(
-                                        text = "❤️ Здоровье: ${formatStatGain(curHealth, totalHealth)}",
-                                        fontSize = 16.sp,
-                                        color = FreshGreen,
-                                        fontFamily = AppFontFamily
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        LightningIcon(modifier = Modifier.size(16.dp))
+                                        Text(
+                                            text = "Настроение: ${formatStatGain(curMood, totalMood)}",
+                                            fontSize = 16.sp,
+                                            color = SkyBlue,
+                                            fontFamily = AppFontFamily
+                                        )
+                                    }
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        HeartIcon(modifier = Modifier.size(16.dp))
+                                        Text(
+                                            text = "Здоровье: ${formatStatGain(curHealth, totalHealth)}",
+                                            fontSize = 16.sp,
+                                            color = FreshGreen,
+                                            fontFamily = AppFontFamily
+                                        )
+                                    }
                                 }
                             }
                         }

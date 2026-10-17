@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import ru.finpet.kids.core.designsystem.ExclamationIcon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,9 +50,9 @@ data class MapHotspot(
 
 // координаты зданий на карте (школа, лавка, дом)
 val DEFAULT_MAP_HOTSPOTS: List<MapHotspot> = listOf(
-    MapHotspot(id = "shop",   left = 0.7194f, top = 0.6803f, right = 0.9509f, bottom = 0.7544f, label = "Лавка"),
-    MapHotspot(id = "quests", left = 0.0926f, top = 0.5871f, right = 0.4352f, bottom = 0.7024f, label = "Школа"),
-    MapHotspot(id = "home",   left = 0.6361f, top = 0.7874f, right = 0.8815f, bottom = 0.8951f, label = "Дом")
+    MapHotspot(id = "shop",   left = 0.7194f, top = 0.6503f, right = 0.9509f, bottom = 0.7544f, label = "Лавка"),
+    MapHotspot(id = "quests", left = 0.0926f, top = 0.5571f, right = 0.4352f, bottom = 0.7024f, label = "Школа"),
+    MapHotspot(id = "home",   left = 0.6361f, top = 0.7574f, right = 0.8815f, bottom = 0.8951f, label = "Дом")
 )
 
 /**
@@ -64,6 +66,7 @@ fun MapWithHotspots(
     onClickHotspot: (MapHotspot) -> Unit,
     modifier: Modifier = Modifier,
     anchor: Alignment.Vertical = Alignment.Bottom,
+    hasShopWarning: Boolean = false,
     debug: Boolean = false
 ) {
     // контейнер карты с обрезкой по границам экрана
@@ -122,7 +125,17 @@ fun MapWithHotspots(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) { onClickHotspot(spot) }
-            )
+            ) {
+                if (spot.id == "shop" && hasShopWarning) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = 2.dp, y = 0.dp)
+                    ) {
+                        ExclamationIcon(modifier = Modifier.size(22.dp))
+                    }
+                }
+            }
         }
 
         // 3. отладочный слой для проверки тапов и калибровки координат

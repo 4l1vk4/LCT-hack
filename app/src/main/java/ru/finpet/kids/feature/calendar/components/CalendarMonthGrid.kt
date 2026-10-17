@@ -47,7 +47,7 @@ fun CalendarMonthGrid(
 
     StardewBoard(
         headerTitle = "${monthInfo.monthName.uppercase()} ${monthInfo.year}",
-        headerIcon = "🗓️",
+        headerIcon = "📅",
         modifier = modifier
     ) {
         // 1. Шапка дней недели

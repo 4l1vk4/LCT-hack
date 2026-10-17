@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.DiagramIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
@@ -197,7 +198,11 @@ fun FinikTasksSheet(
                                     modifier = Modifier.size(24.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = taskIcon, fontSize = 20.sp)
+                                if (taskIcon == "📊") {
+                                    DiagramIcon(modifier = Modifier.size(20.dp))
+                                } else {
+                                    Text(text = taskIcon, fontSize = 20.sp)
+                                }
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = note.title,

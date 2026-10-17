@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import ru.finpet.kids.core.designsystem.ExclamationIcon
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -66,6 +69,8 @@ fun NavBarWithHotspots(
     modifier: Modifier = Modifier,
     selectedTab: Int = 0,
     showImage: Boolean = true,
+    calendarHasWarning: Boolean = false,
+    mapHasWarning: Boolean = false,
     debug: Boolean = false
 ) {
     BoxWithConstraints(
@@ -108,7 +113,27 @@ fun NavBarWithHotspots(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) { onSelectTab(index) }
-            )
+            ) {
+                // красный восклицательный знак справа сверху от важного
+                if (spot.id == "calendar" && calendarHasWarning) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 4.dp, end = 10.dp)
+                    ) {
+                        ExclamationIcon(modifier = Modifier.size(16.dp))
+                    }
+                }
+                if (spot.id == "map" && mapHasWarning) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 4.dp, end = 10.dp)
+                    ) {
+                        ExclamationIcon(modifier = Modifier.size(16.dp))
+                    }
+                }
+            }
         }
 
         // оверлей для отладки координат

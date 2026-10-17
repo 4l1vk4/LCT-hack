@@ -39,6 +39,7 @@ import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.DiagramIcon
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
@@ -265,7 +266,11 @@ fun DayDetailsDialog(
                                     )
 
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text(text = taskIcon, fontSize = 18.sp)
+                                    if (taskIcon == "📊") {
+                                        DiagramIcon(modifier = Modifier.size(18.dp))
+                                    } else {
+                                        Text(text = taskIcon, fontSize = 18.sp)
+                                    }
                                     Spacer(modifier = Modifier.width(8.dp))
 
                                     Text(
