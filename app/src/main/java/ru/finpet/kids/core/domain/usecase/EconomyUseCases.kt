@@ -99,9 +99,10 @@ class MakePurchaseUseCase @Inject constructor(
 
         // Обновление статов питомца. Баланс пишется один раз здесь —
         // отдельный updateBalance ниже был бы второй перезаписью той же строки.
-        val newSatiety = (profile.satiety + satietyBonus).coerceIn(0, 100)
-        val newMood = (profile.mood + moodBonus).coerceIn(0, 100)
-        val newHealth = (profile.health + healthBonus).coerceIn(0, 100)
+        // Если питомец сбежал, статы не восстанавливаются ни при каких обстоятельствах.
+        val newSatiety = if (profile.isPetRunaway) profile.satiety else (profile.satiety + satietyBonus).coerceIn(0, 100)
+        val newMood = if (profile.isPetRunaway) profile.mood else (profile.mood + moodBonus).coerceIn(0, 100)
+        val newHealth = if (profile.isPetRunaway) profile.health else (profile.health + healthBonus).coerceIn(0, 100)
 
         repository.saveProfile(
             profile.copy(
@@ -220,9 +221,12 @@ class CompletePeriodUseCase @Inject constructor(
         var finalGrowthStage = resolution.newStats.stage.name
 
         if (profile.isPetRunaway) {
-            // пока питомец в побеге, очки заботы и рост заморожены
+            // пока питомец в побеге, очки заботы, рост и все статы (сытость, настроение, здоровье) заморожены
             finalCarePoints = profile.carePoints
             finalGrowthStage = profile.growthStage
+            finalMood = profile.mood
+            finalSatiety = profile.satiety
+            finalHealth = profile.health
 
             if (profile.bowlPlacedToday) {
                 val daysRemaining = profile.runawayDaysLeft - 1
@@ -232,7 +236,7 @@ class CompletePeriodUseCase @Inject constructor(
                     newRunawayDaysLeft = 0
                     finalMood = 60
                     finalSatiety = 80
-                    finalHealth = maxOf(finalHealth, 70)
+                    finalHealth = maxOf(profile.health, 70)
                 } else {
                     newRunawayDaysLeft = daysRemaining
                     newIsPetRunaway = true
@@ -275,6 +279,14 @@ class CompletePeriodUseCase @Inject constructor(
         // Инициализируем новый период
         repository.savePeriod(PeriodEntity(periodIndex = nextPeriodIndex))
 
-        resolution
+        resolution.copy(
+            newStats = resolution.newStats.copy(
+                mood = finalMood,
+                satiety = finalSatiety,
+                health = finalHealth,
+                carePoints = finalCarePoints,
+                stage = GrowthStage.valueOf(finalGrowthStage)
+            )
+        )
     }
 }

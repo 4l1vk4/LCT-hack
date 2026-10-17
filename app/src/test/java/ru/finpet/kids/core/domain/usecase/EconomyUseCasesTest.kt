@@ -265,8 +265,8 @@ class EconomyUseCasesTest {
     fun `CompletePeriodUseCase freezes pet growth while pet is runaway`() = runTest {
         repository.saveProfile(
             ProfileEntity(
-                satiety = 100,
-                health = 100,
+                satiety = 25,
+                health = 40,
                 mood = 0,
                 carePoints = 5,
                 growthStage = "BABY",
@@ -277,10 +277,43 @@ class EconomyUseCasesTest {
             )
         )
 
-        completePeriodUseCase()
+        val resolution = completePeriodUseCase()
 
         val updatedProfile = repository.getProfileSync()
         assertEquals("Очки заботы не должны увеличиваться пока кот сбежал", 5, updatedProfile?.carePoints)
         assertEquals("Стадия взросления не должна меняться пока кот сбежал", "BABY", updatedProfile?.growthStage)
+        assertEquals("Сытость не должна восстанавливаться пока кот сбежал", 25, updatedProfile?.satiety)
+        assertEquals("Здоровье не должно восстанавливаться пока кот сбежал", 40, updatedProfile?.health)
+        assertEquals("Настроение не должно восстанавливаться пока кот сбежал", 0, updatedProfile?.mood)
+        assertEquals(25, resolution?.newStats?.satiety)
+        assertEquals(40, resolution?.newStats?.health)
+        assertEquals(0, resolution?.newStats?.mood)
+    }
+
+    @Test
+    fun `Pet stats restore only when runaway days end with food bowl placed`() = runTest {
+        repository.saveProfile(
+            ProfileEntity(
+                satiety = 20,
+                health = 30,
+                mood = 0,
+                isPetRunaway = true,
+                runawayDaysLeft = 1,
+                bowlPlacedToday = true,
+                balance = 200,
+                currentPeriodIndex = 1
+            )
+        )
+
+        val resolution = completePeriodUseCase()
+
+        val updatedProfile = repository.getProfileSync()
+        assertFalse("Кот должен вернуться", updatedProfile?.isPetRunaway == true)
+        assertEquals(80, updatedProfile?.satiety)
+        assertEquals(70, updatedProfile?.health)
+        assertEquals(60, updatedProfile?.mood)
+        assertEquals(80, resolution?.newStats?.satiety)
+        assertEquals(70, resolution?.newStats?.health)
+        assertEquals(60, resolution?.newStats?.mood)
     }
 }

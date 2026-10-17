@@ -37,7 +37,8 @@ fun OrbStatBar(
     value: Int,                    // 0..100
     tintColor: Color,
     modifier: Modifier = Modifier,
-    orbCount: Int = 20             // сколько орбов на полный бар
+    orbCount: Int = 20,            // сколько орбов на полный бар
+    showWarning: Boolean = true
 ) {
     val safeValue = value.coerceIn(0, 100)
     val filledCount = ((safeValue / 100f) * orbCount).roundToInt().coerceIn(0, orbCount)
@@ -65,13 +66,13 @@ fun OrbStatBar(
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
-                if (safeValue < 30) {
+                if (safeValue <= 30 && showWarning) {
                     Spacer(modifier = Modifier.width(6.dp))
                     ExclamationIcon(modifier = Modifier.size(16.dp))
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (safeValue < 30) {
+                if (safeValue <= 30 && showWarning) {
                     ExclamationIcon(modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(4.dp))
                 }
@@ -79,7 +80,7 @@ fun OrbStatBar(
                     text = "$safeValue%",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (safeValue < 30) Color(0xFFD32F2F) else tintColor
+                    color = if (safeValue <= 30 && showWarning) Color(0xFFD32F2F) else tintColor
                 )
             }
         }

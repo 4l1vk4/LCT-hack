@@ -9,15 +9,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.ExclamationIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
@@ -45,6 +53,8 @@ fun FinikRunawaySection(
     onPlaceFoodBowl: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
@@ -114,35 +124,49 @@ fun FinikRunawaySection(
                 }
             }
         } else {
-            // кнопка выставить миску корма
+            // кнопка купить корм для питомца с восклицательным знаком над ней
             val canAffordBowl = balance >= 60
-            Button(
-                onClick = onPlaceFoodBowl,
-                enabled = canAffordBowl,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = JoyOrange,
-                    disabledContainerColor = Color(0xFFCCCCCC)
-                ),
-                shape = RoundedCornerShape(14.dp),
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
                     .padding(horizontal = 8.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "🥣 Поставить миску корма (60 ",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = Color.White
-                    )
-                    CoinIcon(modifier = Modifier.size(16.dp))
-                    Text(
-                        text = ")",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = Color.White
-                    )
+                Button(
+                    onClick = { showConfirmDialog = true },
+                    enabled = canAffordBowl,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = JoyOrange,
+                        disabledContainerColor = Color(0xFFCCCCCC)
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "🥣 Купить корм для питомца (60 ",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = Color.White
+                        )
+                        CoinIcon(modifier = Modifier.size(16.dp))
+                        Text(
+                            text = ")",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = Color.White
+                        )
+                    }
+                }
+
+                // красный восклицательный знак над кнопкой справа сверху
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 6.dp, y = (-10).dp)
+                ) {
+                    ExclamationIcon(modifier = Modifier.size(24.dp))
                 }
             }
 
@@ -156,5 +180,58 @@ fun FinikRunawaySection(
                 )
             }
         }
+    }
+
+    // диалог подтверждения покупки корма для сбежавшего питомца
+    if (showConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "🥣", fontSize = 24.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Купить корм для $petName?",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
+                }
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "$petName убежал и сейчас прячется. Если купить и поставить миску корма у двери, он почувствует заботу и вернется домой через 1–3 дня!",
+                        fontSize = 15.sp,
+                        lineHeight = 20.sp,
+                        color = Color(0xFF333333)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Цена покупки: 60 ",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        CoinIcon(modifier = Modifier.size(18.dp))
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showConfirmDialog = false
+                        onPlaceFoodBowl()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = JoyOrange)
+                ) {
+                    Text("Купить корм (60)", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDialog = false }) {
+                    Text("Отмена", color = TextSecondary, fontSize = 15.sp)
+                }
+            }
+        )
     }
 }

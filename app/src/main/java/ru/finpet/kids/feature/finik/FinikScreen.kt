@@ -248,7 +248,8 @@ fun FinikScreen(
                             icon = "🍎",
                             value = satiety,
                             tintColor = JoyOrange,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            showWarning = !isPetRunaway
                         )
                         Spacer(modifier = Modifier.height(10.dp))
 
@@ -257,7 +258,8 @@ fun FinikScreen(
                             icon = "⚡",
                             value = mood,
                             tintColor = SkyBlue,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            showWarning = !isPetRunaway
                         )
                         Spacer(modifier = Modifier.height(10.dp))
 
@@ -266,7 +268,8 @@ fun FinikScreen(
                             icon = "❤️",
                             value = health,
                             tintColor = FreshGreen,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            showWarning = !isPetRunaway
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
