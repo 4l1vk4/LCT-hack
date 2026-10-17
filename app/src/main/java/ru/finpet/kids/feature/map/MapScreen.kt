@@ -37,9 +37,15 @@ import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.data.repository.PurchaseItem
 import ru.finpet.kids.core.data.repository.QuestItem
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.PixelAlertDialog
+import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelParchmentLight
+import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.feature.map.sheets.HomeGoalsBottomSheet
 import ru.finpet.kids.feature.map.sheets.SchoolBottomSheet
 import ru.finpet.kids.core.data.local.entity.PeriodEntity
@@ -134,31 +140,6 @@ fun MapScreen(
             },
             modifier = Modifier.fillMaxSize()
         )
-
-        // ночной индикатор режима (22:00 – 06:00)
-        if (isNight) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 16.dp)
-                    .background(Color(0xDD121324), RoundedCornerShape(20.dp))
-                    .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(20.dp))
-                    .padding(horizontal = 14.dp, vertical = 7.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(text = "🌙", fontSize = 14.sp)
-                    Text(
-                        text = "Ночь в городе (22:00 – 06:00)",
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-        }
     }
 
     // шторка школы финграмотности (квесты и словарик)
@@ -238,95 +219,95 @@ fun MapScreen(
 
     // диалог нехватки монет: подсказываем ребенку заглянуть в школу
     notEnoughMoneyInfo?.let { (missing, price) ->
-        AlertDialog(
+        PixelAlertDialog(
             onDismissRequest = { notEnoughMoneyInfo = null },
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CoinIcon(modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Ой, не хватает монет!", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                }
-            },
-            text = {
-                Text(
-                    text = "Тебе не хватает $missing монет для покупки за $price.\n\nЗагляни в Школу финансовой грамотности и реши задание, чтобы заработать монет!",
-                    fontSize = 15.sp,
-                    lineHeight = 22.sp
-                )
-            },
+            title = "Не хватает монет!",
+            icon = "🪙",
             confirmButton = {
-                Button(
+                PixelButton(
+                    text = "В Школу 🏫",
                     onClick = {
                         notEnoughMoneyInfo = null
                         activeModal = "QUESTS"
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = JoyOrange)
-                ) {
-                    Text("Идти в Школу 🏫")
-                }
+                    containerColor = JoyOrange,
+                    textColor = PixelTextDark,
+                    modifier = Modifier.fillMaxWidth()
+                )
             },
             dismissButton = {
-                TextButton(onClick = { notEnoughMoneyInfo = null }) {
-                    Text("Понятно")
-                }
+                PixelButton(
+                    text = "Понятно",
+                    onClick = { notEnoughMoneyInfo = null },
+                    containerColor = PixelWoodMedium,
+                    textColor = PixelParchmentLight,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-        )
+        ) {
+            Text(
+                text = "Тебе не хватает $missing монет для покупки за $price.\n\nЗагляни в Школу финансовой грамотности и реши задание, чтобы заработать монет!",
+                fontFamily = AppFontFamily,
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                color = PixelTextDark,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        }
     }
 
     // предупреждение: питомец убежал
     if (showNoPetDialog) {
-        AlertDialog(
+        PixelAlertDialog(
             onDismissRequest = { showNoPetDialog = false },
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "😿", fontSize = 22.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Продукты никому не нужны",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                }
-            },
-            text = {
-                Text(
-                    text = "$petName убежал, и сейчас его нет дома. Продукты никому не нужны.\n\nПоставь миску корма у двери — и он скоро вернётся!",
-                    fontSize = 17.sp,
-                    lineHeight = 22.sp
-                )
-            },
+            title = "Финик сбежал",
+            icon = "😿",
             confirmButton = {
-                Button(
+                PixelButton(
+                    text = "Понятно",
                     onClick = { showNoPetDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = JoyOrange)
-                ) {
-                    Text("Понятно", fontSize = 17.sp)
-                }
+                    containerColor = JoyOrange,
+                    textColor = PixelTextDark,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-        )
+        ) {
+            Text(
+                text = "$petName убежал, и сейчас его нет дома. Продукты некому кушать.\n\nПоставь миску корма у двери в разделе питомца — и он скоро вернётся!",
+                fontFamily = AppFontFamily,
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                color = PixelTextDark,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        }
     }
 
     // обратная связь после ответа на квест
     questFeedback?.let { feedback ->
-        AlertDialog(
+        PixelAlertDialog(
             onDismissRequest = { questFeedback = null },
-            title = { Text(text = "💡 Совет от $petName", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
-            text = {
-                Text(
-                    text = feedback,
-                    fontSize = 15.sp,
-                    lineHeight = 22.sp
-                )
-            },
+            title = "Совет от $petName",
+            icon = "💡",
             confirmButton = {
-                Button(
+                PixelButton(
+                    text = "Спасибо, понятно! 👍",
                     onClick = { questFeedback = null },
-                    colors = ButtonDefaults.buttonColors(containerColor = FreshGreen)
-                ) {
-                    Text("Спасибо, понятно! 👍")
-                }
+                    containerColor = FreshGreen,
+                    textColor = Color.White,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-        )
+        ) {
+            Text(
+                text = feedback,
+                fontFamily = AppFontFamily,
+                fontSize = 15.sp,
+                lineHeight = 21.sp,
+                color = PixelTextDark,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        }
     }
 
 }

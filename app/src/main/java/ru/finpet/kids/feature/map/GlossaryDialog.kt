@@ -48,9 +48,11 @@ import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
 
 data class GlossaryTerm(
     val term: String,
@@ -148,39 +150,36 @@ fun GlossaryDialog(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.94f)
-                .fillMaxHeight(0.88f)
+                .fillMaxWidth(0.95f)
+                .fillMaxHeight(0.92f)
                 .clip(RoundedCornerShape(8.dp))
         ) {
             StardewBoard(
+                modifier = Modifier.fillMaxSize(),
                 headerTitle = "СЛОВАРИК ${petName.uppercase()}",
                 headerIcon = "📖"
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
 
                     // подсказка
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(PixelParchmentMedium)
-                            .border(1.dp, PixelParchmentBorder, RoundedCornerShape(4.dp))
-                            .padding(horizontal = 10.dp, vertical = 8.dp)
+                    PixelPanel(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(text = "💡", fontSize = 16.sp)
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "Нажми на слово, чтобы узнать его значение!",
-                                fontSize = 16.sp,
+                                fontSize = 15.sp,
                                 fontFamily = AppFontFamily,
                                 color = PixelTextMuted,
-                                lineHeight = 15.sp
+                                lineHeight = 18.sp
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     // список терминов
                     LazyColumn(
@@ -192,96 +191,90 @@ fun GlossaryDialog(
                             val term = glossary[index]
                             val isExpanded = expandedIndex == index
 
-                            Column(
+                            PixelPanel(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(if (isExpanded) Color(0xFFFFF8E7) else PixelParchmentLight)
-                                    .border(
-                                        width = if (isExpanded) 2.dp else 1.dp,
-                                        color = if (isExpanded) PixelGoldBright else PixelParchmentBorder,
-                                        shape = RoundedCornerShape(6.dp)
-                                    )
                                     .clickable(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null
                                     ) {
                                         expandedIndex = if (isExpanded) null else index
-                                    }
-                                    .padding(12.dp)
+                                    },
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(38.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(if (isExpanded) PixelGoldBright else PixelParchmentMedium)
-                                            .border(
-                                                1.dp,
-                                                if (isExpanded) PixelGoldDark else PixelParchmentBorder,
-                                                RoundedCornerShape(8.dp)
-                                            ),
-                                        contentAlignment = Alignment.Center
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        if (term.icon == "⚡") {
-                                            LightningIcon(modifier = Modifier.size(22.dp))
-                                        } else {
-                                            Text(text = term.icon, fontSize = 20.sp)
-                                        }
-                                    }
-
-                                    Spacer(modifier = Modifier.width(12.dp))
-
-                                    Text(
-                                        text = term.term,
-                                        fontSize = 15.sp,
-                                        fontFamily = AppFontFamily,
-                                        fontWeight = FontWeight.Black,
-                                        color = PixelTextDark,
-                                        modifier = Modifier.weight(1f)
-                                    )
-
-                                    Text(
-                                        text = if (isExpanded) "▲" else "▼",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isExpanded) PixelGoldDark else PixelTextMuted
-                                    )
-                                }
-
-                                if (isExpanded) {
-                                    Spacer(modifier = Modifier.height(10.dp))
-
-                                    Text(
-                                        text = term.definition,
-                                        fontSize = 17.sp,
-                                        color = PixelTextDark,
-                                        lineHeight = 18.sp
-                                    )
-
-                                    if (term.example.isNotBlank()) {
-                                        Spacer(modifier = Modifier.height(8.dp))
                                         Box(
                                             modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clip(RoundedCornerShape(4.dp))
-                                                .background(Color(0xFFF1F8E9))
-                                                .border(1.dp, Color(0xFFAED581), RoundedCornerShape(4.dp))
-                                                .padding(horizontal = 10.dp, vertical = 8.dp)
+                                                .size(38.dp)
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(if (isExpanded) PixelGoldBright.copy(alpha = 0.25f) else Color(0xFFE8DAC2))
+                                                .border(
+                                                    1.dp,
+                                                    if (isExpanded) PixelGoldDark else PixelParchmentBorder,
+                                                    RoundedCornerShape(6.dp)
+                                                ),
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            Row(verticalAlignment = Alignment.Top) {
-                                                Text(text = "🌟", fontSize = 12.sp)
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                                Text(
-                                                    text = term.example,
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = PixelGreenCrop,
-                                                    lineHeight = 15.sp
-                                                )
+                                            if (term.icon == "⚡") {
+                                                LightningIcon(modifier = Modifier.size(22.dp))
+                                            } else {
+                                                Text(text = term.icon, fontSize = 20.sp)
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.width(12.dp))
+
+                                        Text(
+                                            text = term.term,
+                                            fontSize = 15.sp,
+                                            fontFamily = AppFontFamily,
+                                            fontWeight = FontWeight.Black,
+                                            color = PixelTextDark,
+                                            modifier = Modifier.weight(1f)
+                                        )
+
+                                        Text(
+                                            text = if (isExpanded) "▲" else "▼",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isExpanded) PixelGoldDark else PixelTextMuted
+                                        )
+                                    }
+
+                                    if (isExpanded) {
+                                        Spacer(modifier = Modifier.height(10.dp))
+
+                                        Text(
+                                            text = term.definition,
+                                            fontSize = 16.sp,
+                                            color = PixelTextDark,
+                                            lineHeight = 20.sp
+                                        )
+
+                                        if (term.example.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
+                                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                                            ) {
+                                                Row(verticalAlignment = Alignment.Top) {
+                                                    Text(text = "🌟", fontSize = 12.sp)
+                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    Text(
+                                                        text = term.example,
+                                                        fontFamily = AppFontFamily,
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = PixelGreenCrop,
+                                                        lineHeight = 17.sp
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -295,10 +288,10 @@ fun GlossaryDialog(
                             PixelButton(
                                 text = "✕ Закрыть словарик",
                                 onClick = onDismiss,
-                                containerColor = PixelParchmentMedium,
-                                textColor = PixelTextDark,
-                                borderColor = PixelParchmentBorder,
-                                modifier = Modifier.fillMaxWidth()
+                                containerColor = PixelWoodMedium,
+                                textColor = PixelParchmentLight,
+                                modifier = Modifier.fillMaxWidth(),
+                                fontSize = 15.sp
                             )
                         }
                     }

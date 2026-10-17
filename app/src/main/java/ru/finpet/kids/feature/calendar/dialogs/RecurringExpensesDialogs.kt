@@ -48,6 +48,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.PixelAlertDialog
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
@@ -203,7 +206,7 @@ fun RecurringExpensesDialog(
 }
 
 /**
- * Диалог создания новой цикличной траты.
+ * Аутентичный пиксельный диалог создания новой цикличной траты.
  */
 @Composable
 fun AddRecurringExpenseDialog(
@@ -217,85 +220,136 @@ fun AddRecurringExpenseDialog(
 
     val icons = listOf("🍲", "💧", "💊", "⚽", "📚", "🧼")
 
-    AlertDialog(
+    PixelAlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "🔄 Новая цикличная трата",
-                fontWeight = FontWeight.Bold,
-                fontFamily = AppFontFamily,
-                fontSize = 17.sp
-            )
-        },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = recTitle,
-                    onValueChange = { recTitle = it },
-                    label = { Text("Название регулярного расхода") },
-                    placeholder = { Text("Например: Школьный обед") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = recCost,
-                    onValueChange = { recCost = it.filter { ch -> ch.isDigit() } },
-                    label = { Text("Стоимость (монет)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Иконка:", fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    icons.forEach { icon ->
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(if (recIcon == icon) PixelGoldBright else Color(0xFFEEEEEE))
-                                .clickable { recIcon = icon }
-                                .padding(6.dp)
-                        ) {
-                            Text(text = icon, fontSize = 20.sp)
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(text = "Периодичность:", fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = recFrequency == 1,
-                        onClick = { recFrequency = 1 },
-                        colors = RadioButtonDefaults.colors(selectedColor = PixelGreenCrop)
-                    )
-                    Text("Каждый день", fontSize = 14.sp)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    RadioButton(
-                        selected = recFrequency == 3,
-                        onClick = { recFrequency = 3 },
-                        colors = RadioButtonDefaults.colors(selectedColor = PixelGoldDark)
-                    )
-                    Text("Раз в 3 дн.", fontSize = 14.sp)
-                }
-            }
-        },
+        title = "ЦИКЛИЧНАЯ ТРАТА",
+        icon = "🔄",
         confirmButton = {
-            Button(
+            PixelButton(
+                text = "Сохранить",
                 onClick = {
                     val cost = recCost.toIntOrNull() ?: 0
                     if (recTitle.isNotBlank()) {
                         onAddRecurring(recTitle.trim(), cost, recFrequency, recIcon)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = PixelGoldBright)
-            ) {
-                Text("Сохранить", color = PixelTextDark, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            }
+                containerColor = PixelGoldBright,
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = 14.sp
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Отмена", color = PixelTextMuted, fontSize = 15.sp)
+            PixelButton(
+                text = "Отмена",
+                onClick = onDismiss,
+                containerColor = PixelParchmentMedium,
+                textColor = PixelTextDark,
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = 14.sp
+            )
+        }
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = recTitle,
+                onValueChange = { recTitle = it },
+                label = { Text("Название регулярного расхода", fontFamily = AppFontFamily, fontSize = 13.sp) },
+                placeholder = { Text("Например: Школьный обед", fontFamily = AppFontFamily, fontSize = 13.sp) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PixelParchmentBorder,
+                    unfocusedBorderColor = PixelParchmentBorder,
+                    focusedContainerColor = PixelParchmentLight,
+                    unfocusedContainerColor = PixelParchmentLight,
+                    focusedTextColor = PixelTextDark,
+                    unfocusedTextColor = PixelTextDark
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = recCost,
+                onValueChange = { recCost = it.filter { ch -> ch.isDigit() } },
+                label = { Text("Стоимость (монет)", fontFamily = AppFontFamily, fontSize = 13.sp) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PixelParchmentBorder,
+                    unfocusedBorderColor = PixelParchmentBorder,
+                    focusedContainerColor = PixelParchmentLight,
+                    unfocusedContainerColor = PixelParchmentLight,
+                    focusedTextColor = PixelTextDark,
+                    unfocusedTextColor = PixelTextDark
+                )
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = "Иконка:",
+                fontFamily = AppFontFamily,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = PixelTextDark
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                icons.forEach { icon ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .pixelButtonBackground(containerColor = if (recIcon == icon) PixelGoldBright else PixelParchmentLight)
+                            .clickable { recIcon = icon }
+                            .padding(vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = icon, fontSize = 18.sp)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = "Периодичность:",
+                fontFamily = AppFontFamily,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = PixelTextDark
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                PixelButton(
+                    text = "Каждый день",
+                    onClick = { recFrequency = 1 },
+                    containerColor = if (recFrequency == 1) PixelGoldBright else PixelParchmentLight,
+                    modifier = Modifier.weight(1f),
+                    fontSize = 13.sp,
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 7.dp)
+                )
+                PixelButton(
+                    text = "Раз в 3 дня",
+                    onClick = { recFrequency = 3 },
+                    containerColor = if (recFrequency == 3) PixelGoldBright else PixelParchmentLight,
+                    modifier = Modifier.weight(1f),
+                    fontSize = 13.sp,
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 7.dp)
+                )
             }
         }
-    )
+    }
 }

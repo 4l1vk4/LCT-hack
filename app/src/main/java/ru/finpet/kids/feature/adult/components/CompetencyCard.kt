@@ -1,6 +1,7 @@
 package ru.finpet.kids.feature.adult.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,9 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,13 +41,19 @@ fun CompetencyCard(
 ) {
     // подсвечиваем зеленым при успехе от 70%, иначе предупреждающим оранжевым
     val isConfident = competency.scorePercent >= 70
+    val accentBrush = remember(isConfident) {
+        if (isConfident) {
+            Brush.horizontalGradient(listOf(Color(0xFF81C784), FreshGreen))
+        } else {
+            Brush.horizontalGradient(listOf(Color(0xFFFFB74D), JoyOrange))
+        }
+    }
     val accentColor = if (isConfident) FreshGreen else JoyOrange
 
     FinCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        backgroundColor = Color.White
+            .padding(vertical = 4.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
@@ -67,26 +76,27 @@ fun CompetencyCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // прогресс-бар компетенции (без точек на конце)
+            // прогресс-бар компетенции (контрастный песочный трек как на главном экране)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0xFFEEEEEE))
+                    .height(11.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Color(0xFFD7C4A5))
+                    .border(1.dp, Color(0xFF8D6E63).copy(alpha = 0.35f), RoundedCornerShape(6.dp))
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
                         .fillMaxWidth((competency.scorePercent / 100f).coerceIn(0f, 1f))
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(accentColor)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(accentBrush)
                 )
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Статус: ${competency.statusDescription}",

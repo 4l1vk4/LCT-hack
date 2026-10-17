@@ -3,6 +3,7 @@ package ru.finpet.kids.feature.budget
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,12 +43,16 @@ import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.CoinText
 import ru.finpet.kids.core.designsystem.PixelBlueWater
 import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGoldGlow
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelParchmentMedium
+import ru.finpet.kids.core.designsystem.PixelPanel
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
+import ru.finpet.kids.core.designsystem.pixelPanelBackground
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
@@ -77,6 +83,7 @@ fun BudgetPlanningDialog(
     var mandatory by remember(initialPlan) { mutableIntStateOf(initialPlan.plannedMandatory) }
     var optional by remember(initialPlan) { mutableIntStateOf(initialPlan.plannedOptional) }
     var savings by remember(initialPlan) { mutableIntStateOf(initialPlan.plannedSavings) }
+    var selectedPreset by remember { mutableStateOf<String?>("50/30/20") }
 
     val totalPlanned = mandatory + optional + savings
     val remainder = balance - totalPlanned
@@ -131,32 +138,11 @@ fun BudgetPlanningDialog(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(bottom = 8.dp)
                 ) {
-                    // реакция питомца на наполнение баночек
+                    // реакция питомца на наполнение баночек ("Животик урчит...")
                     item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(
-                                    when {
-                                        isOverBudget -> Color(0xFFFFEBEE)
-                                        mandatory < 30 && balance >= 30 -> Color(0xFFFFF3E0)
-                                        savings > 0 -> Color(0xFFE8F5E9)
-                                        totalPlanned > 0 -> Color(0xFFF1F8E9)
-                                        else -> PixelParchmentMedium
-                                    }
-                                )
-                                .border(
-                                    1.5.dp,
-                                    when {
-                                        isOverBudget -> PixelRedBerry
-                                        mandatory < 30 && balance >= 30 -> Color(0xFFFF9800)
-                                        savings > 0 || totalPlanned > 0 -> PixelGreenCrop
-                                        else -> PixelParchmentBorder
-                                    },
-                                    RoundedCornerShape(8.dp)
-                                )
-                                .padding(10.dp)
+                        PixelPanel(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -166,7 +152,7 @@ fun BudgetPlanningDialog(
                                     modifier = Modifier
                                         .size(42.dp)
                                         .clip(CircleShape)
-                                        .background(Color.White)
+                                        .background(Color(0xFFFFF9EE))
                                         .border(1.5.dp, PixelWoodLight, CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -225,83 +211,73 @@ fun BudgetPlanningDialog(
 
                     // остаток в кошельке и статус перерасхода
                     item {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(if (isOverBudget) Color(0xFFFFEBEE) else PixelParchmentMedium)
-                                .border(
-                                    1.dp,
-                                    if (isOverBudget) PixelRedBerry else PixelParchmentBorder,
-                                    RoundedCornerShape(6.dp)
-                                )
-                                .padding(10.dp)
+                        PixelPanel(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    CoinIcon(modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = "В кошельке: $balance",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 17.sp,
-                                        color = PixelTextDark,
-                                        fontFamily = AppFontFamily
-                                    )
-                                }
-                                CoinText(
-                                    prefix = "В баночках: $totalPlanned",
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isOverBudget) PixelRedBerry else PixelTextDark
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(6.dp))
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(if (isOverBudget) PixelRedBerry.copy(alpha = 0.15f) else Color(0xFFE8F5E9))
-                                    .border(
-                                        1.dp,
-                                        if (isOverBudget) PixelRedBerry else PixelGreenCrop,
-                                        RoundedCornerShape(4.dp)
-                                    )
-                                    .padding(horizontal = 8.dp, vertical = 5.dp)
-                            ) {
-                                if (isOverBudget) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        WarningIcon(modifier = Modifier.size(18.dp))
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        CoinIcon(modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
                                         Text(
-                                            text = "Превышение бюджета на ${-remainder} монет! Уменьши суммы в баночках.",
-                                            fontSize = 16.sp,
+                                            text = "В кошельке: $balance",
                                             fontWeight = FontWeight.Bold,
-                                            color = PixelRedBerry
+                                            fontSize = 17.sp,
+                                            color = PixelTextDark,
+                                            fontFamily = AppFontFamily
                                         )
                                     }
-                                } else {
-                                    Text(
-                                        text = "👛 Свободно в кошельке: $remainder монет останется на руках.",
-                                        fontSize = 16.sp,
+                                    CoinText(
+                                        prefix = "В баночках: $totalPlanned",
+                                        fontSize = 17.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = PixelGreenCrop
+                                        color = if (isOverBudget) PixelRedBerry else PixelTextDark
                                     )
+                                }
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .pixelButtonBackground(containerColor = if (isOverBudget) Color(0xFFFFCDD2) else Color(0xFFDCEDC8))
+                                        .padding(horizontal = 18.dp, vertical = 8.dp)
+                                ) {
+                                    if (isOverBudget) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            WarningIcon(modifier = Modifier.size(18.dp))
+                                            Text(
+                                                text = "Превышение бюджета на ${-remainder} монет! Уменьши суммы в баночках.",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = PixelRedBerry
+                                            )
+                                        }
+                                    } else {
+                                        Text(
+                                            text = "👛 Свободно в кошельке: $remainder монет останется на руках.",
+                                            fontFamily = AppFontFamily,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = PixelGreenCrop
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
 
                     if (!isConfirmed) {
-                        // готовые детские пресеты распределения
+                        // готовые детские пресеты распределения в виде удобной и четкой сетки 2х2
                         item {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
@@ -311,19 +287,20 @@ fun BudgetPlanningDialog(
                                     fontSize = 14.sp,
                                     color = PixelTextMuted
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(6.dp))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     PresetCard(
                                         icon = "🌟",
                                         title = "Умный хозяин",
-                                        proportions = "50 / 30 / 20",
-                                        containerColor = PixelGoldGlow,
-                                        borderColor = PixelGoldDark,
+                                        proportions = "50% • 30% • 20%",
+                                        isSelected = selectedPreset == "50/30/20",
+                                        containerColor = PixelParchmentLight,
                                         modifier = Modifier.weight(1f),
                                         onClick = {
+                                            selectedPreset = "50/30/20"
                                             // 50% обязательное, 30% накопления, 20% радости
                                             mandatory = ((balance * 0.50f) / 10).toInt() * 10
                                             savings = ((balance * 0.30f) / 10).toInt() * 10
@@ -333,25 +310,33 @@ fun BudgetPlanningDialog(
                                     PresetCard(
                                         icon = "🎯",
                                         title = "Турбо-копилка",
-                                        proportions = "35 / 55 / 10",
+                                        proportions = "35% • 55% • 10%",
+                                        isSelected = selectedPreset == "turbo",
                                         containerColor = PixelParchmentLight,
-                                        borderColor = PixelBlueWater,
                                         modifier = Modifier.weight(1f),
                                         onClick = {
+                                            selectedPreset = "turbo"
                                             // акцент на быстрое накопление цели
                                             mandatory = ((balance * 0.35f) / 10).toInt() * 10
                                             savings = ((balance * 0.55f) / 10).toInt() * 10
                                             optional = ((balance * 0.10f) / 10).toInt() * 10
                                         }
                                     )
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
                                     PresetCard(
                                         icon = "⚖️",
                                         title = "Поровну",
-                                        proportions = "по 33%",
-                                        containerColor = PixelParchmentMedium,
-                                        borderColor = PixelParchmentBorder,
+                                        proportions = "по 33% в баночки",
+                                        isSelected = selectedPreset == "equal",
+                                        containerColor = PixelParchmentLight,
                                         modifier = Modifier.weight(1f),
                                         onClick = {
+                                            selectedPreset = "equal"
                                             val share = (balance / 30) * 10
                                             mandatory = share
                                             optional = share
@@ -361,11 +346,12 @@ fun BudgetPlanningDialog(
                                     PresetCard(
                                         icon = "↺",
                                         title = "Сброс",
-                                        proportions = "по 0",
-                                        containerColor = PixelParchmentMedium,
-                                        borderColor = PixelParchmentBorder,
-                                        modifier = Modifier.weight(0.75f),
+                                        proportions = "по 0 монет",
+                                        isSelected = selectedPreset == "reset",
+                                        containerColor = PixelParchmentLight,
+                                        modifier = Modifier.weight(1f),
                                         onClick = {
+                                            selectedPreset = "reset"
                                             mandatory = 0
                                             optional = 0
                                             savings = 0
@@ -387,9 +373,18 @@ fun BudgetPlanningDialog(
                             walletBalance = balance,
                             color = PixelGreenCrop,
                             isReadOnly = isConfirmed,
-                            onMinus = { if (mandatory >= 10) mandatory -= 10 },
-                            onPlus10 = { mandatory += 10 },
-                            onPlus20 = { mandatory += 20 }
+                            onMinus = {
+                                selectedPreset = null
+                                if (mandatory >= 10) mandatory -= 10
+                            },
+                            onPlus10 = {
+                                selectedPreset = null
+                                mandatory += 10
+                            },
+                            onPlus20 = {
+                                selectedPreset = null
+                                mandatory += 20
+                            }
                         )
                     }
 
@@ -404,9 +399,18 @@ fun BudgetPlanningDialog(
                             walletBalance = balance,
                             color = PixelGoldDark,
                             isReadOnly = isConfirmed,
-                            onMinus = { if (optional >= 10) optional -= 10 },
-                            onPlus10 = { optional += 10 },
-                            onPlus20 = { optional += 20 }
+                            onMinus = {
+                                selectedPreset = null
+                                if (optional >= 10) optional -= 10
+                            },
+                            onPlus10 = {
+                                selectedPreset = null
+                                optional += 10
+                            },
+                            onPlus20 = {
+                                selectedPreset = null
+                                optional += 20
+                            }
                         )
                     }
 
@@ -421,9 +425,18 @@ fun BudgetPlanningDialog(
                             walletBalance = balance,
                             color = PixelBlueWater,
                             isReadOnly = isConfirmed,
-                            onMinus = { if (savings >= 10) savings -= 10 },
-                            onPlus10 = { savings += 10 },
-                            onPlus20 = { savings += 20 }
+                            onMinus = {
+                                selectedPreset = null
+                                if (savings >= 10) savings -= 10
+                            },
+                            onPlus10 = {
+                                selectedPreset = null
+                                savings += 10
+                            },
+                            onPlus20 = {
+                                selectedPreset = null
+                                savings += 20
+                            }
                         )
                     }
 
@@ -494,39 +507,50 @@ private fun PresetCard(
     icon: String,
     title: String,
     proportions: String,
-    containerColor: Color,
-    borderColor: Color,
+    isSelected: Boolean = false,
+    containerColor: Color = PixelParchmentLight,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val bg = if (isSelected) PixelGoldBright else containerColor
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(borderColor)
-            .clickable(onClick = onClick)
-            .padding(bottom = 2.dp)
-            .background(containerColor)
-            .border(1.dp, borderColor.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
-            .padding(horizontal = 4.dp, vertical = 6.dp),
+            .pixelButtonBackground(containerColor = bg)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            )
+            .padding(horizontal = 8.dp, vertical = 7.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = icon, fontSize = 14.sp)
-            Text(
-                text = title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = PixelTextDark,
-                textAlign = TextAlign.Center,
-                maxLines = 1
-            )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(text = icon, fontSize = 14.sp)
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = title,
+                    fontSize = 13.sp,
+                    fontFamily = AppFontFamily,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = PixelTextDark,
+                    textAlign = TextAlign.Center
+                )
+            }
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = proportions,
                 fontSize = 12.sp,
-                color = PixelTextMuted,
                 fontFamily = AppFontFamily,
-                textAlign = TextAlign.Center,
-                maxLines = 1
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) PixelTextDark else PixelTextMuted,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -559,9 +583,7 @@ private fun MagicJarCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(PixelParchmentLight)
-            .border(1.5.dp, PixelParchmentBorder, RoundedCornerShape(8.dp))
+            .pixelPanelBackground()
             .padding(10.dp)
     ) {
         Row(
@@ -571,9 +593,7 @@ private fun MagicJarCard(
             Box(
                 modifier = Modifier
                     .size(38.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(color.copy(alpha = 0.15f))
-                    .border(1.dp, color, RoundedCornerShape(6.dp)),
+                    .pixelButtonBackground(containerColor = color.copy(alpha = 0.25f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = icon, fontSize = 20.sp)
@@ -595,20 +615,18 @@ private fun MagicJarCard(
                 )
             }
             Spacer(modifier = Modifier.width(6.dp))
-            // текущая сумма в баночке
+            // текущая сумма в баночке в пиксельном бейдже
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(color.copy(alpha = 0.15f))
-                    .border(1.dp, color, RoundedCornerShape(6.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .pixelButtonBackground(containerColor = PixelParchmentLight)
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
                 contentAlignment = Alignment.Center
             ) {
                 CoinText(
                     prefix = "$amount",
                     fontWeight = FontWeight.ExtraBold,
                     color = color,
-                    fontSize = 17.sp,
+                    fontSize = 16.sp,
                     fontFamily = AppFontFamily
                 )
             }
@@ -664,15 +682,15 @@ private fun MagicJarCard(
             ) {
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(color.copy(alpha = 0.2f))
-                        .padding(horizontal = 6.dp, vertical = 3.dp)
+                        .pixelButtonBackground(containerColor = color.copy(alpha = 0.35f))
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = categoryLabel,
                         fontSize = 13.sp,
+                        fontFamily = AppFontFamily,
                         fontWeight = FontWeight.Bold,
-                        color = color
+                        color = PixelTextDark
                     )
                 }
 
@@ -686,24 +704,24 @@ private fun MagicJarCard(
                         enabled = amount >= 10,
                         containerColor = PixelParchmentMedium,
                         textColor = PixelTextDark,
-                        borderColor = PixelParchmentBorder,
-                        fontSize = 16.sp
+                        fontSize = 13.sp,
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
                     )
                     PixelButton(
                         text = "+10",
                         onClick = onPlus10,
                         containerColor = color,
                         textColor = Color.White,
-                        borderColor = PixelWoodDark,
-                        fontSize = 16.sp
+                        fontSize = 13.sp,
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
                     )
                     PixelButton(
                         text = "+20",
                         onClick = onPlus20,
                         containerColor = color,
                         textColor = Color.White,
-                        borderColor = PixelWoodDark,
-                        fontSize = 16.sp
+                        fontSize = 13.sp,
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }
             }

@@ -39,10 +39,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.PixelButton
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.BlendMode
+import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
 
 /**
  * экран настроек приложения (звуки, музыка, громкость, демо-режим).
@@ -64,6 +72,7 @@ fun SettingsScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFFE8DAC2))
             .padding(horizontal = 16.dp),
         contentPadding = PaddingValues(top = 12.dp, bottom = 84.dp)
     ) {
@@ -170,13 +179,7 @@ fun SettingsScreen(
         item {
             // блок демо-режима для жюри и разработчиков
             FinCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .then(
-                        if (demoMode) Modifier.border(2.dp, Color(0xFF4CAF50), RoundedCornerShape(16.dp))
-                        else Modifier.border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(16.dp))
-                    ),
-                backgroundColor = if (demoMode) Color(0xFFF1F8E9) else Color.White
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -192,24 +195,33 @@ fun SettingsScreen(
                                 color = TextPrimary
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            // статус демо-режима
+                            // статус демо-режима в пиксельном стиле с аутентичным орбом
                             Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (demoMode) Color(0xFFC8E6C9) else Color(0xFFEEEEEE))
-                                    .border(
-                                        1.dp,
-                                        if (demoMode) Color(0xFF4CAF50) else Color(0xFFBDBDBD),
-                                        RoundedCornerShape(12.dp)
-                                    )
+                                    .pixelButtonBackground(containerColor = if (demoMode) Color(0xFFC8E6C9) else Color(0xFFDED0B6))
                                     .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
-                                Text(
-                                    text = if (demoMode) "🟢 вкл" else "⚪ выкл",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (demoMode) Color(0xFF1B5E20) else Color(0xFF757575)
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.orb),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(11.dp),
+                                        colorFilter = ColorFilter.tint(
+                                            color = if (demoMode) Color(0xFF4CAF50) else Color(0xFF9E9E9E),
+                                            blendMode = BlendMode.SrcIn
+                                        )
+                                    )
+                                    Text(
+                                        text = if (demoMode) "вкл" else "выкл",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (demoMode) Color(0xFF1B5E20) else Color(0xFF757575)
+                                    )
+                                }
                             }
                         }
                     }
@@ -245,7 +257,8 @@ fun SettingsScreen(
                                 shape = RoundedCornerShape(10.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Button(
+                            PixelButton(
+                                text = "Войти",
                                 onClick = {
                                     if (demoCodeInput.trim().equals("demo", ignoreCase = true)) {
                                         onToggleDemoMode(true)
@@ -255,11 +268,11 @@ fun SettingsScreen(
                                         hasCodeError = true
                                     }
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
-                                shape = RoundedCornerShape(10.dp)
-                            ) {
-                                Text("Войти", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            }
+                                containerColor = JoyOrange,
+                                textColor = Color.White,
+                                fontSize = 14.sp,
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                            )
                         }
                         if (hasCodeError) {
                             Spacer(modifier = Modifier.height(4.dp))
@@ -270,19 +283,15 @@ fun SettingsScreen(
                             )
                         }
                     } else {
-                        Button(
+                        PixelButton(
+                            text = "Отключить демо-режим",
                             onClick = { onToggleDemoMode(false) },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF757575)),
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Отключить демо-режим",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
+                            containerColor = Color(0xFF8D6E63),
+                            textColor = Color.White,
+                            fontSize = 14.sp,
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        )
 
                         Spacer(modifier = Modifier.height(12.dp))
 
@@ -328,7 +337,8 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Button(
+                            PixelButton(
+                                text = "8:00 Утро",
                                 onClick = {
                                     ru.finpet.kids.core.notification.FinPetNotificationManager.showNotification(
                                         context,
@@ -336,13 +346,13 @@ fun SettingsScreen(
                                     )
                                 },
                                 modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
-                                shape = RoundedCornerShape(10.dp),
+                                containerColor = JoyOrange,
+                                textColor = Color.White,
+                                fontSize = 11.sp,
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
-                            ) {
-                                Text("8:00 Утро", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                            Button(
+                            )
+                            PixelButton(
+                                text = "20:00 Пропуск",
                                 onClick = {
                                     ru.finpet.kids.core.notification.FinPetNotificationManager.showNotification(
                                         context,
@@ -350,13 +360,13 @@ fun SettingsScreen(
                                     )
                                 },
                                 modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
-                                shape = RoundedCornerShape(10.dp),
+                                containerColor = JoyOrange,
+                                textColor = Color.White,
+                                fontSize = 11.sp,
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
-                            ) {
-                                Text("20:00 Пропуск", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                            Button(
+                            )
+                            PixelButton(
+                                text = "21:00 Вечер",
                                 onClick = {
                                     ru.finpet.kids.core.notification.FinPetNotificationManager.showNotification(
                                         context,
@@ -364,12 +374,11 @@ fun SettingsScreen(
                                     )
                                 },
                                 modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
-                                shape = RoundedCornerShape(10.dp),
+                                containerColor = JoyOrange,
+                                textColor = Color.White,
+                                fontSize = 11.sp,
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
-                            ) {
-                                Text("21:00 Вечер", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
+                            )
                         }
                     }
                 }

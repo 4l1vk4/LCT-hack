@@ -36,11 +36,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.R
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.ExclamationIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.PixelAlertDialog
+import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelParchmentLight
+import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.TextSecondary
 
 // блок, когда котик убежал из дома (настроение упало до 0%)
@@ -184,54 +190,53 @@ fun FinikRunawaySection(
 
     // диалог подтверждения покупки корма для сбежавшего питомца
     if (showConfirmDialog) {
-        AlertDialog(
+        PixelAlertDialog(
             onDismissRequest = { showConfirmDialog = false },
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "🥣", fontSize = 24.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Купить корм для $petName?",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                }
-            },
-            text = {
-                Column {
-                    Text(
-                        text = "$petName убежал и сейчас прячется. Если купить и поставить миску корма у двери, он почувствует заботу и вернется домой через 1–3 дня!",
-                        fontSize = 15.sp,
-                        lineHeight = 20.sp,
-                        color = Color(0xFF333333)
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Цена покупки: 60 ",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-                        CoinIcon(modifier = Modifier.size(18.dp))
-                    }
-                }
-            },
+            title = "Корм для $petName",
+            icon = "🥣",
             confirmButton = {
-                Button(
+                PixelButton(
+                    text = "Купить корм",
                     onClick = {
                         showConfirmDialog = false
                         onPlaceFoodBowl()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = JoyOrange)
-                ) {
-                    Text("Купить корм (60)", fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                }
+                    containerColor = JoyOrange,
+                    textColor = PixelTextDark,
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = { CoinIcon(modifier = Modifier.size(16.dp)) }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { showConfirmDialog = false }) {
-                    Text("Отмена", color = TextSecondary, fontSize = 15.sp)
+                PixelButton(
+                    text = "Отмена",
+                    onClick = { showConfirmDialog = false },
+                    containerColor = PixelWoodMedium,
+                    textColor = PixelParchmentLight,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "$petName убежал и сейчас прячется. Если купить и поставить миску корма у двери, он почувствует заботу и вернется домой через 1–3 дня!",
+                    fontFamily = AppFontFamily,
+                    fontSize = 15.sp,
+                    lineHeight = 21.sp,
+                    color = PixelTextDark
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Цена покупки: 60 ",
+                        fontFamily = AppFontFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = PixelTextDark
+                    )
+                    CoinIcon(modifier = Modifier.size(18.dp))
                 }
             }
-        )
+        }
     }
 }

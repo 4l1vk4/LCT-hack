@@ -54,6 +54,8 @@ fun OrbStatBar(
                 when (icon) {
                     "⚡" -> LightningIcon(modifier = Modifier.size(16.dp))
                     "❤️" -> HeartIcon(modifier = Modifier.size(16.dp))
+                    "🛡️" -> ShieldIcon(modifier = Modifier.size(16.dp))
+                    "🍎" -> AppleIcon(modifier = Modifier.size(16.dp))
                     "📅" -> CalendarIcon(modifier = Modifier.size(16.dp))
                     "📊" -> DiagramIcon(modifier = Modifier.size(16.dp))
                     "⚠️" -> WarningIcon(modifier = Modifier.size(16.dp))

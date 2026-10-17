@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -51,21 +52,24 @@ fun FinButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     containerColor: Color = JoyOrange,
-    contentColor: Color = Color.White,
+    contentColor: Color = PixelTextDark,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 9.dp),
     icon: String? = null
 ) {
-    Surface(
-        onClick = onClick,
-        enabled = enabled,
-        shape = RoundedCornerShape(20.dp),
-        color = if (enabled) containerColor else Color(0xFFE0E0E0),
-        // Тень средствами Surface, а не модификатором: один слой вместо двух
-        shadowElevation = if (enabled) 4.dp else 0.dp,
-        modifier = modifier.height(52.dp)
+    val actualBg = if (enabled) containerColor else Color(0xFFCCCCCC)
+    Box(
+        modifier = modifier
+            .pixelButtonBackground(containerColor = actualBg)
+            .clickable(
+                enabled = enabled,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            )
+            .padding(contentPadding),
+        contentAlignment = Alignment.Center
     ) {
         Row(
-            modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -75,9 +79,9 @@ fun FinButton(
             }
             Text(
                 text = text,
-                color = if (enabled) contentColor else Color(0xFF9E9E9E),
+                color = if (enabled) contentColor else Color(0xFF7A5839).copy(alpha = 0.5f),
                 fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center
             )
         }
@@ -157,6 +161,28 @@ fun ExclamationIcon(
     Image(
         painter = painterResource(id = R.drawable.exclimation_sign_emodji),
         contentDescription = "Важно",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun ShieldIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.shield_emodji),
+        contentDescription = "Родительский режим",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun AppleIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.apple_emodji),
+        contentDescription = "Сытость",
         modifier = modifier
     )
 }
@@ -251,6 +277,9 @@ fun StatBar(
     }
 }
 
+/**
+ * Панель карточки в пиксельном стиле на основе top_part, middle_part, bottom_part
+ */
 @Composable
 fun FinCard(
     modifier: Modifier = Modifier,
@@ -258,14 +287,10 @@ fun FinCard(
     borderColor: Color = Color(0xFFEEEEEE),
     content: @Composable () -> Unit
 ) {
-    Card(
-        // Было: Card + модификаторы .border + .shadow = тройной проход тени/границы.
-        // Стало: штатные параметры Card — один слой тени через elevation.
-        modifier = modifier,
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        border = BorderStroke(1.5.dp, borderColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    Box(
+        modifier = modifier
+            .pixelPanelBackground()
+            .padding(horizontal = 4.dp, vertical = 2.dp)
     ) {
         content()
     }

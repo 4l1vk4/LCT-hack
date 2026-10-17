@@ -1,5 +1,6 @@
 package ru.finpet.kids.feature.adult
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,12 +34,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.DiagramIcon
 import ru.finpet.kids.core.designsystem.FinButton
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
+import ru.finpet.kids.core.designsystem.PixelAlertDialog
+import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelParchmentLight
+import ru.finpet.kids.core.designsystem.PixelRedBerry
+import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.domain.usecase.AdultSectionUseCase
@@ -98,42 +106,25 @@ fun AdultScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color(0xFFE8DAC2))
                 .navigationBarsPadding()
                 .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(top = 12.dp, bottom = bottomBarHeight + 24.dp)
         ) {
-            // шапка с кнопкой закрытия раздела
+            // шапка раздела
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "👨‍👩‍👦 Родительский контроль",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = TextPrimary
-                        )
-                        Text(
-                            text = "Аналитика и настройки периода",
-                            fontSize = 13.sp,
-                            color = TextSecondary
-                        )
-                    }
-                    OutlinedButton(
-                        onClick = {
-                            isUnlocked = false
-                            selectedAnswer = null
-                            challenge = adultSectionUseCase.generateAdultChallenge()
-                            errorMessage = null
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Text("Выйти", fontSize = 12.sp)
-                    }
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "👨‍👩‍👦 Родительский контроль",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "Аналитика и настройки периода",
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
                 }
                 Spacer(modifier = Modifier.height(14.dp))
             }
@@ -161,52 +152,78 @@ fun AdultScreen(
 
 
 
+            // Кнопка выхода из родительского контроля (длинная, внизу страницы)
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                PixelButton(
+                    text = "Выйти из родительского контроля",
+                    onClick = {
+                        isUnlocked = false
+                        selectedAnswer = null
+                        challenge = adultSectionUseCase.generateAdultChallenge()
+                        errorMessage = null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = PixelWoodMedium,
+                    textColor = PixelParchmentLight,
+                    fontSize = 15.sp,
+                    contentPadding = PaddingValues(vertical = 11.dp)
+                )
+            }
+
             // сброс данных до начального состояния
             item {
-                Spacer(modifier = Modifier.height(24.dp))
-                FinButton(
+                Spacer(modifier = Modifier.height(8.dp))
+                PixelButton(
                     text = "Очистить все данные",
-                    containerColor = Color(0xFFE53935),
+                    containerColor = PixelRedBerry,
+                    textColor = Color.White,
                     onClick = { showResetDialog = true },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 15.sp,
+                    contentPadding = PaddingValues(vertical = 11.dp)
                 )
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
 
         // диалог подтверждения сброса, чтобы случайно не снести профиль
         if (showResetDialog) {
-            AlertDialog(
+            PixelAlertDialog(
                 onDismissRequest = { showResetDialog = false },
-                title = { Text(text = "Сбросить все данные?", fontWeight = FontWeight.Bold) },
-                text = {
-                    Text(
-                        text = "Будет полностью очищен текущий прогресс ребенка, история трат и накопления в копилке. Баланс вернется к стартовым 200 монетам.",
-                        fontSize = 16.sp
-                    )
-                },
+                title = "Сброс данных",
+                icon = "⚠️",
                 confirmButton = {
-                    Button(
+                    PixelButton(
+                        text = "Сбросить",
                         onClick = {
                             onResetProfile()
                             showResetDialog = false
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
-                    ) {
-                        Text(
-                            text = "Сбросить",
-                            fontSize = 16.sp
-                        )
-                    }
+                        containerColor = PixelRedBerry,
+                        textColor = Color.White,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 },
                 dismissButton = {
-                    TextButton(onClick = { showResetDialog = false }) {
-                        Text(
-                            text = "Отмена",
-                            fontSize = 16.sp
-                        )
-                    }
+                    PixelButton(
+                        text = "Отмена",
+                        onClick = { showResetDialog = false },
+                        containerColor = PixelWoodMedium,
+                        textColor = PixelParchmentLight,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-            )
+            ) {
+                Text(
+                    text = "Будет полностью очищен текущий прогресс ребенка, история трат и накопления в копилке. Баланс вернется к стартовым 200 монетам.",
+                    fontFamily = AppFontFamily,
+                    fontSize = 15.sp,
+                    lineHeight = 21.sp,
+                    color = PixelTextDark,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
         }
     }
 }

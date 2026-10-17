@@ -47,7 +47,13 @@ import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.feature.calendar.model.CalendarTaskCategory
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.remember
+import ru.finpet.kids.core.designsystem.PixelBar
+import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.PixelTextMuted
 
 // модальный боттом-шит быстрого чек-листа задач прямо с экрана питомца
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,7 +72,7 @@ fun FinikTasksSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = Color.White,
+        containerColor = Color(0xFFE8DAC2),
         dragHandle = null,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
@@ -77,42 +83,46 @@ fun FinikTasksSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 16.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // шапка со счетчиком и крестиком
-            Row(
+            // Пиксельная шапка со счетчиком и крестиком
+            PixelBar(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "📋", fontSize = 24.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
-                        Text(
-                            text = "Задачи на сегодня",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                        Text(
-                            text = "Выполнено $completedCount из $totalCount",
-                            fontSize = 15.sp,
-                            color = TextSecondary
-                        )
-                    }
+                Text(text = "📋", fontSize = 22.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Задачи на сегодня",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelTextDark
+                    )
+                    Text(
+                        text = "Выполнено $completedCount из $totalCount",
+                        fontSize = 13.sp,
+                        color = PixelTextMuted
+                    )
                 }
-                Text(
-                    text = "✕",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSecondary,
+                Box(
                     modifier = Modifier
+                        .size(32.dp)
                         .clip(CircleShape)
-                        .clickable { onDismiss() }
-                        .padding(6.dp)
-                )
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { onDismiss() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "✕",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Black,
+                        color = PixelTextDark
+                    )
+                }
             }
 
             // прогресс-бар выполнения без сторонних точек индикатора
@@ -121,7 +131,7 @@ fun FinikTasksSheet(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0xFFEEEEEE))
+                    .background(Color(0xFFD7C4A5))
             ) {
                 val progressFraction = if (totalCount > 0) (completedCount.toFloat() / totalCount).coerceIn(0f, 1f) else 0f
                 if (progressFraction > 0f) {
@@ -170,9 +180,12 @@ fun FinikTasksSheet(
                     FinCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .then(if (isNavigable) Modifier.clickable { handleNavigate() } else Modifier),
-                        backgroundColor = if (note.isCompleted) Color(0xFFF9FBE7) else Color(0xFFFAFAFA),
-                        borderColor = if (note.isCompleted) Color(0xFFAED581) else Color(0xFFE0E0E0)
+                            .then(if (isNavigable) Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { handleNavigate() } else Modifier),
+                        backgroundColor = if (note.isCompleted) Color(0xFFF9FBE7) else Color(0xFFFFF9EE),
+                        borderColor = if (note.isCompleted) Color(0xFFAED581) else Color(0xFFDFC490)
                     ) {
                         Row(
                             modifier = Modifier
@@ -225,7 +238,7 @@ fun FinikTasksSheet(
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                     ) {
                                         if (note.category == "GROCERIES" && note.cost > 0) {
-                                            Text(
+                                             Text(
                                                 text = "✅ +${note.cost}",
                                                 fontSize = 13.sp,
                                                 fontWeight = FontWeight.Bold,
@@ -248,7 +261,10 @@ fun FinikTasksSheet(
                                     shape = RoundedCornerShape(6.dp),
                                     color = Color(0xFFFFF3E0),
                                     modifier = if (isNavigable) {
-                                        Modifier.clickable { handleNavigate() }
+                                        Modifier.clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null
+                                        ) { handleNavigate() }
                                     } else Modifier
                                 ) {
                                     Row(
@@ -293,15 +309,12 @@ fun FinikTasksSheet(
                 }
             }
 
-            // кнопка закрытия
-            Button(
+            // пиксельная кнопка закрытия
+            PixelButton(
+                text = "Понятно",
                 onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
-                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Понятно", fontWeight = FontWeight.Bold)
-            }
+            )
         }
     }
 }

@@ -30,6 +30,12 @@ import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.FinButton
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelGreenCrop
+import ru.finpet.kids.core.designsystem.PixelPanel
+import ru.finpet.kids.core.designsystem.PixelParchmentLight
+import ru.finpet.kids.core.designsystem.PixelParchmentMedium
+import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.domain.usecase.AdultChallenge
@@ -55,8 +61,7 @@ fun AdultChallengeGate(
         contentAlignment = Alignment.TopCenter
     ) {
         FinCard(
-            modifier = Modifier.fillMaxWidth(),
-            backgroundColor = Color.White
+            modifier = Modifier.fillMaxWidth()
         ) {
             Column(
                 modifier = Modifier
@@ -99,57 +104,41 @@ fun AdultChallengeGate(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // карточка с самим вопросом
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0xFFF5F5F5))
-                        .padding(14.dp),
-                    contentAlignment = Alignment.Center
+                // карточка с самим вопросом в 9-slice стиле
+                PixelPanel(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(14.dp)
                 ) {
                     Text(
                         text = challenge.question,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary,
+                        color = PixelTextDark,
                         textAlign = TextAlign.Center,
-                        lineHeight = 21.sp
+                        lineHeight = 21.sp,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // варианты ответов: используем гибкую высоту и перенос строк для длинных терминов (типа ИНН)
+                // варианты ответов
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     challenge.options.forEach { opt ->
                         val isSelected = selectedAnswer == opt
-                        // для длинных юридических терминов уменьшаем шрифт, чтобы выглядело аккуратно
                         val isLongText = opt.length > 28
-                        Button(
+                        PixelButton(
+                            text = opt,
                             onClick = { onSelectAnswer(opt) },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) JoyOrange else Color(0xFFEEEEEE)
-                            ),
-                            shape = RoundedCornerShape(14.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .defaultMinSize(minHeight = 48.dp)
-                        ) {
-                            Text(
-                                text = opt,
-                                fontSize = if (isLongText) 12.sp else 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSelected) Color.White else TextPrimary,
-                                textAlign = TextAlign.Center,
-                                lineHeight = if (isLongText) 16.sp else 19.sp,
-                                softWrap = true
-                            )
-                        }
+                            containerColor = if (isSelected) JoyOrange else PixelParchmentLight,
+                            textColor = if (isSelected) Color.White else PixelTextDark,
+                            fontSize = if (isLongText) 12.sp else 14.sp,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
 
@@ -165,18 +154,27 @@ fun AdultChallengeGate(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                FinButton(
+                PixelButton(
                     text = "Подтвердить ответ",
                     enabled = selectedAnswer != null,
                     onClick = onSubmitAnswer,
+                    containerColor = PixelGreenCrop,
+                    textColor = Color.White,
+                    fontSize = 15.sp,
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 // если попался слишком душный вопрос, можно скипнуть на другой
-                TextButton(onClick = onRequestNewChallenge) {
-                    Text("🔄 Другой вопрос", fontSize = 13.sp, color = TextSecondary)
-                }
+                PixelButton(
+                    text = "🔄 Другой вопрос",
+                    onClick = onRequestNewChallenge,
+                    containerColor = PixelParchmentMedium,
+                    textColor = PixelTextDark,
+                    fontSize = 13.sp,
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                )
             }
         }
     }

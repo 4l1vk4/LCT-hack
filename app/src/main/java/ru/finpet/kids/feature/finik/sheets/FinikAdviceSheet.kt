@@ -34,6 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.FinCard
+import ru.finpet.kids.core.designsystem.PixelBar
+import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 
@@ -83,7 +85,7 @@ fun FinikAdviceSheet(
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = Color.White,
+        containerColor = Color(0xFFE8DAC2),
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     ) {
         KeepScreenImmersive()
@@ -91,47 +93,51 @@ fun FinikAdviceSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.70f)
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 16.dp)
                 .padding(bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // серая полоска сверху
+            // полоска сверху
             Box(
                 modifier = Modifier
                     .size(width = 40.dp, height = 4.dp)
                     .clip(RoundedCornerShape(3.dp))
-                    .background(Color(0xFFD0D0D0))
+                    .background(Color(0xFFBCAAA4))
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // заголовок с крестиком
-            Row(
+            // пиксельный заголовок с крестиком на основе PixelBar
+            PixelBar(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
             ) {
                 Text(text = "💬", fontSize = 22.sp)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Спроси у $displayName",
-                    fontSize = 18.sp,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
+                    color = PixelTextDark,
                     modifier = Modifier.weight(1f)
                 )
-                Text(
-                    text = "✕",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSecondary,
+                Box(
                     modifier = Modifier
+                        .size(32.dp)
                         .clip(CircleShape)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
-                        ) { onDismiss() }
-                        .padding(6.dp)
-                )
+                        ) { onDismiss() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "✕",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Black,
+                        color = PixelTextDark
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -146,8 +152,12 @@ fun FinikAdviceSheet(
                     FinCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onSelectAdvice(advice.response) },
-                        backgroundColor = Color(0xFFFBFBFB)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { onSelectAdvice(advice.response) },
+                        backgroundColor = Color(0xFFFFF9EE),
+                        borderColor = Color(0xFFDFC490)
                     ) {
                         Row(
                             modifier = Modifier

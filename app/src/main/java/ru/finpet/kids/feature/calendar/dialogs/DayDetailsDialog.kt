@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -48,12 +49,14 @@ import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelParchmentMedium
+import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.feature.calendar.model.CalendarTaskCategory
 
 /**
@@ -85,11 +88,12 @@ fun DayDetailsDialog(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.94f)
-                .fillMaxHeight(0.88f)
+                .fillMaxWidth(0.95f)
+                .fillMaxHeight(0.92f)
                 .clip(RoundedCornerShape(8.dp))
         ) {
             StardewBoard(
+                modifier = Modifier.fillMaxSize(),
                 headerTitle = "ЧЕК-ЛИСТ ДНЯ $dayNumber" + if (isToday) " • СЕГОДНЯ" else "",
                 headerIcon = if (isToday) "🐾" else "📋"
             ) {
@@ -100,39 +104,39 @@ fun DayDetailsDialog(
                 ) {
                     // 1. Статус-строка дня и баланс
                     item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(if (isToday) PixelGoldGlow else PixelParchmentMedium)
-                                .border(1.dp, if (isToday) PixelGoldBright else PixelParchmentBorder, RoundedCornerShape(4.dp))
-                                .padding(horizontal = 10.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        PixelPanel(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                         ) {
-                            Column {
-                                Text(
-                                    text = if (isToday) "🌟 Сегодняшние задачи" else "🗓️ Задачи на День $dayNumber",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isToday) PixelGoldDark else PixelTextDark
-                                )
-                                Text(
-                                    text = "Выполнено: $completedCount из $totalCount",
-                                    fontSize = 15.sp,
-                                    color = PixelTextMuted
-                                )
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                CoinIcon(modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "$balance",
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 15.sp,
-                                    color = PixelGoldDark,
-                                    fontFamily = AppFontFamily
-                                )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = if (isToday) "🌟 Сегодняшние задачи" else "🗓️ Задачи на День $dayNumber",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isToday) PixelGoldDark else PixelTextDark
+                                    )
+                                    Text(
+                                        text = "Выполнено: $completedCount из $totalCount",
+                                        fontSize = 15.sp,
+                                        color = PixelTextMuted
+                                    )
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    CoinIcon(modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "$balance",
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 15.sp,
+                                        color = PixelGoldDark,
+                                        fontFamily = AppFontFamily
+                                    )
+                                }
                             }
                         }
 
@@ -156,62 +160,12 @@ fun DayDetailsDialog(
                         }
                     }
 
-                    // 2. Регулярные платежи дня (если есть)
-                    if (recurringExpenses.isNotEmpty()) {
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(PixelParchmentMedium)
-                                    .border(1.dp, PixelParchmentBorder, RoundedCornerShape(4.dp))
-                                    .padding(8.dp)
-                            ) {
-                                Text(
-                                    text = "🔄 Регулярные платежи этого дня:",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = PixelTextDark
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                recurringExpenses.forEach { exp ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = "${exp.icon} ${exp.title}",
-                                            fontSize = 15.sp,
-                                            color = PixelTextDark
-                                        )
-
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            CoinIcon(modifier = Modifier.size(16.dp))
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Text(
-                                                text = "${exp.cost}",
-                                                fontWeight = FontWeight.ExtraBold,
-                                                fontSize = 15.sp,
-                                                color = PixelGoldDark,
-                                                fontFamily = AppFontFamily
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // 3. Список задач чек-листа
+                    // 2. Список задач чек-листа
                     if (notes.isEmpty()) {
                         item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(PixelParchmentMedium)
-                                    .padding(12.dp)
+                            PixelPanel(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(12.dp)
                             ) {
                                 Text(
                                     text = "На этот день нет задач. Нажмите кнопку ниже, чтобы добавить свою заметку!",
@@ -232,21 +186,17 @@ fun DayDetailsDialog(
                                 onNavigateToTask?.invoke(note)
                             }
 
-                            Row(
+                            PixelPanel(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(if (note.isCompleted) Color(0xFFF1F8E9) else PixelParchmentMedium)
-                                    .border(
-                                        1.dp,
-                                        if (note.isCompleted) Color(0xFFAED581) else PixelParchmentBorder,
-                                        RoundedCornerShape(6.dp)
-                                    )
-                                    .then(if (isNavigable && onNavigateToTask != null) Modifier.clickable { handleNavigate() } else Modifier)
-                                    .padding(start = 8.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                    .then(if (isNavigable && onNavigateToTask != null) Modifier.clickable { handleNavigate() } else Modifier),
+                                contentPadding = PaddingValues(start = 8.dp, end = 4.dp, top = 6.dp, bottom = 6.dp)
                             ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.weight(1f)
@@ -285,18 +235,19 @@ fun DayDetailsDialog(
 
                                 Spacer(modifier = Modifier.width(6.dp))
 
-                                // Статус-бейдж
+                                // Статус-бейдж в пиксельном стиле (со смещением влево на 2px)
                                 if (note.isCompleted) {
                                     Box(
                                         modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(Color(0xFFDCEDC8))
-                                            .padding(horizontal = 6.dp, vertical = 3.dp)
+                                            .offset(x = (-2).dp)
+                                            .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             if (note.category == "GROCERIES" && note.cost > 0) {
                                                 Text(
                                                     text = "✅ Сдача +${note.cost}",
+                                                    fontFamily = AppFontFamily,
                                                     fontSize = 13.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGreenCrop
@@ -306,6 +257,7 @@ fun DayDetailsDialog(
                                             } else {
                                                 Text(
                                                     text = "✅ Готово",
+                                                    fontFamily = AppFontFamily,
                                                     fontSize = 13.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGreenCrop
@@ -316,15 +268,16 @@ fun DayDetailsDialog(
                                 } else {
                                     Box(
                                         modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(PixelWoodDark)
+                                            .offset(x = (-2).dp)
+                                            .pixelButtonBackground(containerColor = PixelWoodMedium)
                                             .then(if (isNavigable && onNavigateToTask != null) Modifier.clickable { handleNavigate() } else Modifier)
-                                            .padding(horizontal = 6.dp, vertical = 3.dp)
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             if (note.cost > 0 && !isSystemTask) {
                                                 Text(
                                                     text = "${note.cost}",
+                                                    fontFamily = AppFontFamily,
                                                     fontSize = 13.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGoldBright
@@ -334,6 +287,7 @@ fun DayDetailsDialog(
                                             } else if (note.category == "PET_FOOD") {
                                                 Text(
                                                     text = "Лавка • 30",
+                                                    fontFamily = AppFontFamily,
                                                     fontSize = 13.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGoldBright
@@ -348,6 +302,7 @@ fun DayDetailsDialog(
                                                 }
                                                 Text(
                                                     text = badgeLabel,
+                                                    fontFamily = AppFontFamily,
                                                     fontSize = 13.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGoldBright
@@ -378,6 +333,7 @@ fun DayDetailsDialog(
                             }
                         }
                     }
+                }
 
                     // 4. Кнопка добавления своей заметки
                     item {

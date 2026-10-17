@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -47,6 +48,8 @@ import ru.finpet.kids.core.designsystem.PixelWoodBevel
 import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.PixelWoodLight
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
+import ru.finpet.kids.core.designsystem.PixelPanel
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.core.designsystem.StardewBoard
 import ru.finpet.kids.core.domain.model.ActualExpenses
 import ru.finpet.kids.core.domain.model.BudgetCompliance
@@ -74,78 +77,77 @@ fun BudgetPlanVsFactCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // верхняя сводная плашка: компактно и последовательно «План: 150 🪙 ➔ Факт: 120 🪙»
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(PixelParchmentMedium)
-                    .border(1.dp, PixelParchmentBorder, RoundedCornerShape(4.dp))
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            PixelPanel(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "План:",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = PixelTextDark,
+                                fontFamily = AppFontFamily
+                            )
+                            CoinText(
+                                prefix = "${plan.totalPlanned}",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = PixelTextDark,
+                                fontFamily = AppFontFamily
+                            )
+                            Text(
+                                text = "➔ Факт:",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = PixelTextDark,
+                                fontFamily = AppFontFamily
+                            )
+                            CoinText(
+                                prefix = "${actual.totalActual}",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = if (actual.totalActual <= plan.totalPlanned) PixelGreenCrop else PixelRedBerry,
+                                fontFamily = AppFontFamily
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = if (compliance.isDisciplined) "🏆 Отличная дисциплина трат!" else "💡 Следи за покупками в Лавке",
+                            fontSize = 13.sp,
+                            color = PixelTextMuted
+                        )
+                    }
+
+                    // бейдж общего процента соблюдения плана
+                    Box(
+                        modifier = Modifier
+                            .pixelButtonBackground(
+                                containerColor = when {
+                                    compliance.totalPercent >= 75 -> PixelGreenCrop
+                                    compliance.totalPercent >= 50 -> PixelGoldDark
+                                    else -> PixelRedBerry
+                                }
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = "План:",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = PixelTextDark,
-                            fontFamily = AppFontFamily
-                        )
-                        CoinText(
-                            prefix = "${plan.totalPlanned}",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = PixelTextDark,
-                            fontFamily = AppFontFamily
-                        )
-                        Text(
-                            text = "➔ Факт:",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = PixelTextDark,
-                            fontFamily = AppFontFamily
-                        )
-                        CoinText(
-                            prefix = "${actual.totalActual}",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = if (actual.totalActual <= plan.totalPlanned) PixelGreenCrop else PixelRedBerry,
+                            text = "${compliance.totalPercent}%",
+                            color = Color.White,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 13.sp,
                             fontFamily = AppFontFamily
                         )
                     }
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = if (compliance.isDisciplined) "🏆 Отличная дисциплина трат!" else "💡 Следи за покупками в Лавке",
-                        fontSize = 13.sp,
-                        color = PixelTextMuted
-                    )
-                }
-
-                // бейдж общего процента соблюдения плана
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(
-                            when {
-                                compliance.totalPercent >= 75 -> PixelGreenCrop
-                                compliance.totalPercent >= 50 -> PixelGoldDark
-                                else -> PixelRedBerry
-                            }
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "${compliance.totalPercent}%",
-                        color = Color.White,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 13.sp,
-                        fontFamily = AppFontFamily
-                    )
                 }
             }
 
@@ -153,19 +155,18 @@ fun BudgetPlanVsFactCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0xFFF1F8E9))
-                    .border(1.dp, PixelGreenCrop.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
-                    .padding(horizontal = 8.dp, vertical = 6.dp)
+                    .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "🎯", fontSize = 14.sp)
+                    Text(text = "🎯", fontSize = 15.sp)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Точность бюджета (${compliance.totalPercent}%): совпадение трат с планом в баночках. Экономия монеток и пополнение копилки не снижают процент!",
+                        fontFamily = AppFontFamily,
                         fontSize = 13.sp,
                         color = Color(0xFF1B5E20),
-                        lineHeight = 15.sp
+                        lineHeight = 16.sp
                     )
                 }
             }
@@ -231,14 +232,13 @@ fun BudgetPlanVsFactCard(
                     Box(
                         modifier = Modifier
                             .weight(if (onDismiss != null) 1.5f else 1f)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(Color(0xFFE8F5E9))
-                            .border(1.dp, PixelGreenCrop, RoundedCornerShape(4.dp))
-                            .padding(vertical = 10.dp),
+                            .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
+                            .padding(vertical = 9.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "🔒 План утверждён",
+                            fontFamily = AppFontFamily,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1B5E20)
@@ -300,77 +300,77 @@ private fun CategoryComparisonRow(
 ) {
     val progress = if (planned > 0) (actual.toFloat() / planned.toFloat()).coerceIn(0f, 1f) else if (actual > 0) 1f else 0f
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp))
-            .background(PixelParchmentLight)
-            .border(1.dp, PixelParchmentBorder, RoundedCornerShape(4.dp))
-            .padding(horizontal = 8.dp, vertical = 6.dp)
+    PixelPanel(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = icon, fontSize = 15.sp)
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    color = PixelTextDark
-                )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = icon, fontSize = 16.sp)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = title,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = PixelTextDark
+                    )
+                }
             }
-        }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Text(
-                text = "$actual / $planned",
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 16.sp,
-                color = if (isOverspent) PixelRedBerry else color,
-                fontFamily = AppFontFamily
-            )
-            CoinIcon(modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(color.copy(alpha = 0.2f))
-                    .padding(horizontal = 5.dp, vertical = 1.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = categoryLabel,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = color
+                    text = "$actual / $planned",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 16.sp,
+                    color = if (isOverspent) PixelRedBerry else color,
+                    fontFamily = AppFontFamily
                 )
+                CoinIcon(modifier = Modifier.size(16.dp))
+
+                Box(
+                    modifier = Modifier
+                        .pixelButtonBackground(containerColor = color.copy(alpha = 0.35f))
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = categoryLabel,
+                        fontSize = 12.sp,
+                        fontFamily = AppFontFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelTextDark
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-        // шкала выполнения категории (без зеленых точек на конце)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(PixelParchmentBorder)
-        ) {
+            // шкала выполнения категории (без зеленых точек на конце)
             Box(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(progress.coerceIn(0f, 1f))
+                    .fillMaxWidth()
+                    .height(6.dp)
                     .clip(RoundedCornerShape(3.dp))
-                    .background(if (isOverspent) PixelRedBerry else color)
-            )
+                    .background(PixelParchmentBorder)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(progress.coerceIn(0f, 1f))
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(if (isOverspent) PixelRedBerry else color)
+                )
+            }
         }
     }
 }
