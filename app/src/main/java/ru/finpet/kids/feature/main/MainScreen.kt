@@ -441,6 +441,7 @@ fun MainScreen(
                             imageAspectRatio = 1073f / 174f,
                             hotspots = DEFAULT_NAV_HOTSPOTS,
                             onSelectTab = onSelectTab,
+                            selectedTab = selectedTab,
                             showImage = selectedTab != 0,
                             debug = false,
                             modifier = Modifier

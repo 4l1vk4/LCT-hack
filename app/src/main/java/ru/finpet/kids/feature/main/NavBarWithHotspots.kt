@@ -30,6 +30,13 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.unit.IntSize
+import ru.finpet.kids.R
+
 data class NavHotspot(
     val id: String,
     val left: Float,
@@ -40,14 +47,14 @@ data class NavHotspot(
 
 // координаты вкладок на панели навигации
 val DEFAULT_NAV_HOTSPOTS: List<NavHotspot> = listOf(
-    NavHotspot("map",      0.088f, 0.126f, 0.208f, 0.869f),
-    NavHotspot("calendar", 0.306f, 0.154f, 0.449f, 0.771f),
-    NavHotspot("finik",    0.530f, 0.114f, 0.664f, 0.811f),
-    NavHotspot("family",   0.775f, 0.069f, 0.917f, 0.840f)
+    NavHotspot("map",      0.000f, 0.000f, 0.250f, 1.000f),
+    NavHotspot("calendar", 0.250f, 0.000f, 0.500f, 1.000f),
+    NavHotspot("finik",    0.500f, 0.000f, 0.750f, 1.000f),
+    NavHotspot("family",   0.750f, 0.000f, 1.000f, 1.000f)
 )
 
 /**
- * панель навигации с невидимыми кликабельными зонами.
+ * панель навигации с невидимыми кликабельными зонами и рамкой активной локации.
  */
 @Suppress("UnusedBoxWithConstraintsScope")
 @Composable
@@ -57,8 +64,9 @@ fun NavBarWithHotspots(
     hotspots: List<NavHotspot>,
     onSelectTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    selectedTab: Int = 0,
     showImage: Boolean = true,
-    debug: Boolean = true
+    debug: Boolean = false
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -80,6 +88,9 @@ fun NavBarWithHotspots(
                 modifier = Modifier.fillMaxSize()
             )
         }
+
+        // рамка поверх выбранной локации
+        NavSelectionFrame(selectedTab = selectedTab)
 
         // кликабельные зоны вкладок
         hotspots.forEachIndexed { index, spot ->
@@ -125,5 +136,39 @@ fun NavBarWithHotspots(
                 }
             }
         }
+    }
+}
+
+/**
+ * рамка поверх выбранной локации в меню.
+ * одинаковый аккуратный квадратик на всех вкладках без растягивания.
+ */
+@Composable
+private fun NavSelectionFrame(
+    selectedTab: Int,
+    modifier: Modifier = Modifier
+) {
+    if (selectedTab !in 0..3) return
+    val ramkaBitmap = ImageBitmap.imageResource(id = R.drawable.ramka_for_menu)
+
+    Canvas(modifier = modifier.fillMaxSize()) {
+        val scaleX = size.width / 1073f
+        val h = size.height.roundToInt()
+        val dstWidth = (174f * scaleX).roundToInt()
+
+        val dstLeft = when (selectedTab) {
+            0 -> (87f * scaleX).roundToInt()    // карта
+            1 -> (325f * scaleX).roundToInt()   // календарь
+            2 -> (568f * scaleX).roundToInt()   // финни
+            3 -> (810f * scaleX).roundToInt()   // семья (сдвинуто чуть правее для ровного обрамления)
+            else -> return@Canvas
+        }
+
+        drawImage(
+            image = ramkaBitmap,
+            dstOffset = IntOffset(dstLeft, 0),
+            dstSize = IntSize(dstWidth, h),
+            filterQuality = FilterQuality.None
+        )
     }
 }
