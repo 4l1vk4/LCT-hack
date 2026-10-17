@@ -161,6 +161,7 @@ fun FinikScreen(
             item(key = "finik_character") {
                 if (isPetRunaway) {
                     FinikRunawaySection(
+                        petName = displayName,
                         bowlPlacedToday = profile?.bowlPlacedToday == true,
                         balance = profile?.balance ?: 0,
                         onPlaceFoodBowl = onPlaceFoodBowl

@@ -39,6 +39,7 @@ import ru.finpet.kids.core.designsystem.TextSecondary
 // ребенку нужно поставить миску у двери (цена 60 монет), чтобы котик вернулся
 @Composable
 fun FinikRunawaySection(
+    petName: String,
     bowlPlacedToday: Boolean,
     balance: Int,
     onPlaceFoodBowl: () -> Unit,
@@ -53,7 +54,7 @@ fun FinikRunawaySection(
         // изображение сбежавшего котика (облачко пыли после побега)
         Image(
             painter = painterResource(id = R.drawable.cat_runaway),
-            contentDescription = "Кот убежал",
+            contentDescription = "$petName убежал",
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .size(190.dp)
@@ -63,7 +64,7 @@ fun FinikRunawaySection(
         Spacer(modifier = Modifier.height(14.dp))
 
         Text(
-            text = "Кот убежал!",
+            text = "$petName убежал!",
             fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold,
             color = Color(0xFFC62828)
