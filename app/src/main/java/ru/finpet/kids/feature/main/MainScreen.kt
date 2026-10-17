@@ -47,6 +47,7 @@ import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
 import ru.finpet.kids.core.domain.model.BudgetPlan
 import ru.finpet.kids.feature.budget.BudgetPlanningDialog
 import ru.finpet.kids.feature.budget.PeriodAnalysisDialog
+import ru.finpet.kids.feature.finik.dialogs.PetGrowthDialog
 import java.time.YearMonth
 import androidx.compose.foundation.layout.WindowInsets
 import ru.finpet.kids.R
@@ -129,6 +130,9 @@ fun MainScreen(
     val calendarMonthInfo = remember(virtualDate) { CalendarMonthInfo.of(YearMonth.from(virtualDate)) }
     val moneyEvent by viewModel.moneyEvent.collectAsStateWithLifecycle()
     val periodAnalysis by viewModel.periodAnalysisEvent.collectAsStateWithLifecycle()
+    val petGrowthPetName by viewModel.petGrowthEvent.collectAsStateWithLifecycle()
+    val preorderItemIds by viewModel.preorderItemIds.collectAsStateWithLifecycle()
+    val adultStageStartDay by viewModel.adultStageStartDay.collectAsStateWithLifecycle()
     var showBudgetPlanningDialog by remember { mutableStateOf(false) }
     var helpPanelOpen by remember { mutableStateOf(false) }
     var showTutorialFromMenu by remember { mutableStateOf(false) }
@@ -270,6 +274,7 @@ fun MainScreen(
                     ) {
                         MapScreen(
                             profile = profile,
+                            currentPeriod = currentPeriod,
                             purchases = purchases,
                             quests = quests,
                             questProgress = questProgress,
@@ -281,6 +286,10 @@ fun MainScreen(
                             targetQuestId = mapTargetQuestId,
                             isNight = isNightMode,
                             demoMode = demoMode,
+                            adultStageStartDay = adultStageStartDay,
+                            preorderItemIds = preorderItemIds,
+                            onTogglePreorderItem = { viewModel.togglePreorderItem(it) },
+                            onQuickBuyItems = { viewModel.quickBuyItems(it) },
                             onModalDismissed = {
                                 mapInitialModal = null
                                 mapTargetGoalId = null
@@ -504,6 +513,14 @@ fun MainScreen(
                         viewModel.dismissPeriodAnalysis()
                         showBudgetPlanningDialog = true
                     }
+                )
+            }
+
+            // диалог взросления питомца
+            if (periodAnalysis == null && petGrowthPetName != null) {
+                PetGrowthDialog(
+                    petName = petGrowthPetName ?: "Питомец",
+                    onDismiss = { viewModel.dismissPetGrowthEvent() }
                 )
             }
 

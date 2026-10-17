@@ -579,7 +579,7 @@ fun FinikScreen(
             )
         }
 
-        // диалог «План vs Факт» со звездами бюджета
+        // диалог «План vs Факт»
         if (showPlanVsFactDialog && currentPeriod != null) {
             val plan = remember(currentPeriod) {
                 BudgetPlan(

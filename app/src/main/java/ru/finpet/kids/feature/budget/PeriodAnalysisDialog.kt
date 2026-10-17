@@ -62,7 +62,7 @@ fun PeriodAnalysisDialog(
     val newStats = resolution.newStats
 
     val complianceEmoji = when {
-        compliance.totalPercent >= 85 -> "🌟"
+        compliance.totalPercent >= 85 -> "🏆"
         compliance.totalPercent >= 60 -> "👍"
         else -> "🌱"
     }
@@ -272,10 +272,10 @@ fun PeriodAnalysisDialog(
                             isOk = if (!isBudgetUnplanned) (actual.actualMandatory >= plan.plannedMandatory || actual.hasPurchasedFood) else null,
                             actualPrefix = if (isBudgetUnplanned) "Потрачено: " else "Факт: "
                         )
-                        // Хотелки (сладости, радости)
+                        // Желаемое (сладости, радости)
                         PlanFactRow(
-                            icon = "✨",
-                            title = "Хотелки",
+                            icon = "🎈",
+                            title = "Желаемое",
                             planVal = if (!isBudgetUnplanned) plan.plannedOptional else null,
                             actualVal = actual.actualOptional,
                             color = PixelBlueWater,
@@ -297,63 +297,33 @@ fun PeriodAnalysisDialog(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     // 3. Блок наград и состояния питомца
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    // Настроение питомца
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(PixelParchmentLight)
+                            .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
+                            .padding(8.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        // Очки заботы
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(PixelParchmentLight)
-                                .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "+${resolution.carePointsEarned} ⭐",
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 16.sp,
-                                    color = PixelGoldDark
-                                )
-                                Text(
-                                    text = "Очки заботы",
-                                    fontSize = 14.sp,
-                                    color = PixelTextMuted
-                                )
-                            }
-                        }
-
-                        // Настроение питомца
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(PixelParchmentLight)
-                                .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                val effectiveMood = PetEconomyCalculator.calculateEffectiveMood(
-                                    mood = newStats.mood,
-                                    satiety = newStats.satiety,
-                                    health = newStats.health
-                                )
-                                Text(
-                                    text = "$effectiveMood% 🐾",
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 16.sp,
-                                    color = PixelGreenCrop
-                                )
-                                Text(
-                                    text = "Настроение",
-                                    fontSize = 14.sp,
-                                    color = PixelTextMuted
-                                )
-                            }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            val effectiveMood = PetEconomyCalculator.calculateEffectiveMood(
+                                mood = newStats.mood,
+                                satiety = newStats.satiety,
+                                health = newStats.health
+                            )
+                            Text(
+                                text = "$effectiveMood% 🐾",
+                                fontWeight = FontWeight.Black,
+                                fontSize = 16.sp,
+                                color = PixelGreenCrop
+                            )
+                            Text(
+                                text = "Настроение",
+                                fontSize = 14.sp,
+                                color = PixelTextMuted
+                            )
                         }
                     }
 

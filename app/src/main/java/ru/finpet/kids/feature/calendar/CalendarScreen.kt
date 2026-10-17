@@ -42,7 +42,6 @@ import ru.finpet.kids.core.domain.model.ActualExpenses
 import ru.finpet.kids.core.domain.model.BudgetPlan
 import ru.finpet.kids.feature.budget.BudgetPlanVsFactCard
 import ru.finpet.kids.feature.budget.BudgetPlanningDialog
-import ru.finpet.kids.feature.calendar.components.CalendarHeader
 import ru.finpet.kids.feature.calendar.components.CalendarMonthGrid
 import ru.finpet.kids.feature.calendar.dialogs.AddNoteDialog
 import ru.finpet.kids.feature.calendar.dialogs.AddRecurringExpenseDialog
@@ -102,16 +101,7 @@ fun CalendarScreen(
             .padding(horizontal = 14.dp),
         contentPadding = PaddingValues(top = 10.dp, bottom = LocalBottomBarHeight.current + 36.dp)
     ) {
-        // --- 1. ШАПКА КАЛЕНДАРЯ ---
-        item(key = "calendar_header") {
-            CalendarHeader(
-                currentDayIndex = currentDayIndex,
-                balance = balance,
-                monthInfo = monthInfo,
-                onOpenRecurring = { activeDialog = CalendarDialog.RecurringExpenses }
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-        }
+
 
         // --- 2. БЛОК ПЛАНИРОВАНИЯ БЮДЖЕТА / ПЛАН VS ФАКТ (ТЗ 2.5.5) ---
         item(key = "budget_plan_section") {

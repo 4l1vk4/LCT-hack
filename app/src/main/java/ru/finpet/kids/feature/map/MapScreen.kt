@@ -42,6 +42,7 @@ import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.feature.map.sheets.HomeGoalsBottomSheet
 import ru.finpet.kids.feature.map.sheets.SchoolBottomSheet
+import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.feature.map.sheets.ShopBottomSheet
 
 // флаг для отладки: если включить true, на карте подсвечиваются кликабельные прямоугольники
@@ -51,6 +52,7 @@ private const val DEBUG_HOTSPOTS = false
 @Composable
 fun MapScreen(
     profile: ProfileEntity?,
+    currentPeriod: PeriodEntity? = null,
     purchases: List<PurchaseItem>,
     quests: List<QuestItem>,
     questProgress: List<QuestProgressEntity>,
@@ -62,6 +64,10 @@ fun MapScreen(
     targetQuestId: String? = null,
     isNight: Boolean = false,
     demoMode: Boolean = false,
+    adultStageStartDay: Int = 0,
+    preorderItemIds: Set<String> = emptySet(),
+    onTogglePreorderItem: (String) -> Unit = {},
+    onQuickBuyItems: (List<PurchaseItem>) -> Unit = {},
     onModalDismissed: () -> Unit = {},
     onBuyItem: (PurchaseItem) -> Unit,
     onAnswerQuest: (questId: String, optionId: String) -> Unit,
@@ -73,22 +79,20 @@ fun MapScreen(
 ) {
     // какая локация сейчас открыта: "SHOP", "QUESTS" или "GOALS"
     var activeModal by remember(initialModal) { mutableStateOf<String?>(initialModal) }
-    var showNightDialog by remember { mutableStateOf<String?>(null) }
+    var notEnoughMoneyInfo by remember { mutableStateOf<Pair<Int, Int>?>(null) } // сколько не хватает, цена
+    var questFeedback by remember { mutableStateOf<String?>(null) }
+    var showNoPetDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(initialModal, isNight) {
+    LaunchedEffect(initialModal) {
         if (initialModal != null) {
-            if (isNight) {
-                showNightDialog = initialModal
-                activeModal = null
+            if (initialModal == "SHOP" && profile?.isPetRunaway == true) {
+                showNoPetDialog = true
                 onModalDismissed()
             } else {
                 activeModal = initialModal
             }
         }
     }
-    var notEnoughMoneyInfo by remember { mutableStateOf<Pair<Int, Int>?>(null) } // сколько не хватает, цена
-    var questFeedback by remember { mutableStateOf<String?>(null) }
-    var showNoPetDialog by remember { mutableStateOf(false) }
 
     val balance = profile?.balance ?: 50
     val petName = profile?.petName ?: "Финни"
@@ -110,28 +114,18 @@ fun MapScreen(
             onClickHotspot = { spot ->
                 when (spot.id) {
                     "shop" -> {
-                        if (isNight) {
-                            showNightDialog = "SHOP"
-                        } else if (profile?.isPetRunaway == true && !demoMode) {
-                            // проверка состояния сбежавшего кота в обычном режиме
+                        if (profile?.isPetRunaway == true) {
+                            // если питомец в побеге, магазин закрыт
                             showNoPetDialog = true
                         } else {
                             activeModal = "SHOP"
                         }
                     }
                     "quests" -> {
-                        if (isNight) {
-                            showNightDialog = "QUESTS"
-                        } else {
-                            activeModal = "QUESTS"
-                        }
+                        activeModal = "QUESTS"
                     }
                     "home", "bank" -> {
-                        if (isNight) {
-                            showNightDialog = "BANK"
-                        } else {
-                            activeModal = "GOALS"
-                        }
+                        activeModal = "GOALS"
                     }
                 }
             },
@@ -191,6 +185,13 @@ fun MapScreen(
             items = purchases,
             todayNotes = todayNotes,
             targetItemId = targetShopItemId,
+            preorderItemIds = preorderItemIds,
+            currentPeriod = currentPeriod,
+            profile = profile,
+            demoMode = demoMode,
+            adultStageStartDay = adultStageStartDay,
+            onTogglePreorderItem = onTogglePreorderItem,
+            onQuickBuy = onQuickBuyItems,
             onDismiss = {
                 activeModal = null
                 onModalDismissed()
@@ -280,14 +281,14 @@ fun MapScreen(
                     Text(
                         text = "Продукты никому не нужны",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
+                        fontSize = 20.sp
                     )
                 }
             },
             text = {
                 Text(
                     text = "$petName убежал, и сейчас его нет дома. Продукты никому не нужны.\n\nПоставь миску корма у двери — и он скоро вернётся!",
-                    fontSize = 15.sp,
+                    fontSize = 17.sp,
                     lineHeight = 22.sp
                 )
             },
@@ -296,7 +297,7 @@ fun MapScreen(
                     onClick = { showNoPetDialog = false },
                     colors = ButtonDefaults.buttonColors(containerColor = JoyOrange)
                 ) {
-                    Text("Понятно")
+                    Text("Понятно", fontSize = 17.sp)
                 }
             }
         )
@@ -325,55 +326,4 @@ fun MapScreen(
         )
     }
 
-    // предупреждение: здания закрыты ночью
-    showNightDialog?.let { target ->
-        val isShop = target == "SHOP"
-        val isQuests = target == "QUESTS"
-        AlertDialog(
-            onDismissRequest = { showNightDialog = null },
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "🌙", fontSize = 22.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = when {
-                            isShop -> "Лавка закрыта"
-                            isQuests -> "Школа закрыта"
-                            else -> "Дома все спят"
-                        },
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                }
-            },
-            text = {
-                Text(
-                    text = when {
-                        isShop -> "Ночью (с 22:00 до 06:00) лавка закрыта. Продавец и питомец спят 💤\n\nПриходи за покупками утром с 6:00!"
-                        isQuests -> "Ночью (с 22:00 до 06:00) школа закрыта. Все уроки и финансовые квесты начнутся утром с 6:00 💤\n\nОтдыхай и набирайся сил перед новым днем!"
-                        else -> "Ночью (с 22:00 до 06:00) дома все спят. Все задания будут доступны утром с 6:00 💤\n\nГород спит, отдыхай до утра!"
-                    },
-                    fontSize = 16.sp,
-                    lineHeight = 22.sp
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = { showNightDialog = null },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = when {
-                            isShop -> JoyOrange
-                            isQuests -> FreshGreen
-                            else -> Color(0xFF1E88E5)
-                        }
-                    )
-                ) {
-                    Text(
-                        "Понятно 👍",
-                        fontSize = 18.sp
-                    )
-                }
-            }
-        )
-    }
 }

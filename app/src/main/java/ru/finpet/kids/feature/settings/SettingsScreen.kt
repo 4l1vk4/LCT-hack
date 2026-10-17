@@ -300,7 +300,7 @@ fun SettingsScreen(
                                     color = TextPrimary
                                 )
                                 Text(
-                                    text = if (isNightMode) "Включен (ночная карта, все здания закрыты)" else "Выключен (день, все здания открыты)",
+                                    text = if (isNightMode) "Включен (ночная тема карты)" else "Выключен (дневная тема карты)",
                                     fontSize = 14.sp,
                                     color = TextSecondary
                                 )

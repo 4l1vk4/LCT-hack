@@ -14,6 +14,7 @@ import ru.finpet.kids.core.data.local.entity.GoalEntity
 import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import ru.finpet.kids.core.domain.repository.FinPetRepository
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -118,6 +119,7 @@ class ContentRepository @Inject constructor(
                 finPetRepository.inTransaction {
                     val profile = finPetRepository.getProfileSync()
                     if (profile == null) {
+                        val currentDay = LocalDate.now().dayOfMonth
                         // Инициализация стартового профиля на 50 крокетсов
                         val defaultProfile = ProfileEntity(
                             id = "default_player",
@@ -127,7 +129,7 @@ class ContentRepository @Inject constructor(
                             eyesType = 1,
                             accessoryId = "none",
                             balance = 200,
-                            currentPeriodIndex = 1,
+                            currentPeriodIndex = currentDay,
                             carePoints = 0,
                             growthStage = "BABY",
                             satiety = 100,
@@ -138,9 +140,9 @@ class ContentRepository @Inject constructor(
                         )
                         finPetRepository.saveProfile(defaultProfile)
 
-                        // Инициализация периода 1
+                        // Инициализация периода текущего дня
                         val firstPeriod = PeriodEntity(
-                            periodIndex = 1,
+                            periodIndex = currentDay,
                             plannedMandatory = 20,
                             plannedOptional = 15,
                             plannedSavings = 15,

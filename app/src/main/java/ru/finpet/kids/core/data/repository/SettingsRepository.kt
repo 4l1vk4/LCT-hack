@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "finpet_settings")
 
@@ -32,6 +34,39 @@ class SettingsRepository @Inject constructor(
         val TUTORIAL_COMPLETED = booleanPreferencesKey("tutorial_completed")
         val VIRTUAL_DATE = stringPreferencesKey("virtual_date")
         val LAST_REAL_DATE = stringPreferencesKey("last_real_date")
+        val PREORDER_ITEMS = stringSetPreferencesKey("preorder_items")
+        val ADULT_STAGE_START_DAY = intPreferencesKey("adult_stage_start_day")
+    }
+
+    val adultStageStartDay: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.ADULT_STAGE_START_DAY] ?: 0
+    }
+
+    suspend fun setAdultStageStartDay(day: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ADULT_STAGE_START_DAY] = day
+        }
+    }
+
+    val preorderItemIds: Flow<Set<String>> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.PREORDER_ITEMS] ?: emptySet()
+    }
+
+    suspend fun setPreorderItemIds(ids: Set<String>) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.PREORDER_ITEMS] = ids
+        }
+    }
+
+    suspend fun togglePreorderItem(itemId: String) {
+        context.dataStore.edit { preferences ->
+            val current = preferences[PreferencesKeys.PREORDER_ITEMS] ?: emptySet()
+            preferences[PreferencesKeys.PREORDER_ITEMS] = if (current.contains(itemId)) {
+                current - itemId
+            } else {
+                current + itemId
+            }
+        }
     }
 
     val isSoundEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->

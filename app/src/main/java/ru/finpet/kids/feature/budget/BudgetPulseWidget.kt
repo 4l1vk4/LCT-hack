@@ -42,8 +42,8 @@ import ru.finpet.kids.core.domain.model.BudgetPlan
 
 /**
  * компактный виджет «пульс бюджета» для главного экрана (ТЗ 2.5.3, 2.5.5).
- * показывает статус трех корзин в одну строку (еда, радости, копилка),
- * число звезд и процент соблюдения плана. по тапу открывает «план vs факт».
+ * показывает статус трех корзин в одну строку (еда, радости, копилка)
+ * и процент соблюдения плана. по тапу открывает «план vs факт».
  */
 @Composable
 fun BudgetPulseWidget(
@@ -52,12 +52,8 @@ fun BudgetPulseWidget(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // считаем процент выполнения и заработанные звезды
     val compliance = remember(plan, actual) {
         PetEconomyCalculator.calculateCompliance(plan, actual)
-    }
-    val stars = remember(plan, actual) {
-        calculateBudgetStars(plan, actual)
     }
 
     Box(
@@ -79,7 +75,7 @@ fun BudgetPulseWidget(
                 .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
                 .padding(horizontal = 10.dp, vertical = 7.dp)
         ) {
-            // верхняя строчка: заголовок, звезды и общий процент
+            // верхняя строчка: заголовок и общий процент
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -94,13 +90,6 @@ fun BudgetPulseWidget(
                         fontWeight = FontWeight.Black,
                         fontSize = 11.sp,
                         color = PixelTextDark
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "⭐ ${stars.count}/3",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        color = PixelGoldDark
                     )
                 }
 

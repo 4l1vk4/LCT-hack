@@ -24,6 +24,7 @@ import ru.finpet.kids.core.data.repository.PurchaseItem
 import ru.finpet.kids.core.data.repository.QuestItem
 import ru.finpet.kids.core.data.repository.SettingsRepository
 import ru.finpet.kids.core.domain.model.BudgetPlan
+import ru.finpet.kids.core.domain.model.GrowthStage
 import ru.finpet.kids.core.domain.model.PeriodResolution
 import ru.finpet.kids.core.domain.repository.FinPetRepository
 import ru.finpet.kids.core.domain.usecase.AdultSectionUseCase
@@ -158,6 +159,55 @@ class MainViewModel @Inject constructor(
 
     fun dismissPeriodAnalysis() {
         _periodAnalysisEvent.value = null
+    }
+
+    private val _petGrowthEvent = MutableStateFlow<String?>(null)
+    val petGrowthEvent: StateFlow<String?> = _petGrowthEvent.asStateFlow()
+
+    fun dismissPetGrowthEvent() {
+        _petGrowthEvent.value = null
+    }
+
+    fun triggerPetGrowthEventForTest(petName: String) {
+        _petGrowthEvent.value = petName
+    }
+
+    val preorderItemIds: StateFlow<Set<String>> = settingsRepository.preorderItemIds
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    val adultStageStartDay: StateFlow<Int> = settingsRepository.adultStageStartDay
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+    fun togglePreorderItem(itemId: String) {
+        viewModelScope.launch {
+            settingsRepository.togglePreorderItem(itemId)
+        }
+    }
+
+    fun quickBuyItems(items: List<PurchaseItem>) {
+        viewModelScope.launch {
+            val prof = repository.getProfileSync() ?: return@launch
+            if (prof.isPetRunaway) return@launch
+            val totalCost = items.sumOf { it.price }
+            if (prof.balance < totalCost) return@launch
+
+            for (item in items) {
+                makePurchaseUseCase(
+                    itemId = item.id,
+                    itemName = item.name,
+                    category = item.category,
+                    price = item.price,
+                    satietyBonus = item.satietyBonus,
+                    moodBonus = item.moodBonus,
+                    healthBonus = item.healthBonus
+                )
+                val currentDay = prof.currentPeriodIndex
+                if (item.id == "food_basic" || (item.category == "MANDATORY" && item.id.contains("food"))) {
+                    calendarDao.completeChecklistTaskByCategory(currentDay, "PET_FOOD")
+                }
+            }
+            loadCurrentPeriod()
+        }
     }
 
     val goals: StateFlow<List<GoalEntity>> = repository.getAllGoals()
@@ -412,6 +462,7 @@ class MainViewModel @Inject constructor(
     fun buyItem(item: PurchaseItem) {
         viewModelScope.launch {
             val prof = repository.getProfileSync() ?: return@launch
+            if (prof.isPetRunaway) return@launch
             val currentDay = prof.currentPeriodIndex
 
             if (item.id == "groceries_parents") {
@@ -595,8 +646,22 @@ class MainViewModel @Inject constructor(
                 seedCalendarNotesForMonth(nextYM)
             }
 
+            val profBefore = repository.getProfileSync()
+            val stageBefore = profBefore?.growthStage ?: "BABY"
+            val petName = profBefore?.petName ?: "Котик"
+
             val result = completePeriodUseCase(nextDayIndex = nextDayIndex, yearMonth = nextYM)
             if (result != null) {
+                val stageAfter = result.newStats.stage.name
+                if (stageAfter != stageBefore && result.newStats.stage == GrowthStage.ADULT) {
+                    _petGrowthEvent.value = petName
+                }
+                if (result.newStats.stage == GrowthStage.ADULT) {
+                    val currentStart = settingsRepository.adultStageStartDay.first()
+                    if (currentStart == 0) {
+                        settingsRepository.setAdultStageStartDay(nextDayIndex)
+                    }
+                }
                 val isIncome = result.periodIncome > 0
                 val enrichedResult = result.copy(
                     isMonthTransition = monthChanged,
@@ -630,7 +695,7 @@ class MainViewModel @Inject constructor(
     fun resetDemoProfile() {
         viewModelScope.launch {
             resetDemoProfileUseCase()
-            val initialDate = LocalDate.now().withDayOfMonth(1)
+            val initialDate = LocalDate.now()
             _virtualDate.value = initialDate
             settingsRepository.setVirtualDate(initialDate)
             settingsRepository.setLastRealDate(LocalDate.now())
@@ -638,6 +703,8 @@ class MainViewModel @Inject constructor(
             settingsRepository.setPetName("")
             settingsRepository.setTutorialCompleted(false)
             settingsRepository.setOnboardingCompleted(false)
+            settingsRepository.setAdultStageStartDay(0)
+            settingsRepository.setPreorderItemIds(emptySet())
             calendarDao.clearAllNotes()
             calendarDao.clearAllRecurringExpenses()
             ensureCalendarDataInitialized()

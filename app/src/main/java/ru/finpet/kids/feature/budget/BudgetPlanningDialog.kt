@@ -403,7 +403,7 @@ fun BudgetPlanningDialog(
                         MagicJarCard(
                             icon = "🏦",
                             title = "«Копилка мечты»",
-                            categoryLabel = "Накопления",
+                            categoryLabel = "В копилку",
                             subtitle = "Отчисления на заветную цель и домик",
                             amount = savings,
                             walletBalance = balance,
@@ -572,20 +572,6 @@ private fun MagicJarCard(
                     color = PixelTextDark
                 )
                 Spacer(modifier = Modifier.height(2.dp))
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(color.copy(alpha = 0.2f))
-                        .padding(horizontal = 4.dp, vertical = 1.dp)
-                ) {
-                    Text(
-                        text = categoryLabel,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = color
-                    )
-                }
-                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     fontSize = 15.sp,
@@ -655,39 +641,56 @@ private fun MagicJarCard(
         if (!isReadOnly) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // кнопки быстрого добавления (+10, +20, -10)
+            // бейдж категории и кнопки быстрого добавления (-10, +10, +20)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                PixelButton(
-                    text = "-10",
-                    onClick = onMinus,
-                    enabled = amount >= 10,
-                    containerColor = PixelParchmentMedium,
-                    textColor = PixelTextDark,
-                    borderColor = PixelParchmentBorder,
-                    fontSize = 16.sp
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                PixelButton(
-                    text = "+10",
-                    onClick = onPlus10,
-                    containerColor = color,
-                    textColor = Color.White,
-                    borderColor = PixelWoodDark,
-                    fontSize = 16.sp
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                PixelButton(
-                    text = "+20",
-                    onClick = onPlus20,
-                    containerColor = color,
-                    textColor = Color.White,
-                    borderColor = PixelWoodDark,
-                    fontSize = 16.sp
-                )
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(color.copy(alpha = 0.2f))
+                        .padding(horizontal = 6.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = categoryLabel,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = color
+                    )
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    PixelButton(
+                        text = "-10",
+                        onClick = onMinus,
+                        enabled = amount >= 10,
+                        containerColor = PixelParchmentMedium,
+                        textColor = PixelTextDark,
+                        borderColor = PixelParchmentBorder,
+                        fontSize = 16.sp
+                    )
+                    PixelButton(
+                        text = "+10",
+                        onClick = onPlus10,
+                        containerColor = color,
+                        textColor = Color.White,
+                        borderColor = PixelWoodDark,
+                        fontSize = 16.sp
+                    )
+                    PixelButton(
+                        text = "+20",
+                        onClick = onPlus20,
+                        containerColor = color,
+                        textColor = Color.White,
+                        borderColor = PixelWoodDark,
+                        fontSize = 16.sp
+                    )
+                }
             }
         }
     }

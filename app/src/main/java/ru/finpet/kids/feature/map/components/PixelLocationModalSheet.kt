@@ -57,6 +57,7 @@ fun PixelLocationModalSheet(
     badgeText: String,
     onDismiss: () -> Unit,
     listState: LazyListState = rememberLazyListState(),
+    topStartExtra: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     ModalBottomSheet(
@@ -99,22 +100,30 @@ fun PixelLocationModalSheet(
                 )
 
                 // бейдж статуса слева (например "3/8 решено" или сумма в копилке)
-                Surface(
+                Column(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(start = 16.dp, top = 16.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    color = Color.White.copy(alpha = 0.95f),
-                    border = BorderStroke(1.5.dp, PixelDarkBrown),
-                    shadowElevation = 2.dp
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text(
-                        text = badgeText,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PixelDarkBrown,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color.White.copy(alpha = 0.95f),
+                        border = BorderStroke(1.5.dp, PixelDarkBrown),
+                        shadowElevation = 2.dp
+                    ) {
+                        Text(
+                            text = badgeText,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PixelDarkBrown,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                        )
+                    }
+
+                    if (topStartExtra != null) {
+                        topStartExtra()
+                    }
                 }
 
                 // крестик закрытия
