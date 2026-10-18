@@ -120,15 +120,15 @@ fun SchoolBottomSheet(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Словарик $petName",
-                            fontSize = 20.sp,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
                         Text(
                             text = "Что значит «бюджет», «накопления», «сдача» и другие слова",
-                            fontSize = 15.sp,
+                            fontSize = 16.sp,
                             color = TextSecondary,
-                            lineHeight = 19.sp
+                            lineHeight = 21.sp
                         )
                     }
                     Text(text = "👉", fontSize = 20.sp)
@@ -153,7 +153,7 @@ fun SchoolBottomSheet(
                         ) {
                             Text(
                                 text = quest.title,
-                                fontSize = 21.sp,
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary,
                                 modifier = Modifier.weight(1f)
@@ -172,9 +172,9 @@ fun SchoolBottomSheet(
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = quest.situation,
-                            fontSize = 18.sp,
+                            fontSize = 17.sp,
                             color = TextPrimary,
-                            lineHeight = 24.sp
+                            lineHeight = 22.sp
                         )
 
                         // Варианты ответов в аутентичном пиксельном стиле

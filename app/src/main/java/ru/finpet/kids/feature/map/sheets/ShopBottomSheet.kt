@@ -151,7 +151,7 @@ fun ShopBottomSheet(
                 ) {
                     Text(
                         text = "📋 Список покупок",
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = PixelTextDark
                     )
@@ -200,10 +200,11 @@ fun ShopBottomSheet(
                 ) {
                     Text(
                         text = "🔒 Лавка закрыта: ${profile?.petName ?: "Кот"} убежал! Поставь миску корма у двери в комнате котика, чтобы вернуть его.",
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFC62828),
                         textAlign = TextAlign.Center,
+                        lineHeight = 21.sp,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -344,7 +345,7 @@ fun ShopBottomSheet(
                             text = "Показатели питомца после покупки:",
                             fontFamily = AppFontFamily,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
+                            fontSize = 16.sp,
                             color = TextPrimary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -352,7 +353,7 @@ fun ShopBottomSheet(
                             Text(
                                 text = "🍎 Сытость: ${formatStatGain(curSatiety, item.satietyBonus)}",
                                 fontFamily = AppFontFamily,
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 color = TextSecondary
                             )
                         }
@@ -363,7 +364,7 @@ fun ShopBottomSheet(
                                 Text(
                                     text = "Настроение: ${formatStatGain(curMood, item.moodBonus)}",
                                     fontFamily = AppFontFamily,
-                                    fontSize = 14.sp,
+                                    fontSize = 16.sp,
                                     color = TextSecondary
                                 )
                             }
@@ -375,7 +376,7 @@ fun ShopBottomSheet(
                                 Text(
                                     text = "Здоровье: ${formatStatGain(curHealth, item.healthBonus)}",
                                     fontFamily = AppFontFamily,
-                                    fontSize = 14.sp,
+                                    fontSize = 16.sp,
                                     color = TextSecondary
                                 )
                             }

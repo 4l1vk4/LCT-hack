@@ -53,13 +53,13 @@ fun FinikStatsCard(
             ) {
                 Text(
                     text = "Состояние $displayName",
-                    fontSize = 15.sp,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
                 Text(
                     text = "$effectiveMood%",
-                    fontSize = 15.sp,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = remember(effectiveMood) {
                         when {
@@ -104,9 +104,9 @@ fun FinikStatsCard(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Следи за всеми тремя — от них зависит общее настроение!",
-                fontSize = 13.sp,
+                fontSize = 15.sp,
                 color = TextSecondary,
-                lineHeight = 14.sp
+                lineHeight = 20.sp
             )
         }
     }

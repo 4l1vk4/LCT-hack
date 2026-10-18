@@ -95,7 +95,7 @@ fun StardewBoard(
                             text = headerTitle,
                             fontFamily = AppFontFamily,
                             fontWeight = FontWeight.Black,
-                            fontSize = 15.sp,
+                            fontSize = 18.sp,
                             color = PixelTextDark,
                             letterSpacing = 1.sp
                         )
@@ -136,7 +136,7 @@ fun PixelButton(
     textColor: Color = PixelTextDark,
     borderColor: Color = PixelGoldDark,
     enabled: Boolean = true,
-    fontSize: TextUnit = 14.sp,
+    fontSize: TextUnit = 16.sp,
     contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 7.dp),
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null

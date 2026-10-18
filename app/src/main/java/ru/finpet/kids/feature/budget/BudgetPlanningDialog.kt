@@ -163,14 +163,14 @@ fun BudgetPlanningDialog(
                                     Text(
                                         text = finnieMoodTitle,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 17.sp,
+                                        fontSize = 18.sp,
                                         color = PixelTextDark
                                     )
                                     Text(
                                         text = finnieSpeech,
-                                        fontSize = 15.sp,
+                                        fontSize = 16.sp,
                                         color = PixelTextDark,
-                                        lineHeight = 19.sp
+                                        lineHeight = 21.sp
                                     )
                                 }
                             }
@@ -193,15 +193,15 @@ fun BudgetPlanningDialog(
                                     Column {
                                         Text(
                                             text = "Бюджет на сегодня утверждён!",
-                                            fontSize = 15.sp,
+                                            fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF1B5E20)
                                         )
                                         Text(
                                             text = "Распределение монет зафиксировано. Новый план можно составить в следующий день.",
-                                            fontSize = 13.sp,
+                                            fontSize = 15.sp,
                                             color = Color(0xFF2E7D32),
-                                            lineHeight = 16.sp
+                                            lineHeight = 19.sp
                                         )
                                     }
                                 }
@@ -257,18 +257,18 @@ fun BudgetPlanningDialog(
                                             Text(
                                                 text = "Превышение бюджета на ${-remainder} монет! Уменьши суммы в баночках.",
                                                 fontFamily = AppFontFamily,
-                                                fontSize = 14.sp,
+                                                fontSize = 16.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = PixelRedBerry
                                             )
                                         }
                                     } else {
                                         Text(
-                                            text = "👛 Свободно в кошельке: $remainder монет останется на руках.",
-                                            fontFamily = AppFontFamily,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = PixelGreenCrop
+                                             text = "👛 Свободно в кошельке: $remainder монет останется на руках.",
+                                             fontFamily = AppFontFamily,
+                                             fontSize = 16.sp,
+                                             fontWeight = FontWeight.Bold,
+                                             color = PixelGreenCrop
                                         )
                                     }
                                 }
@@ -284,7 +284,7 @@ fun BudgetPlanningDialog(
                                     text = "✨ БЫСТРЫЕ ПРЕСЕТЫ:",
                                     fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp,
+                                    fontSize = 15.sp,
                                     color = PixelTextMuted
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
@@ -532,11 +532,11 @@ private fun PresetCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = icon, fontSize = 14.sp)
+                Text(text = icon, fontSize = 16.sp)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = title,
-                    fontSize = 13.sp,
+                    fontSize = 15.sp,
                     fontFamily = AppFontFamily,
                     fontWeight = FontWeight.ExtraBold,
                     color = PixelTextDark,
@@ -546,7 +546,7 @@ private fun PresetCard(
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = proportions,
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 fontFamily = AppFontFamily,
                 fontWeight = FontWeight.Bold,
                 color = if (isSelected) PixelTextDark else PixelTextMuted,
@@ -603,15 +603,15 @@ private fun MagicJarCard(
                 Text(
                     text = title,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp,
+                    fontSize = 18.sp,
                     color = PixelTextDark
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     color = PixelTextMuted,
-                    lineHeight = 18.sp
+                    lineHeight = 21.sp
                 )
             }
             Spacer(modifier = Modifier.width(6.dp))
@@ -626,7 +626,7 @@ private fun MagicJarCard(
                     prefix = "$amount",
                     fontWeight = FontWeight.ExtraBold,
                     color = color,
-                    fontSize = 16.sp,
+                    fontSize = 17.sp,
                     fontFamily = AppFontFamily
                 )
             }
@@ -642,12 +642,12 @@ private fun MagicJarCard(
             ) {
                 Text(
                     text = "Наполнение баночки:",
-                    fontSize = 14.sp,
+                    fontSize = 15.sp,
                     color = PixelTextMuted
                 )
                 Text(
                     text = "$fillPercent% от кошелька",
-                    fontSize = 14.sp,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = color,
                     fontFamily = AppFontFamily
@@ -687,7 +687,7 @@ private fun MagicJarCard(
                 ) {
                     Text(
                         text = categoryLabel,
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
                         fontFamily = AppFontFamily,
                         fontWeight = FontWeight.Bold,
                         color = PixelTextDark
@@ -704,7 +704,7 @@ private fun MagicJarCard(
                         enabled = amount >= 10,
                         containerColor = PixelParchmentMedium,
                         textColor = PixelTextDark,
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
                     )
                     PixelButton(
@@ -712,7 +712,7 @@ private fun MagicJarCard(
                         onClick = onPlus10,
                         containerColor = color,
                         textColor = Color.White,
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
                     )
                     PixelButton(
@@ -720,7 +720,7 @@ private fun MagicJarCard(
                         onClick = onPlus20,
                         containerColor = color,
                         textColor = Color.White,
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }

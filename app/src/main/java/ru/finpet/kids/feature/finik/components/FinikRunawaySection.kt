@@ -81,7 +81,7 @@ fun FinikRunawaySection(
 
         Text(
             text = "$petName убежал!",
-            fontSize = 24.sp,
+            fontSize = 22.sp,
             fontWeight = FontWeight.ExtraBold,
             color = Color(0xFFC62828)
         )
@@ -90,10 +90,10 @@ fun FinikRunawaySection(
 
         Text(
             text = "Настроение упало до 0%. Поставь миску корма у двери (цена x2 от обычного корма: 60 монет). Питомец вернётся через 1–3 дня, если ставить миску каждый день!",
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             color = TextSecondary,
             textAlign = TextAlign.Center,
-            lineHeight = 18.sp,
+            lineHeight = 21.sp,
             modifier = Modifier.padding(horizontal = 20.dp)
         )
 
@@ -118,12 +118,13 @@ fun FinikRunawaySection(
                         Text(
                             text = "Миска с кормом стоит у двери!",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
+                            fontSize = 16.sp,
                             color = FreshGreen
                         )
                         Text(
                             text = "Кот чувствует заботу. Проверь завтра, вернулся ли он!",
-                            fontSize = 12.sp,
+                            fontSize = 15.sp,
+                            lineHeight = 20.sp,
                             color = TextSecondary
                         )
                     }
@@ -153,14 +154,14 @@ fun FinikRunawaySection(
                         Text(
                             text = "🥣 Купить корм для питомца (60 ",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
+                            fontSize = 16.sp,
                             color = Color.White
                         )
                         CoinIcon(modifier = Modifier.size(16.dp))
                         Text(
                             text = ")",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
+                            fontSize = 16.sp,
                             color = Color.White
                         )
                     }
@@ -180,7 +181,8 @@ fun FinikRunawaySection(
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "Не хватает монет (нужно 60 монет). Загляни в Школу или выполни дела по дому!",
-                    fontSize = 12.sp,
+                    fontSize = 15.sp,
+                    lineHeight = 20.sp,
                     color = Color(0xFFD32F2F),
                     textAlign = TextAlign.Center
                 )
@@ -221,7 +223,7 @@ fun FinikRunawaySection(
                 Text(
                     text = "$petName убежал и сейчас прячется. Если купить и поставить миску корма у двери, он почувствует заботу и вернется домой через 1–3 дня!",
                     fontFamily = AppFontFamily,
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     lineHeight = 21.sp,
                     color = PixelTextDark
                 )

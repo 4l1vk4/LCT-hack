@@ -86,11 +86,11 @@ fun FinikDailyTaskCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = if (pendingTask == null) "🌟" else "📋", fontSize = 16.sp)
+                    Text(text = if (pendingTask == null) "🌟" else "📋", fontSize = 17.sp)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = if (pendingTask == null) "Все задачи выполнены!" else "Задача дня",
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (pendingTask == null) FreshGreen else TextPrimary
                     )
@@ -105,12 +105,12 @@ fun FinikDailyTaskCard(
                 ) {
                     Text(
                         text = "$completedCount/$totalCount",
-                        fontSize = 13.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (pendingTask == null) FreshGreen else JoyOrange
                     )
                     Spacer(modifier = Modifier.width(3.dp))
-                    Text(text = "👉", fontSize = 12.sp)
+                    Text(text = "👉", fontSize = 14.sp)
                 }
             }
 
@@ -146,7 +146,7 @@ fun FinikDailyTaskCard(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = pendingTask.title,
-                            fontSize = 13.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = TextPrimary,
                             maxLines = 1,
@@ -167,37 +167,37 @@ fun FinikDailyTaskCard(
                         if (pendingTask.category == "PET_FOOD") {
                             Text(
                                 text = "Лавка • 30",
-                                fontSize = 12.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = JoyOrange
                             )
                             Spacer(modifier = Modifier.width(2.dp))
-                            CoinIcon(modifier = Modifier.size(12.dp))
+                            CoinIcon(modifier = Modifier.size(14.dp))
                         } else if (pendingTask.cost > 0 && !category.isSystem) {
                             Text(
                                 text = "${pendingTask.cost}",
-                                fontSize = 12.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = JoyOrange
                             )
                             Spacer(modifier = Modifier.width(2.dp))
-                            CoinIcon(modifier = Modifier.size(12.dp))
+                            CoinIcon(modifier = Modifier.size(14.dp))
                         } else {
                             Text(
                                 text = taskBadge,
-                                fontSize = 12.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = JoyOrange
                             )
                         }
                         Spacer(modifier = Modifier.width(3.dp))
-                        Text(text = "👉", fontSize = 11.sp)
+                        Text(text = "👉", fontSize = 13.sp)
                     }
                 }
             } else {
                 Text(
                     text = "Все дела и уроки сделаны, Финни счастлив! 🎉",
-                    fontSize = 12.sp,
+                    fontSize = 15.sp,
                     color = TextSecondary
                 )
             }

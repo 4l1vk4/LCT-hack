@@ -41,7 +41,7 @@ fun CategoryChip(
         Text(
             text = text,
             fontFamily = AppFontFamily,
-            fontSize = 15.sp,
+            fontSize = 16.sp,
             fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
             color = if (isSelected) PixelTextDark else PixelWoodDark
         )

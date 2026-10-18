@@ -261,7 +261,7 @@ fun TrashCollectionGameDialog(
                             Text(
                                 text = "Жизни: ",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = 15.sp,
                                 color = PixelWoodDark
                             )
                             repeat(3) { i ->
@@ -278,7 +278,7 @@ fun TrashCollectionGameDialog(
                             Text(
                                 text = "Собрано: ",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = 15.sp,
                                 color = PixelWoodDark
                             )
                             Surface(
@@ -367,7 +367,7 @@ fun TrashCollectionGameDialog(
                                 Text(
                                     text = "👆 Удерживай палец и веди корзину влево-вправо!",
                                     color = Color.White,
-                                    fontSize = 13.sp,
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center
                                 )
@@ -397,7 +397,7 @@ fun TrashCollectionGameDialog(
                                     Text(
                                         text = "🎉 Отличная работа! Мусор собран ($collectedCount шт.)",
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
+                                        fontSize = 17.sp,
                                         color = FreshGreen
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
@@ -405,7 +405,7 @@ fun TrashCollectionGameDialog(
                                         Text(
                                             text = "Награда за дело: +$rewardCoins ",
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 15.sp,
+                                            fontSize = 16.sp,
                                             color = PixelWoodDark
                                         )
                                         CoinIcon(modifier = Modifier.size(18.dp))
@@ -416,19 +416,21 @@ fun TrashCollectionGameDialog(
                                         onClick = onCompleteGame,
                                         containerColor = FreshGreen,
                                         textColor = Color.White,
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier.fillMaxWidth(),
+                                        fontSize = 16.sp
                                     )
                                 } else {
                                     Text(
                                         text = "💔 Не хватило до цели! Собрано: $collectedCount из 20",
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 15.sp,
+                                        fontSize = 17.sp,
                                         color = Color(0xFFD32F2F)
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = "Нужно поймать минимум 20 предметов мусора, чтобы заработать монеты.",
-                                        fontSize = 13.sp,
+                                        fontSize = 15.sp,
+                                        lineHeight = 20.sp,
                                         color = Color(0xFF555555),
                                         textAlign = TextAlign.Center
                                     )
@@ -440,7 +442,7 @@ fun TrashCollectionGameDialog(
                                             shape = RoundedCornerShape(10.dp),
                                             modifier = Modifier.weight(1f)
                                         ) {
-                                            Text("Выйти", fontSize = 14.sp)
+                                            Text("Выйти", fontSize = 16.sp)
                                         }
                                         Button(
                                             onClick = {
@@ -454,7 +456,7 @@ fun TrashCollectionGameDialog(
                                             shape = RoundedCornerShape(10.dp),
                                             modifier = Modifier.weight(1f)
                                         ) {
-                                            Text("Попробовать снова", fontSize = 14.sp)
+                                            Text("Попробовать снова", fontSize = 16.sp)
                                         }
                                     }
                                 }
@@ -466,7 +468,7 @@ fun TrashCollectionGameDialog(
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9E9E9E)),
                             shape = RoundedCornerShape(10.dp)
                         ) {
-                            Text(text = "Закончить позже", color = Color.White, fontSize = 14.sp)
+                            Text(text = "Закончить позже", color = Color.White, fontSize = 16.sp)
                         }
                     }
                 }

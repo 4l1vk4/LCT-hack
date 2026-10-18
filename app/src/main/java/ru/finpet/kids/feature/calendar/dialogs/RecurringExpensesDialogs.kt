@@ -96,7 +96,8 @@ fun RecurringExpensesDialog(
                     item {
                         Text(
                             text = "Расходы, повторяющиеся регулярно в календаре питомца:",
-                            fontSize = 12.sp,
+                            fontSize = 15.sp,
+                            lineHeight = 20.sp,
                             color = PixelTextMuted
                         )
                     }
@@ -112,7 +113,8 @@ fun RecurringExpensesDialog(
                             ) {
                                 Text(
                                     text = "Пока нет регулярных трат. Добавь их кнопкой ниже!",
-                                    fontSize = 12.sp,
+                                    fontSize = 15.sp,
+                                    lineHeight = 20.sp,
                                     color = PixelTextMuted
                                 )
                             }
@@ -135,7 +137,7 @@ fun RecurringExpensesDialog(
                                     Column {
                                         Text(
                                             text = expense.title,
-                                            fontSize = 15.sp,
+                                            fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = PixelTextDark
                                         )
@@ -146,7 +148,7 @@ fun RecurringExpensesDialog(
                                                 7 -> "Раз в неделю"
                                                 else -> "Каждые ${expense.frequencyDays} дн."
                                             },
-                                            fontSize = 13.sp,
+                                            fontSize = 14.sp,
                                             color = PixelTextMuted
                                         )
                                     }
@@ -159,7 +161,7 @@ fun RecurringExpensesDialog(
                                         text = "${expense.cost}",
                                         fontFamily = AppFontFamily,
                                         fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 15.sp,
+                                        fontSize = 16.sp,
                                         color = PixelGoldDark
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
@@ -186,7 +188,7 @@ fun RecurringExpensesDialog(
                             onClick = onOpenAddRecurring,
                             containerColor = PixelGoldBright,
                             modifier = Modifier.fillMaxWidth(),
-                            fontSize = 15.sp
+                            fontSize = 16.sp
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         PixelButton(
@@ -196,7 +198,7 @@ fun RecurringExpensesDialog(
                             textColor = PixelTextDark,
                             borderColor = PixelParchmentBorder,
                             modifier = Modifier.fillMaxWidth(),
-                            fontSize = 15.sp
+                            fontSize = 16.sp
                         )
                     }
                 }
@@ -235,7 +237,7 @@ fun AddRecurringExpenseDialog(
                 },
                 containerColor = PixelGoldBright,
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 14.sp
+                fontSize = 16.sp
             )
         },
         dismissButton = {
@@ -245,7 +247,7 @@ fun AddRecurringExpenseDialog(
                 containerColor = PixelParchmentMedium,
                 textColor = PixelTextDark,
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 14.sp
+                fontSize = 16.sp
             )
         }
     ) {
@@ -253,8 +255,8 @@ fun AddRecurringExpenseDialog(
             OutlinedTextField(
                 value = recTitle,
                 onValueChange = { recTitle = it },
-                label = { Text("Название регулярного расхода", fontFamily = AppFontFamily, fontSize = 13.sp) },
-                placeholder = { Text("Например: Школьный обед", fontFamily = AppFontFamily, fontSize = 13.sp) },
+                label = { Text("Название регулярного расхода", fontFamily = AppFontFamily, fontSize = 15.sp) },
+                placeholder = { Text("Например: Школьный обед", fontFamily = AppFontFamily, fontSize = 15.sp) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
@@ -273,7 +275,7 @@ fun AddRecurringExpenseDialog(
             OutlinedTextField(
                 value = recCost,
                 onValueChange = { recCost = it.filter { ch -> ch.isDigit() } },
-                label = { Text("Стоимость (монет)", fontFamily = AppFontFamily, fontSize = 13.sp) },
+                label = { Text("Стоимость (монет)", fontFamily = AppFontFamily, fontSize = 15.sp) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
@@ -292,7 +294,7 @@ fun AddRecurringExpenseDialog(
             Text(
                 text = "Иконка:",
                 fontFamily = AppFontFamily,
-                fontSize = 13.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = PixelTextDark
             )
@@ -322,7 +324,7 @@ fun AddRecurringExpenseDialog(
             Text(
                 text = "Периодичность:",
                 fontFamily = AppFontFamily,
-                fontSize = 13.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = PixelTextDark
             )
@@ -338,7 +340,7 @@ fun AddRecurringExpenseDialog(
                     onClick = { recFrequency = 1 },
                     containerColor = if (recFrequency == 1) PixelGoldBright else PixelParchmentLight,
                     modifier = Modifier.weight(1f),
-                    fontSize = 13.sp,
+                    fontSize = 15.sp,
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 7.dp)
                 )
                 PixelButton(
@@ -346,7 +348,7 @@ fun AddRecurringExpenseDialog(
                     onClick = { recFrequency = 3 },
                     containerColor = if (recFrequency == 3) PixelGoldBright else PixelParchmentLight,
                     modifier = Modifier.weight(1f),
-                    fontSize = 13.sp,
+                    fontSize = 15.sp,
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 7.dp)
                 )
             }

@@ -100,7 +100,7 @@ fun ShopItemCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = item.name,
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
@@ -112,7 +112,7 @@ fun ShopItemCard(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "✅ Выполнено",
-                            fontSize = 14.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = FreshGreen
                         )
@@ -128,7 +128,7 @@ fun ShopItemCard(
                     },
                     fontSize = 16.sp,
                     color = TextSecondary,
-                    lineHeight = 20.sp
+                    lineHeight = 21.sp
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))

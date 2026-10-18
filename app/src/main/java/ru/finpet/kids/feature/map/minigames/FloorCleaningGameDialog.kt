@@ -224,12 +224,12 @@ fun FloorCleaningGameDialog(
                                 Text(
                                     text = "Нажимай на грязные пятна!",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp,
+                                    fontSize = 17.sp,
                                     color = PixelWoodDark
                                 )
                                 Text(
                                     text = "Очисти весь пол, чтобы получить награду",
-                                    fontSize = 12.sp,
+                                    fontSize = 15.sp,
                                     color = Color(0xFF6B4423)
                                 )
                             }
@@ -242,7 +242,7 @@ fun FloorCleaningGameDialog(
                                 Text(
                                     text = "$cleanedCount / ${spots.size}",
                                     fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 14.sp,
+                                    fontSize = 15.sp,
                                     color = Color.White,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
@@ -354,7 +354,7 @@ fun FloorCleaningGameDialog(
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9E9E9E)),
                                 shape = RoundedCornerShape(8.dp)
                             ) {
-                                Text(text = "Закончить позже", color = Color.White, fontSize = 13.sp)
+                                Text(text = "Закончить позже", color = Color.White, fontSize = 15.sp)
                             }
                         }
                     }
@@ -381,13 +381,13 @@ fun FloorCleaningGameDialog(
                                 Text(
                                     text = "🎉 ВСЁ ЧИСТО! 🎉",
                                     fontWeight = FontWeight.Black,
-                                    fontSize = 20.sp,
+                                    fontSize = 22.sp,
                                     color = FreshGreen
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "Пол блестит и сияет чистотой!",
-                                    fontSize = 14.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = Color(0xFF2E7D32),
                                     textAlign = TextAlign.Center

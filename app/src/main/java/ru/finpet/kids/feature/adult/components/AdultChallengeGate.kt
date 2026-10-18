@@ -73,17 +73,17 @@ fun AdultChallengeGate(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Вход только для родителей",
-                    fontSize = 19.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = TextPrimary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Подтвердите, что вы взрослый.\nВопрос рассчитан на жизненный опыт родителей:",
-                    fontSize = 13.sp,
+                    fontSize = 16.sp,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,
-                    lineHeight = 17.sp
+                    lineHeight = 21.sp
                 )
                 Spacer(modifier = Modifier.height(14.dp))
 
@@ -96,7 +96,7 @@ fun AdultChallengeGate(
                 ) {
                     Text(
                         text = challenge.title,
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFE65100)
                     )
@@ -111,11 +111,11 @@ fun AdultChallengeGate(
                 ) {
                     Text(
                         text = challenge.question,
-                        fontSize = 15.sp,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         color = PixelTextDark,
                         textAlign = TextAlign.Center,
-                        lineHeight = 21.sp,
+                        lineHeight = 22.sp,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -135,7 +135,7 @@ fun AdultChallengeGate(
                             onClick = { onSelectAnswer(opt) },
                             containerColor = if (isSelected) JoyOrange else PixelParchmentLight,
                             textColor = if (isSelected) Color.White else PixelTextDark,
-                            fontSize = if (isLongText) 12.sp else 14.sp,
+                            fontSize = if (isLongText) 14.sp else 16.sp,
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -147,7 +147,7 @@ fun AdultChallengeGate(
                     Text(
                         text = msg,
                         color = Color(0xFFD32F2F),
-                        fontSize = 13.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -160,7 +160,7 @@ fun AdultChallengeGate(
                     onClick = onSubmitAnswer,
                     containerColor = PixelGreenCrop,
                     textColor = Color.White,
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -172,7 +172,7 @@ fun AdultChallengeGate(
                     onClick = onRequestNewChallenge,
                     containerColor = PixelParchmentMedium,
                     textColor = PixelTextDark,
-                    fontSize = 13.sp,
+                    fontSize = 15.sp,
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                 )
             }

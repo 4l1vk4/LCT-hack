@@ -94,7 +94,7 @@ fun FinikGoalCard(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Цель: ${activeGoal.title}",
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary,
                         maxLines = 1,
@@ -105,7 +105,7 @@ fun FinikGoalCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "${activeGoal.savedAmount} / ${activeGoal.targetCost} ",
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = JoyOrange
                     )
@@ -113,7 +113,7 @@ fun FinikGoalCard(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "($percent%)",
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (activeGoal.isReached) FreshGreen else TextSecondary
                     )

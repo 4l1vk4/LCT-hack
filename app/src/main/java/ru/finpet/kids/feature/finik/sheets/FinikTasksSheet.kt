@@ -96,13 +96,13 @@ fun FinikTasksSheet(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Задачи на сегодня",
-                        fontSize = 17.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = PixelTextDark
                     )
                     Text(
                         text = "Выполнено $completedCount из $totalCount",
-                        fontSize = 13.sp,
+                        fontSize = 15.sp,
                         color = PixelTextMuted
                     )
                 }
@@ -219,7 +219,7 @@ fun FinikTasksSheet(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = note.title,
-                                    fontSize = 14.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = if (note.isCompleted) TextSecondary else TextPrimary,
                                     textDecoration = if (note.isCompleted) TextDecoration.LineThrough else TextDecoration.None
@@ -240,16 +240,16 @@ fun FinikTasksSheet(
                                         if (note.category == "GROCERIES" && note.cost > 0) {
                                              Text(
                                                 text = "✅ +${note.cost}",
-                                                fontSize = 13.sp,
+                                                fontSize = 14.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = FreshGreen
                                             )
                                             Spacer(modifier = Modifier.width(3.dp))
-                                            CoinIcon(modifier = Modifier.size(11.dp))
+                                            CoinIcon(modifier = Modifier.size(13.dp))
                                         } else {
                                             Text(
                                                 text = "✅ Готово",
-                                                fontSize = 13.sp,
+                                                fontSize = 14.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = FreshGreen
                                             )

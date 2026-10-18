@@ -91,7 +91,7 @@ fun SettingsScreen(
                     )
                     Text(
                         text = "Управление звуком и музыкой",
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         color = TextSecondary
                     )
                 }
@@ -148,13 +148,13 @@ fun SettingsScreen(
                             ) {
                                 Text(
                                     text = "Громкость музыки",
-                                    fontSize = 13.sp,
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = TextSecondary
                                 )
                                 Text(
                                     text = "${(musicVolume * 100).toInt()}%",
-                                    fontSize = 13.sp,
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = JoyOrange
                                 )
@@ -190,7 +190,7 @@ fun SettingsScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = "🎮 Демо-режим",
-                                fontSize = 16.sp,
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary
                             )
@@ -217,7 +217,7 @@ fun SettingsScreen(
                                     Text(
                                         text = if (demoMode) "вкл" else "выкл",
                                         fontFamily = AppFontFamily,
-                                        fontSize = 12.sp,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (demoMode) Color(0xFF1B5E20) else Color(0xFF757575)
                                     )
@@ -230,7 +230,7 @@ fun SettingsScreen(
                     Text(
                         text = if (demoMode) "Включен: в календаре открыт переход между днями"
                         else "Для включения режима тестирования введите код demo",
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         color = TextSecondary
                     )
 
@@ -348,8 +348,8 @@ fun SettingsScreen(
                                 modifier = Modifier.weight(1f),
                                 containerColor = JoyOrange,
                                 textColor = Color.White,
-                                fontSize = 11.sp,
-                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                                fontSize = 13.sp,
+                                contentPadding = PaddingValues(horizontal = 2.dp, vertical = 6.dp)
                             )
                             PixelButton(
                                 text = "20:00 Пропуск",
@@ -362,8 +362,8 @@ fun SettingsScreen(
                                 modifier = Modifier.weight(1f),
                                 containerColor = JoyOrange,
                                 textColor = Color.White,
-                                fontSize = 11.sp,
-                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                                fontSize = 13.sp,
+                                contentPadding = PaddingValues(horizontal = 2.dp, vertical = 6.dp)
                             )
                             PixelButton(
                                 text = "21:00 Вечер",
@@ -376,8 +376,8 @@ fun SettingsScreen(
                                 modifier = Modifier.weight(1f),
                                 containerColor = JoyOrange,
                                 textColor = Color.White,
-                                fontSize = 11.sp,
-                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                                fontSize = 13.sp,
+                                contentPadding = PaddingValues(horizontal = 2.dp, vertical = 6.dp)
                             )
                         }
                     }
@@ -395,7 +395,7 @@ fun SettingsScreen(
             ) {
                 Text(
                     text = "Версия 1.0.0",
-                    fontSize = 13.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = TextSecondary
                 )
@@ -420,7 +420,7 @@ fun SettingSwitchRow(
     ) {
         Text(
             text = title,
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             color = TextPrimary,
             modifier = Modifier.weight(1f)

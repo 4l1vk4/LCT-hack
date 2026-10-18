@@ -60,7 +60,7 @@ fun AddNoteDialog(
                 },
                 containerColor = PixelGoldBright,
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 14.sp
+                fontSize = 16.sp
             )
         },
         dismissButton = {
@@ -70,7 +70,7 @@ fun AddNoteDialog(
                 containerColor = PixelParchmentMedium,
                 textColor = PixelTextDark,
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 14.sp
+                fontSize = 16.sp
             )
         }
     ) {
@@ -78,8 +78,8 @@ fun AddNoteDialog(
             OutlinedTextField(
                 value = noteTitle,
                 onValueChange = { noteTitle = it },
-                label = { Text("Что планируем купить?", fontFamily = AppFontFamily, fontSize = 13.sp) },
-                placeholder = { Text("Например: Корм или Игрушка", fontFamily = AppFontFamily, fontSize = 13.sp) },
+                label = { Text("Что планируем купить?", fontFamily = AppFontFamily, fontSize = 15.sp) },
+                placeholder = { Text("Например: Корм или Игрушка", fontFamily = AppFontFamily, fontSize = 15.sp) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
@@ -98,7 +98,7 @@ fun AddNoteDialog(
             OutlinedTextField(
                 value = noteCost,
                 onValueChange = { noteCost = it.filter { ch -> ch.isDigit() } },
-                label = { Text("Ожидаемая сумма (монет)", fontFamily = AppFontFamily, fontSize = 13.sp) },
+                label = { Text("Ожидаемая сумма (монет)", fontFamily = AppFontFamily, fontSize = 15.sp) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
@@ -117,7 +117,7 @@ fun AddNoteDialog(
             Text(
                 text = "Категория расходов:",
                 fontFamily = AppFontFamily,
-                fontSize = 13.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = PixelTextDark
             )
@@ -133,7 +133,7 @@ fun AddNoteDialog(
                     onClick = { selectedCategory = "MANDATORY" },
                     containerColor = if (selectedCategory == "MANDATORY") PixelGoldBright else PixelParchmentLight,
                     modifier = Modifier.weight(1f),
-                    fontSize = 13.sp,
+                    fontSize = 15.sp,
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 7.dp)
                 )
                 PixelButton(
@@ -141,7 +141,7 @@ fun AddNoteDialog(
                     onClick = { selectedCategory = "OPTIONAL" },
                     containerColor = if (selectedCategory == "OPTIONAL") PixelGoldBright else PixelParchmentLight,
                     modifier = Modifier.weight(1f),
-                    fontSize = 13.sp,
+                    fontSize = 15.sp,
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 7.dp)
                 )
             }
