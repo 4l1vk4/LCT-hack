@@ -164,7 +164,7 @@ fun SchoolBottomSheet(
     val calculationOffsets = remember { mutableStateMapOf<String, Int>() }
 
     PixelLocationModalSheet(
-        title = "🏫 Школа финансовой грамотности",
+        title = "Школа финансовой грамотности",
         subtitle = "Интерактивные квесты • Растем и учимся вместе с $petName",
         headerDrawableRes = R.drawable.location_school_header,
         badgeText = "$completedCount / ${quests.size} решено",
@@ -180,7 +180,21 @@ fun SchoolBottomSheet(
                         modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "⚡", fontSize = 24.sp)
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(PixelGreenCrop),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "XP",
+                                fontFamily = AppFontFamily,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
@@ -217,11 +231,18 @@ fun SchoolBottomSheet(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(42.dp)
+                            .size(38.dp)
+                            .clip(RoundedCornerShape(6.dp))
                             .pixelButtonBackground(containerColor = PixelGoldBright.copy(alpha = 0.35f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "📖", fontSize = 22.sp)
+                        Text(
+                            text = "i",
+                            fontFamily = AppFontFamily,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PixelTextDark
+                        )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -269,7 +290,21 @@ fun SchoolBottomSheet(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "🎲", fontSize = 20.sp)
+                    Box(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(JoyOrange),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "R",
+                            fontFamily = AppFontFamily,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PixelTextDark
+                        )
+                    }
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = "Случайный урок для решения",
@@ -280,7 +315,7 @@ fun SchoolBottomSheet(
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = "Начать 🐾",
+                        text = "Начать",
                         fontFamily = AppFontFamily,
                         fontSize = 13.sp,
                         color = PixelGreenCrop,
@@ -304,7 +339,7 @@ fun SchoolBottomSheet(
                 ) {
                     StageTabChip(
                         title = "Малыш",
-                        icon = "🍼",
+                        badge = "1",
                         isSelected = selectedStageFilter == "BABY",
                         isUnlocked = isStageUnlocked("BABY"),
                         countDone = quests.count { it.stage == "BABY" && progressList.any { p -> p.questId == it.id && p.isCompleted } },
@@ -315,7 +350,7 @@ fun SchoolBottomSheet(
 
                     StageTabChip(
                         title = "Подросток",
-                        icon = "🎒",
+                        badge = "2",
                         isSelected = selectedStageFilter == "TEEN",
                         isUnlocked = isStageUnlocked("TEEN"),
                         countDone = quests.count { it.stage == "TEEN" && progressList.any { p -> p.questId == it.id && p.isCompleted } },
@@ -326,7 +361,7 @@ fun SchoolBottomSheet(
 
                     StageTabChip(
                         title = "Взрослый",
-                        icon = "🎓",
+                        badge = "3",
                         isSelected = selectedStageFilter == "ADULT",
                         isUnlocked = isStageUnlocked("ADULT"),
                         countDone = quests.count { it.stage == "ADULT" && progressList.any { p -> p.questId == it.id && p.isCompleted } },
@@ -338,7 +373,7 @@ fun SchoolBottomSheet(
                     if (demoMode) {
                         StageTabChip(
                             title = "Все",
-                            icon = "🌟",
+                            badge = "*",
                             isSelected = selectedStageFilter == "ALL",
                             isUnlocked = true,
                             countDone = completedCount,
@@ -368,8 +403,21 @@ fun SchoolBottomSheet(
                         modifier = Modifier.padding(18.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "🔒", fontSize = 36.sp)
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFD7CCC8))
+                                .padding(horizontal = 14.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "Уровень заблокирован",
+                                fontFamily = AppFontFamily,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PixelWoodMedium
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Уроки уровня «$stageTitle» пока закрыты",
                             fontFamily = AppFontFamily,
@@ -380,7 +428,7 @@ fun SchoolBottomSheet(
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Твой питомец $petName сейчас на стадии «$currentStageTitle».\nЗаботься о котике, планируй бюджет и переходи к следующим игровым дням, чтобы он вырос и открыл этот уровень! 🐾\n\n(В Настройках можно включить Демо-режим для доступа ко всем квестам сразу)",
+                            text = "Твой питомец $petName сейчас на стадии «$currentStageTitle».\nЗаботься о котике, планируй бюджет и переходи к следующим игровым дням, чтобы он вырос и открыл этот уровень!\n\n(В Настройках можно включить Демо-режим для доступа ко всем квестам сразу)",
                             fontFamily = AppFontFamily,
                             fontSize = 14.sp,
                             color = PixelTextMuted,
@@ -395,8 +443,11 @@ fun SchoolBottomSheet(
                     val isDone = progressList.any { it.questId == quest.id && it.isCompleted }
                     val isTarget = targetQuestId != null && quest.id == targetQuestId
 
-                    // Динамическая ситуация для рандомизации
-                    val currentVariantIdx = variantIndices[quest.id] ?: 0
+                    // Случайный начальный вариант ситуации для разнообразия
+                    val randomVariantSeed = remember(quest.id) {
+                        if (quest.dynamicVariants.isNotEmpty()) (0 until quest.dynamicVariants.size).random() else 0
+                    }
+                    val currentVariantIdx = variantIndices[quest.id] ?: randomVariantSeed
                     val displaySituation = if (quest.dynamicVariants.isNotEmpty()) {
                         quest.dynamicVariants.getOrElse(currentVariantIdx % quest.dynamicVariants.size) { quest.situation }
                     } else {
@@ -426,23 +477,20 @@ fun SchoolBottomSheet(
 
                                 if (isDone) {
                                     Text(
-                                        text = "✅ Пройдено",
-                                        fontSize = 15.sp,
+                                        text = "[Пройдено]",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 14.sp,
                                         color = FreshGreen,
                                         fontWeight = FontWeight.Bold
                                     )
                                 } else {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "+${quest.rewardCoins}",
-                                            fontFamily = AppFontFamily,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = PixelGoldDark
-                                        )
-                                        Spacer(modifier = Modifier.width(2.dp))
-                                        Text(text = "🪙", fontSize = 14.sp)
-                                    }
+                                    Text(
+                                        text = "+${quest.rewardCoins} монет",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PixelGoldDark
+                                    )
                                 }
                             }
 
@@ -480,8 +528,22 @@ fun SchoolBottomSheet(
                                         .padding(vertical = 2.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(text = "🎲", fontSize = 14.sp)
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(Color(0xFFE0D7C6)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "R",
+                                            fontFamily = AppFontFamily,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = PixelWoodMedium
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "Другая ситуация",
                                         fontFamily = AppFontFamily,
@@ -534,14 +596,14 @@ fun SchoolBottomSheet(
                                         isDone = isDone,
                                         randomOffset = calculationOffsets[quest.id] ?: 0,
                                         onRerollNumbers = {
-                                            calculationOffsets[quest.id] = (calculationOffsets[quest.id] ?: 0) + (5..15).random()
+                                            calculationOffsets[quest.id] = (calculationOffsets[quest.id] ?: 0) + 1
                                         },
                                         onSelectOption = { optId -> onSelectOption(quest.id, optId) }
                                     )
                                 }
 
                                 else -> {
-                                    // CHOICE (классический выбор варианта)
+                                    // CHOICE (классический выбор варианта со случайным перемешиванием)
                                     ChoiceQuestSection(
                                         quest = quest,
                                         isDone = isDone,
@@ -568,7 +630,7 @@ fun SchoolBottomSheet(
 @Composable
 private fun StageTabChip(
     title: String,
-    icon: String,
+    badge: String,
     isSelected: Boolean,
     isUnlocked: Boolean,
     countDone: Int,
@@ -597,8 +659,15 @@ private fun StageTabChip(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = if (isUnlocked) icon else "🔒", fontSize = 14.sp)
-                Spacer(modifier = Modifier.width(3.dp))
+                if (!isUnlocked) {
+                    Text(
+                        text = "[X] ",
+                        fontFamily = AppFontFamily,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF8D7B68)
+                    )
+                }
                 Text(
                     text = title,
                     fontFamily = AppFontFamily,
@@ -624,21 +693,19 @@ private fun StageTabChip(
  */
 @Composable
 private fun TopicChip(topic: String, topicTitle: String) {
-    val (icon, bg) = when (topic) {
-        "SAVINGS" -> "🏦" to Color(0xFFFFE082)
-        "PURCHASES" -> "🛒" to Color(0xFFC8E6C9)
-        else -> "📋" to Color(0xFFBBDEFB)
+    val bg = when (topic) {
+        "SAVINGS" -> Color(0xFFFFE082)
+        "PURCHASES" -> Color(0xFFC8E6C9)
+        else -> Color(0xFFBBDEFB)
     }
 
-    Row(
+    Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
             .background(bg)
             .padding(horizontal = 7.dp, vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = icon, fontSize = 12.sp)
-        Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = topicTitle,
             fontFamily = AppFontFamily,
@@ -654,21 +721,19 @@ private fun TopicChip(topic: String, topicTitle: String) {
  */
 @Composable
 private fun StageBadge(stage: String) {
-    val (label, icon) = when (stage) {
-        "ADULT" -> "3 стадия" to "🎓"
-        "TEEN" -> "2 стадия" to "🎒"
-        else -> "1 стадия" to "🍼"
+    val label = when (stage) {
+        "ADULT" -> "3 стадия"
+        "TEEN" -> "2 стадия"
+        else -> "1 стадия"
     }
 
-    Row(
+    Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
             .background(Color(0xFFEDE0D4))
             .padding(horizontal = 6.dp, vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = icon, fontSize = 11.sp)
-        Spacer(modifier = Modifier.width(3.dp))
         Text(
             text = label,
             fontFamily = AppFontFamily,
@@ -703,7 +768,21 @@ private fun TextInputQuestSection(
                 .padding(12.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "🎉", fontSize = 20.sp)
+                Box(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(PixelGreenCrop),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "V",
+                        fontFamily = AppFontFamily,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Термин разгадан! Ответ принят.",
@@ -727,10 +806,8 @@ private fun TextInputQuestSection(
                         .padding(vertical = 2.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "💡", fontSize = 16.sp)
-                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (isHintRevealed) "Скрыть подсказку" else "Нужна подсказка?",
+                        text = if (isHintRevealed) "Скрыть подсказку" else "[?] Нужна подсказка",
                         fontFamily = AppFontFamily,
                         fontSize = 14.sp,
                         color = if (isHintRevealed) PixelGoldDark else PixelWoodMedium,
@@ -804,7 +881,7 @@ private fun TextInputQuestSection(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Проверить ответ ✍️",
+                    text = "Проверить ответ",
                     fontFamily = AppFontFamily,
                     color = PixelTextDark,
                     fontSize = 16.sp,
@@ -840,7 +917,21 @@ private fun MoneyAllocationQuestSection(
                 .padding(12.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "🪙", fontSize = 20.sp)
+                Box(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(PixelGreenCrop),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "V",
+                        fontFamily = AppFontFamily,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Бюджет успешно распределён! Отличное решение.",
@@ -930,14 +1021,14 @@ private fun MoneyAllocationQuestSection(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "🏦 ${quest.allocationTarget.ifEmpty { "В копилку" }}: $allocation монет ($percent%)",
+                        text = "${quest.allocationTarget.ifEmpty { "В копилку" }}: $allocation монет ($percent%)",
                         fontFamily = AppFontFamily,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFE65100)
                     )
                     Text(
-                        text = "🍬 На радости: $remaining монет",
+                        text = "На радости: $remaining монет",
                         fontFamily = AppFontFamily,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
@@ -985,7 +1076,7 @@ private fun MoneyAllocationQuestSection(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Подтвердить распределение 🪙",
+                    text = "Подтвердить распределение",
                     fontFamily = AppFontFamily,
                     color = PixelTextDark,
                     fontSize = 16.sp,
@@ -997,7 +1088,7 @@ private fun MoneyAllocationQuestSection(
 }
 
 /**
- * Секция квеста со сдачей / расчетом (со случайными числами)
+ * Секция квеста со сдачей / расчетом (со случайным перемешиванием вариантов)
  */
 @Composable
 private fun CalculationQuestSection(
@@ -1016,7 +1107,21 @@ private fun CalculationQuestSection(
                 .padding(12.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "🧮", fontSize = 20.sp)
+                Box(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(PixelGreenCrop),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "V",
+                        fontFamily = AppFontFamily,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Расчёт выполнен верно! Награда начислена.",
@@ -1028,8 +1133,10 @@ private fun CalculationQuestSection(
             }
         }
     } else {
+        val shuffledOptions = remember(quest.id, randomOffset) { quest.options.shuffled() }
+
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Кнопка рандомизации чисел для тренировки
+            // Кнопка рандомизации вариантов
             Row(
                 modifier = Modifier
                     .clickable(
@@ -1039,10 +1146,24 @@ private fun CalculationQuestSection(
                     .padding(vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "🎲", fontSize = 14.sp)
-                Spacer(modifier = Modifier.width(4.dp))
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color(0xFFE0D7C6)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "R",
+                        fontFamily = AppFontFamily,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelWoodMedium
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Случайный вариант задачи",
+                    text = "Перемешать варианты",
                     fontFamily = AppFontFamily,
                     fontSize = 13.sp,
                     color = PixelWoodMedium,
@@ -1051,7 +1172,7 @@ private fun CalculationQuestSection(
             }
 
             // Варианты ответов в аутентичном пиксельном стиле
-            quest.options.forEach { opt ->
+            shuffledOptions.forEach { opt ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1078,7 +1199,7 @@ private fun CalculationQuestSection(
 }
 
 /**
- * Секция квеста с выбором варианта (CHOICE)
+ * Секция квеста с выбором варианта (CHOICE) со случайным перемешиванием порядка вариантов
  */
 @Composable
 private fun ChoiceQuestSection(
@@ -1087,8 +1208,10 @@ private fun ChoiceQuestSection(
     onSelectOption: (String) -> Unit
 ) {
     if (!isDone) {
+        val shuffledOptions = remember(quest.id) { quest.options.shuffled() }
+
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            quest.options.forEach { opt ->
+            shuffledOptions.forEach { opt ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

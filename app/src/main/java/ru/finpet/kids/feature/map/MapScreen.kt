@@ -251,10 +251,10 @@ fun MapScreen(
         PixelAlertDialog(
             onDismissRequest = { notEnoughMoneyInfo = null },
             title = "Не хватает монет!",
-            icon = "🪙",
+            icon = "!",
             confirmButton = {
                 PixelButton(
-                    text = "В Домик к заданиям 🏡",
+                    text = "В Домик к заданиям",
                     onClick = {
                         notEnoughMoneyInfo = null
                         focusOnHomeChores = true
@@ -291,7 +291,7 @@ fun MapScreen(
         PixelAlertDialog(
             onDismissRequest = { showNoPetDialog = false },
             title = "Финик сбежал",
-            icon = "😿",
+            icon = "!",
             confirmButton = {
                 PixelButton(
                     text = "Понятно",
@@ -318,10 +318,10 @@ fun MapScreen(
         PixelAlertDialog(
             onDismissRequest = { questFeedback = null },
             title = "Совет от $petName",
-            icon = "💡",
+            icon = "!",
             confirmButton = {
                 PixelButton(
-                    text = "Спасибо, понятно! 👍",
+                    text = "Спасибо, понятно!",
                     onClick = { questFeedback = null },
                     containerColor = FreshGreen,
                     textColor = Color.White,
