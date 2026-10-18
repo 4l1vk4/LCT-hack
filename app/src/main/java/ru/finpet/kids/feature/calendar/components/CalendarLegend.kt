@@ -39,19 +39,19 @@ fun CalendarLegend(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "🐾", fontSize = 14.sp)
+            Text(text = "🐾", fontSize = 15.sp)
             Spacer(modifier = Modifier.width(4.dp))
-            Text("Сегодня", fontSize = 13.sp, fontFamily = AppFontFamily, color = PixelTextDark)
+            Text("Сегодня", fontSize = 15.sp, fontFamily = AppFontFamily, color = PixelTextDark)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "📝", fontSize = 14.sp)
+            Text(text = "📝", fontSize = 15.sp)
             Spacer(modifier = Modifier.width(4.dp))
-            Text("Задачи", fontSize = 13.sp, fontFamily = AppFontFamily, color = PixelTextDark)
+            Text("Задачи", fontSize = 15.sp, fontFamily = AppFontFamily, color = PixelTextDark)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            CoinIcon(modifier = Modifier.size(14.dp))
+            CoinIcon(modifier = Modifier.size(15.dp))
             Spacer(modifier = Modifier.width(4.dp))
-            Text("Регулярные", fontSize = 13.sp, fontFamily = AppFontFamily, color = PixelTextDark)
+            Text("Регулярные", fontSize = 15.sp, fontFamily = AppFontFamily, color = PixelTextDark)
         }
     }
 }

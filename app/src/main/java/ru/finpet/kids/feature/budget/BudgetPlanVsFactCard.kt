@@ -95,28 +95,28 @@ fun BudgetPlanVsFactCard(
                             Text(
                                 text = "План:",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 color = PixelTextDark,
                                 fontFamily = AppFontFamily
                             )
                             CoinText(
                                 prefix = "${plan.totalPlanned}",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 color = PixelTextDark,
                                 fontFamily = AppFontFamily
                             )
                             Text(
                                 text = "➔ Факт:",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 color = PixelTextDark,
                                 fontFamily = AppFontFamily
                             )
                             CoinText(
                                 prefix = "${actual.totalActual}",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 color = if (actual.totalActual <= plan.totalPlanned) PixelGreenCrop else PixelRedBerry,
                                 fontFamily = AppFontFamily
                             )
@@ -124,7 +124,7 @@ fun BudgetPlanVsFactCard(
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = if (compliance.isDisciplined) "🏆 Отличная дисциплина трат!" else "💡 Следи за покупками в Лавке",
-                            fontSize = 13.sp,
+                            fontSize = 15.sp,
                             color = PixelTextMuted
                         )
                     }
@@ -145,7 +145,7 @@ fun BudgetPlanVsFactCard(
                             text = "${compliance.totalPercent}%",
                             color = Color.White,
                             fontWeight = FontWeight.ExtraBold,
-                            fontSize = 13.sp,
+                            fontSize = 15.sp,
                             fontFamily = AppFontFamily
                         )
                     }
@@ -160,14 +160,14 @@ fun BudgetPlanVsFactCard(
                     .padding(horizontal = 14.dp, vertical = 8.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "🎯", fontSize = 15.sp)
+                    Text(text = "🎯", fontSize = 16.sp)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Точность бюджета (${compliance.totalPercent}%): совпадение трат с планом в баночках. Экономия монеток и пополнение копилки не снижают процент!",
                         fontFamily = AppFontFamily,
-                        fontSize = 13.sp,
+                        fontSize = 15.sp,
                         color = Color(0xFF1B5E20),
-                        lineHeight = 16.sp
+                        lineHeight = 19.sp
                     )
                 }
             }
@@ -240,7 +240,7 @@ fun BudgetPlanVsFactCard(
                         Text(
                             text = "🔒 План утверждён",
                             fontFamily = AppFontFamily,
-                            fontSize = 13.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1B5E20)
                         )
@@ -318,7 +318,7 @@ private fun CategoryComparisonRow(
                     Text(
                         text = title,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         color = PixelTextDark
                     )
                 }
@@ -347,7 +347,7 @@ private fun CategoryComparisonRow(
                 ) {
                     Text(
                         text = categoryLabel,
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                         fontFamily = AppFontFamily,
                         fontWeight = FontWeight.Bold,
                         color = PixelTextDark

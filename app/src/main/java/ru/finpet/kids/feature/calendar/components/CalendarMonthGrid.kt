@@ -60,7 +60,7 @@ fun CalendarMonthGrid(
                     text = dayName,
                     fontFamily = AppFontFamily,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
+                    fontSize = 14.sp,
                     color = if (dayName in listOf("СБ", "ВС")) PixelRedBerry else PixelTextMuted,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)

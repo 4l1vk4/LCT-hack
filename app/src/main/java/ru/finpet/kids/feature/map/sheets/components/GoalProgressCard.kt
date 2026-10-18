@@ -122,14 +122,14 @@ fun GoalProgressCard(
                     Column {
                         Text(
                             text = goal.title,
-                            fontSize = 20.sp,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
                         if (isSelected) {
                             Text(
                                 text = "⭐ Главная цель",
-                                fontSize = 14.sp,
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = JoyOrange
                             )
@@ -171,7 +171,8 @@ fun GoalProgressCard(
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = if (goal.isReached) "🎉 Мечта достигнута!" else "Осталось накопить: $remaining монет ($percent%)",
-                fontSize = 15.sp,
+                fontSize = 16.sp,
+                lineHeight = 21.sp,
                 color = TextSecondary
             )
 
@@ -186,7 +187,7 @@ fun GoalProgressCard(
                     containerColor = PixelGreenCrop,
                     textColor = Color.White,
                     borderColor = Color(0xFF1B5E20),
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -197,7 +198,7 @@ fun GoalProgressCard(
                         containerColor = Color(0xFFFFF3E0),
                         textColor = PixelRedBerry,
                         borderColor = Color(0xFFE57373),
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         modifier = Modifier.weight(1f)
                     )
                 }

@@ -76,7 +76,7 @@ fun WardrobeDialog(
                     Text(
                         text = "Надень или сними аксессуары для $petName",
                         fontFamily = AppFontFamily,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         color = PixelTextMuted,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
@@ -127,14 +127,14 @@ fun WardrobeDialog(
                                             Box(
                                                 modifier = Modifier
                                                     .align(Alignment.TopEnd)
-                                                    .size(18.dp)
+                                                    .size(20.dp)
                                                     .clip(CircleShape)
                                                     .background(Color(0xFF2E7D32)),
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Text(
                                                     text = "✓",
-                                                    fontSize = 11.sp,
+                                                    fontSize = 13.sp,
                                                     fontWeight = FontWeight.Black,
                                                     color = Color.White
                                                 )
@@ -145,7 +145,7 @@ fun WardrobeDialog(
                                     Text(
                                         text = acc.title,
                                         fontFamily = AppFontFamily,
-                                        fontSize = 12.sp,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = PixelTextDark,
                                         textAlign = TextAlign.Center,
@@ -170,7 +170,7 @@ fun WardrobeDialog(
                                 containerColor = Color(0xFFFFCDD2),
                                 textColor = PixelRedBerry,
                                 modifier = Modifier.weight(1f),
-                                fontSize = 13.sp,
+                                fontSize = 15.sp,
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
                             )
                         }
@@ -179,7 +179,7 @@ fun WardrobeDialog(
                             onClick = onDismiss,
                             containerColor = PixelGoldBright,
                             modifier = Modifier.weight(1f),
-                            fontSize = 14.sp,
+                            fontSize = 16.sp,
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
                         )
                     }

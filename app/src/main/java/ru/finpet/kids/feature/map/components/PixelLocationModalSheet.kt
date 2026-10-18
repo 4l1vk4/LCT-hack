@@ -171,16 +171,16 @@ fun PixelLocationModalSheet(
                     Column {
                         Text(
                             text = title,
-                            fontSize = 28.sp,
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = PixelDarkBrown
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = subtitle,
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             color = PixelWoodMedium,
-                            lineHeight = 24.sp
+                            lineHeight = 21.sp
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }

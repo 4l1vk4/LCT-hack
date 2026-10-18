@@ -64,7 +64,7 @@ fun OrbStatBar(
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = label,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
@@ -80,7 +80,7 @@ fun OrbStatBar(
                 }
                 Text(
                     text = "$safeValue%",
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (safeValue <= 30 && showWarning) Color(0xFFD32F2F) else tintColor
                 )

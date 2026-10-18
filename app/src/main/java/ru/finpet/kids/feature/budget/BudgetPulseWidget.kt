@@ -90,7 +90,7 @@ fun BudgetPulseWidget(
                         text = "ПУЛЬС БЮДЖЕТА",
                         fontFamily = AppFontFamily,
                         fontWeight = FontWeight.Black,
-                        fontSize = 11.sp,
+                        fontSize = 16.sp,
                         color = PixelTextDark
                     )
                 }
@@ -112,7 +112,7 @@ fun BudgetPulseWidget(
                         text = "${compliance.totalPercent}%",
                         color = Color.White,
                         fontWeight = FontWeight.Black,
-                        fontSize = 11.sp,
+                        fontSize = 14.sp,
                         fontFamily = AppFontFamily
                     )
                 }
@@ -161,7 +161,7 @@ fun BudgetPulseWidget(
             ) {
                 Text(
                     text = "План vs Факт ➔",
-                    fontSize = 10.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = PixelTextMuted
                 )

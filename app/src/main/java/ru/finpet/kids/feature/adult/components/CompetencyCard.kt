@@ -63,14 +63,14 @@ fun CompetencyCard(
             ) {
                 Text(
                     text = competency.title,
-                    fontSize = 14.sp,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
                     text = "${competency.scorePercent}%",
-                    fontSize = 15.sp,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = accentColor
                 )
@@ -100,15 +100,15 @@ fun CompetencyCard(
 
             Text(
                 text = "Статус: ${competency.statusDescription}",
-                fontSize = 12.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextPrimary
             )
             Text(
                 text = competency.advice,
-                fontSize = 12.sp,
+                fontSize = 15.sp,
                 color = TextSecondary,
-                lineHeight = 16.sp
+                lineHeight = 20.sp
             )
         }
     }

@@ -173,10 +173,10 @@ fun GlossaryDialog(
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "Нажми на слово, чтобы узнать его значение!",
-                                fontSize = 15.sp,
+                                fontSize = 16.sp,
                                 fontFamily = AppFontFamily,
                                 color = PixelTextMuted,
-                                lineHeight = 18.sp
+                                lineHeight = 21.sp
                             )
                         }
                     }
@@ -232,7 +232,7 @@ fun GlossaryDialog(
 
                                         Text(
                                             text = term.term,
-                                            fontSize = 15.sp,
+                                            fontSize = 17.sp,
                                             fontFamily = AppFontFamily,
                                             fontWeight = FontWeight.Black,
                                             color = PixelTextDark,
@@ -241,7 +241,7 @@ fun GlossaryDialog(
 
                                         Text(
                                             text = if (isExpanded) "▲" else "▼",
-                                            fontSize = 12.sp,
+                                            fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = if (isExpanded) PixelGoldDark else PixelTextMuted
                                         )
@@ -254,7 +254,7 @@ fun GlossaryDialog(
                                             text = term.definition,
                                             fontSize = 16.sp,
                                             color = PixelTextDark,
-                                            lineHeight = 20.sp
+                                            lineHeight = 21.sp
                                         )
 
                                         if (term.example.isNotBlank()) {
@@ -266,15 +266,15 @@ fun GlossaryDialog(
                                                     .padding(horizontal = 12.dp, vertical = 8.dp)
                                             ) {
                                                 Row(verticalAlignment = Alignment.Top) {
-                                                    Text(text = "🌟", fontSize = 12.sp)
+                                                    Text(text = "🌟", fontSize = 15.sp)
                                                     Spacer(modifier = Modifier.width(6.dp))
                                                     Text(
                                                         text = term.example,
                                                         fontFamily = AppFontFamily,
-                                                        fontSize = 14.sp,
+                                                        fontSize = 15.sp,
                                                         fontWeight = FontWeight.SemiBold,
                                                         color = PixelGreenCrop,
-                                                        lineHeight = 17.sp
+                                                        lineHeight = 20.sp
                                                     )
                                                 }
                                             }
@@ -293,7 +293,7 @@ fun GlossaryDialog(
                                 containerColor = PixelWoodMedium,
                                 textColor = PixelParchmentLight,
                                 modifier = Modifier.fillMaxWidth(),
-                                fontSize = 15.sp
+                                fontSize = 16.sp
                             )
                         }
                     }

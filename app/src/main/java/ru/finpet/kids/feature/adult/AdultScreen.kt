@@ -116,13 +116,13 @@ fun AdultScreen(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "👨‍👩‍👦 Родительский контроль",
-                        fontSize = 20.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = TextPrimary
                     )
                     Text(
                         text = "Аналитика и настройки периода",
-                        fontSize = 13.sp,
+                        fontSize = 16.sp,
                         color = TextSecondary
                     )
                 }
@@ -138,7 +138,7 @@ fun AdultScreen(
                     DiagramIcon(modifier = Modifier.size(28.dp))
                     Text(
                         text = "Финансовые компетенции ребенка",
-                        fontSize = 16.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
@@ -166,7 +166,7 @@ fun AdultScreen(
                     modifier = Modifier.fillMaxWidth(),
                     containerColor = PixelWoodMedium,
                     textColor = PixelParchmentLight,
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     contentPadding = PaddingValues(vertical = 11.dp)
                 )
             }
@@ -180,7 +180,7 @@ fun AdultScreen(
                     textColor = Color.White,
                     onClick = { showResetDialog = true },
                     modifier = Modifier.fillMaxWidth(),
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     contentPadding = PaddingValues(vertical = 11.dp)
                 )
                 Spacer(modifier = Modifier.height(20.dp))

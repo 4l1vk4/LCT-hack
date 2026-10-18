@@ -140,14 +140,14 @@ fun CalendarScreen(
                                 Text(
                                     text = "Бюджет на сегодня не составлен!",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 17.sp,
+                                    fontSize = 18.sp,
                                     color = PixelTextDark
                                 )
                                 Text(
                                     text = "Распредели доступные монетки по 3 корзинам: на жизнь, радости и мечту до начала покупок.",
-                                    fontSize = 15.sp,
+                                    fontSize = 16.sp,
                                     color = PixelTextMuted,
-                                    lineHeight = 19.sp
+                                    lineHeight = 21.sp
                                 )
                             }
                         }
@@ -159,7 +159,7 @@ fun CalendarScreen(
                             textColor = PixelTextDark,
                             borderColor = PixelGoldDark,
                             modifier = Modifier.fillMaxWidth(),
-                            fontSize = 12.sp,
+                            fontSize = 16.sp,
                             leadingIcon = { ExclamationIcon(modifier = Modifier.size(16.dp)) }
                         )
                     }
@@ -215,7 +215,7 @@ fun CalendarScreen(
                     textColor = Color.White,
                     borderColor = Color(0xFF1B5E20),
                     modifier = Modifier.fillMaxWidth(),
-                    fontSize = 15.sp
+                    fontSize = 16.sp
                 )
             }
 
@@ -223,7 +223,7 @@ fun CalendarScreen(
             Text(
                 text = if (isNextMonday) "🎉 Завтра понедельник: выплата 200 монет карманных денег!"
                 else "💡 Карманные деньги (+200 монет) выдаются по понедельникам",
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 color = PixelTextMuted,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()

@@ -118,7 +118,7 @@ fun DayDetailsDialog(
                                 Column {
                                     Text(
                                         text = if (isToday) "🌟 Сегодняшние задачи" else "🗓️ Задачи на День $dayNumber",
-                                        fontSize = 16.sp,
+                                        fontSize = 18.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (isToday) PixelGoldDark else PixelTextDark
                                     )
@@ -134,7 +134,7 @@ fun DayDetailsDialog(
                                     Text(
                                         text = "$balance",
                                         fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 15.sp,
+                                        fontSize = 16.sp,
                                         color = PixelGoldDark,
                                         fontFamily = AppFontFamily
                                     )
@@ -171,7 +171,8 @@ fun DayDetailsDialog(
                             ) {
                                 Text(
                                     text = "На этот день нет задач. Нажмите кнопку ниже, чтобы добавить свою заметку!",
-                                    fontSize = 14.sp,
+                                    fontSize = 16.sp,
+                                    lineHeight = 21.sp,
                                     color = PixelTextMuted
                                 )
                             }
@@ -227,7 +228,7 @@ fun DayDetailsDialog(
 
                                     Text(
                                         text = note.title,
-                                        fontSize = 15.sp,
+                                        fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (note.isCompleted) PixelTextMuted else PixelTextDark,
                                         textDecoration = if (note.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
@@ -250,17 +251,17 @@ fun DayDetailsDialog(
                                                 Text(
                                                     text = "✅ Сдача +${note.cost}",
                                                     fontFamily = AppFontFamily,
-                                                    fontSize = 13.sp,
+                                                    fontSize = 14.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGreenCrop
                                                 )
                                                 Spacer(modifier = Modifier.width(3.dp))
-                                                CoinIcon(modifier = Modifier.size(13.dp))
+                                                CoinIcon(modifier = Modifier.size(14.dp))
                                             } else {
                                                 Text(
                                                     text = "✅ Готово",
                                                     fontFamily = AppFontFamily,
-                                                    fontSize = 13.sp,
+                                                    fontSize = 14.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGreenCrop
                                                 )
@@ -280,22 +281,22 @@ fun DayDetailsDialog(
                                                 Text(
                                                     text = "${note.cost}",
                                                     fontFamily = AppFontFamily,
-                                                    fontSize = 13.sp,
+                                                    fontSize = 14.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGoldBright
                                                 )
                                                 Spacer(modifier = Modifier.width(3.dp))
-                                                CoinIcon(modifier = Modifier.size(13.dp))
+                                                CoinIcon(modifier = Modifier.size(14.dp))
                                             } else if (note.category == "PET_FOOD") {
                                                 Text(
                                                     text = "Лавка • 30",
                                                     fontFamily = AppFontFamily,
-                                                    fontSize = 13.sp,
+                                                    fontSize = 14.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGoldBright
                                                 )
                                                 Spacer(modifier = Modifier.width(3.dp))
-                                                CoinIcon(modifier = Modifier.size(13.dp))
+                                                CoinIcon(modifier = Modifier.size(14.dp))
                                             } else {
                                                 val badgeLabel = when {
                                                     note.category == "GROCERIES" -> "Лавка • Сдача"
@@ -305,14 +306,14 @@ fun DayDetailsDialog(
                                                 Text(
                                                     text = badgeLabel,
                                                     fontFamily = AppFontFamily,
-                                                    fontSize = 13.sp,
+                                                    fontSize = 14.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGoldBright
                                                 )
                                             }
                                             if (isNavigable && onNavigateToTask != null) {
                                                 Spacer(modifier = Modifier.width(3.dp))
-                                                Text(text = "👉", fontSize = 11.sp)
+                                                Text(text = "👉", fontSize = 13.sp)
                                             }
                                         }
                                     }
@@ -345,7 +346,7 @@ fun DayDetailsDialog(
                             onClick = onOpenAddNote,
                             containerColor = PixelGoldBright,
                             modifier = Modifier.fillMaxWidth(),
-                            fontSize = 15.sp
+                            fontSize = 16.sp
                         )
                     }
 
@@ -366,7 +367,7 @@ fun DayDetailsDialog(
                                 textColor = Color.White,
                                 borderColor = Color(0xFF1B5E20),
                                 modifier = Modifier.fillMaxWidth(),
-                                fontSize = 15.sp
+                                fontSize = 16.sp
                             )
                         }
                     }
@@ -380,7 +381,7 @@ fun DayDetailsDialog(
                             textColor = PixelParchmentLight,
                             borderColor = PixelWoodDark,
                             modifier = Modifier.fillMaxWidth(),
-                            fontSize = 15.sp
+                            fontSize = 16.sp
                         )
                     }
                 }

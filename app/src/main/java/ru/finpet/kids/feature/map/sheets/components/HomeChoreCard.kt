@@ -73,16 +73,16 @@ fun HomeChoreCard(
                 Column {
                     Text(
                         text = chore.title,
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = chore.description,
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         color = TextSecondary,
-                        lineHeight = 19.sp
+                        lineHeight = 21.sp
                     )
                 }
             }
@@ -105,7 +105,7 @@ fun HomeChoreCard(
                     onClick = { onPlayMinigame(chore) },
                     containerColor = PixelGoldBright,
                     textColor = PixelTextDark,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                     trailingIcon = { CoinIcon(modifier = Modifier.size(16.dp)) }
                 )

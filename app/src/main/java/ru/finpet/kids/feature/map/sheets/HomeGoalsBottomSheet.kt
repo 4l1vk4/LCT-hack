@@ -195,14 +195,14 @@ fun HomeGoalsBottomSheet(
                         Column {
                             Text(
                                 text = "Копилка на мечту",
-                                fontSize = 20.sp,
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = if (isPiggyBankExpanded) "Нажми, чтобы скрыть цели ▲" else "Накоплено $totalSaved монет • Нажми, чтобы открыть ▼",
-                                fontSize = 15.sp,
+                                fontSize = 16.sp,
                                 color = TextSecondary
                             )
                         }
@@ -267,7 +267,7 @@ fun HomeGoalsBottomSheet(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "Домашние дела",
-                            fontSize = 21.sp,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = TextPrimary
                         )
@@ -275,7 +275,7 @@ fun HomeGoalsBottomSheet(
 
                     Text(
                         text = "$completedChoresCount / ${DEFAULT_HOME_CHORES.size} сделано",
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (completedChoresCount == DEFAULT_HOME_CHORES.size) FreshGreen else PixelTextDark
                     )

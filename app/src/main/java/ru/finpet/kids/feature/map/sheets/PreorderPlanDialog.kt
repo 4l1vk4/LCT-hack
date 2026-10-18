@@ -226,7 +226,7 @@ fun PreorderPlanDialog(
                                             Text(
                                                 text = item.name,
                                                 fontWeight = FontWeight.Bold,
-                                                fontSize = 15.sp,
+                                                fontSize = 16.sp,
                                                 color = if (isSelected) Color(0xFF374151) else PixelTextDark
                                             )
                                             if (canBoostAnyLowStat) {
@@ -240,7 +240,7 @@ fun PreorderPlanDialog(
                                         ) {
                                             CoinPriceTag(
                                                 amount = item.price,
-                                                fontSize = 14.sp,
+                                                fontSize = 16.sp,
                                                 color = if (isSelected) Color(0xFF4B5563) else JoyOrange
                                             )
                                             if (item.satietyBonus > 0) {
@@ -251,7 +251,7 @@ fun PreorderPlanDialog(
                                                     if (boostsLowSatiety) {
                                                         ExclamationIcon(modifier = Modifier.size(12.dp))
                                                     }
-                                                    Text("🍎 +${item.satietyBonus}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = JoyOrange)
+                                                    Text("🍎 +${item.satietyBonus}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = JoyOrange)
                                                 }
                                             }
                                             if (item.moodBonus > 0) {
@@ -263,7 +263,7 @@ fun PreorderPlanDialog(
                                                         ExclamationIcon(modifier = Modifier.size(12.dp))
                                                     }
                                                     LightningIcon(modifier = Modifier.size(13.dp))
-                                                    Text("+${item.moodBonus}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = SkyBlue)
+                                                    Text("+${item.moodBonus}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = SkyBlue)
                                                 }
                                             }
                                             if (item.healthBonus > 0) {
@@ -275,7 +275,7 @@ fun PreorderPlanDialog(
                                                         ExclamationIcon(modifier = Modifier.size(12.dp))
                                                     }
                                                     HeartIcon(modifier = Modifier.size(13.dp))
-                                                    Text("+${item.healthBonus}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = FreshGreen)
+                                                    Text("+${item.healthBonus}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = FreshGreen)
                                                 }
                                             }
                                         }
@@ -319,7 +319,7 @@ fun PreorderPlanDialog(
                         containerColor = if (hasItems) PixelGreenCrop else Color(0xFFCCCCCC),
                         borderColor = if (hasItems) Color(0xFF2E7D32) else Color(0xFF999999),
                         textColor = if (hasItems) Color.White else Color(0xFF666666),
-                        fontSize = 15.sp
+                        fontSize = 16.sp
                     )
                 }
             }
@@ -445,7 +445,7 @@ fun QuickBuyConfirmDialog(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         if (item.satietyBonus > 0) {
-                                            Text("🍎 Сытость +${item.satietyBonus}", fontSize = 15.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
+                                            Text("🍎 Сытость +${item.satietyBonus}", fontSize = 16.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
                                         }
                                         if (item.moodBonus > 0) {
                                             Row(
@@ -453,7 +453,7 @@ fun QuickBuyConfirmDialog(
                                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                                             ) {
                                                 LightningIcon(modifier = Modifier.size(16.dp))
-                                                Text("Настроение +${item.moodBonus}", fontSize = 15.sp, color = SkyBlue, fontWeight = FontWeight.Bold)
+                                                Text("Настроение +${item.moodBonus}", fontSize = 16.sp, color = SkyBlue, fontWeight = FontWeight.Bold)
                                             }
                                         }
                                         if (item.healthBonus > 0) {
@@ -462,7 +462,7 @@ fun QuickBuyConfirmDialog(
                                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                                             ) {
                                                 HeartIcon(modifier = Modifier.size(16.dp))
-                                                Text("Здоровье +${item.healthBonus}", fontSize = 15.sp, color = FreshGreen, fontWeight = FontWeight.Bold)
+                                                Text("Здоровье +${item.healthBonus}", fontSize = 16.sp, color = FreshGreen, fontWeight = FontWeight.Bold)
                                             }
                                         }
                                     }

@@ -96,9 +96,9 @@ fun CalendarDayCell(
                     color = if (isToday) PixelGoldDark else if (isPast) PixelTextMuted else PixelTextDark
                 )
                 if (isToday) {
-                    Text(text = "🐾", fontSize = 11.sp)
+                    Text(text = "🐾", fontSize = 13.sp)
                 } else if (isPast) {
-                    Text(text = "✓", fontSize = 11.sp, color = PixelGreenCrop, fontWeight = FontWeight.Bold)
+                    Text(text = "✓", fontSize = 13.sp, color = PixelGreenCrop, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -109,11 +109,11 @@ fun CalendarDayCell(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (hasRecurring) {
-                    CoinIcon(modifier = Modifier.size(12.dp))
+                    CoinIcon(modifier = Modifier.size(13.dp))
                     Spacer(modifier = Modifier.width(2.dp))
                 }
                 if (hasNotes) {
-                    Text(text = "📝", fontSize = 11.sp)
+                    Text(text = "📝", fontSize = 13.sp)
                 }
             }
 

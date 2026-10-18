@@ -246,14 +246,14 @@ fun StatBar(
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = label,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
             }
             Text(
                 text = "$value%",
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = barColor
             )
@@ -301,7 +301,7 @@ fun FinCard(
  */
 @Composable
 fun CoinText(
-    fontSize: TextUnit = 14.sp,
+    fontSize: TextUnit = 16.sp,
     color: Color = TextPrimary,
     fontWeight: FontWeight = FontWeight.Bold,
     fontFamily: FontFamily? = null,

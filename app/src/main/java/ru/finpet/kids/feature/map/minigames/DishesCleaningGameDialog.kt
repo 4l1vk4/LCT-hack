@@ -225,12 +225,12 @@ fun DishesCleaningGameDialog(
                                 Text(
                                     text = "Нажимай на посуду в раковине!",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp,
+                                    fontSize = 17.sp,
                                     color = PixelWoodDark
                                 )
                                 Text(
                                     text = "Отмой все тарелочки губкой до блеска",
-                                    fontSize = 12.sp,
+                                    fontSize = 15.sp,
                                     color = Color(0xFF6B4423)
                                 )
                             }
@@ -242,7 +242,7 @@ fun DishesCleaningGameDialog(
                                 Text(
                                     text = "$cleanedCount / ${dishes.size}",
                                     fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 14.sp,
+                                    fontSize = 15.sp,
                                     color = Color.White,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
@@ -355,7 +355,7 @@ fun DishesCleaningGameDialog(
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9E9E9E)),
                                 shape = RoundedCornerShape(8.dp)
                             ) {
-                                Text(text = "Закончить позже", color = Color.White, fontSize = 13.sp)
+                                Text(text = "Закончить позже", color = Color.White, fontSize = 15.sp)
                             }
                         }
                     }
@@ -382,13 +382,13 @@ fun DishesCleaningGameDialog(
                                 Text(
                                     text = "🎉 ВСЯ ПОСУДА ВЫМЫТА! 🎉",
                                     fontWeight = FontWeight.Black,
-                                    fontSize = 19.sp,
+                                    fontSize = 22.sp,
                                     color = FreshGreen
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "Тарелки и чашки сверкают до скрипа!",
-                                    fontSize = 14.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = Color(0xFF2E7D32),
                                     textAlign = TextAlign.Center

@@ -113,16 +113,16 @@ fun PeriodAnalysisDialog(
                                     Text(
                                         text = if (resolution.newMonthName.isNotBlank()) "Новый месяц: ${resolution.newMonthName}!" else "Наступил новый месяц!",
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
+                                        fontSize = 18.sp,
                                         color = PixelTextDark
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "Поздравляем с завершением месяца! Все заметки и итоги сохранены в календаре, а питомец перешел на День 1.",
-                                    fontSize = 14.sp,
+                                    fontSize = 16.sp,
                                     color = PixelTextDark,
-                                    lineHeight = 18.sp
+                                    lineHeight = 21.sp
                                 )
                             }
                         }
@@ -146,16 +146,16 @@ fun PeriodAnalysisDialog(
                                     Text(
                                         text = "Понедельник — выплата карманных!",
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
+                                        fontSize = 18.sp,
                                         color = PixelTextDark
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "Наступает новая неделя! Тебе начислено +${resolution.periodIncome} монет карманных денег.",
-                                    fontSize = 14.sp,
+                                    fontSize = 16.sp,
                                     color = PixelTextDark,
-                                    lineHeight = 18.sp
+                                    lineHeight = 21.sp
                                 )
                             }
                         }
@@ -180,15 +180,15 @@ fun PeriodAnalysisDialog(
                                     Text(
                                         text = "План бюджета не был составлен!",
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
+                                        fontSize = 18.sp,
                                         color = Color(0xFFE65100)
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = "Переходить в новый день без распределения бюджета — не очень хорошая практика. Всегда планируй обязательные расходы и накопления заранее, чтобы питомец был сыт и копилка росла!",
-                                        fontSize = 15.sp,
+                                        fontSize = 16.sp,
                                         color = PixelTextDark,
-                                        lineHeight = 17.sp
+                                        lineHeight = 21.sp
                                     )
                                 }
                             }
@@ -224,7 +224,7 @@ fun PeriodAnalysisDialog(
                                         text = complianceBadgeTitle,
                                         fontFamily = AppFontFamily,
                                         fontWeight = FontWeight.Black,
-                                        fontSize = 16.sp,
+                                        fontSize = 18.sp,
                                         color = PixelTextDark
                                     )
                                 }
@@ -232,10 +232,10 @@ fun PeriodAnalysisDialog(
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = compliance.feedback,
-                                        fontSize = 15.sp,
+                                        fontSize = 16.sp,
                                         color = PixelTextDark,
                                         textAlign = TextAlign.Center,
-                                        lineHeight = 17.sp
+                                        lineHeight = 21.sp
                                     )
                                 }
                             }
@@ -317,12 +317,12 @@ fun PeriodAnalysisDialog(
                             Text(
                                 text = "$effectiveMood% 🐾",
                                 fontWeight = FontWeight.Black,
-                                fontSize = 16.sp,
+                                fontSize = 17.sp,
                                 color = PixelGreenCrop
                             )
                             Text(
                                 text = "Настроение",
-                                fontSize = 14.sp,
+                                fontSize = 15.sp,
                                 color = PixelTextMuted
                             )
                         }
@@ -338,7 +338,7 @@ fun PeriodAnalysisDialog(
                         textColor = Color.White,
                         borderColor = Color(0xFF1B5E20),
                         modifier = Modifier.fillMaxWidth(),
-                        fontSize = 15.sp
+                        fontSize = 16.sp
                     )
                 }
             }
@@ -371,7 +371,7 @@ private fun PlanFactRow(
             Text(
                 text = title,
                 fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
+                fontSize = 16.sp,
                 color = color
             )
         }
@@ -380,14 +380,14 @@ private fun PlanFactRow(
             if (planVal != null) {
                 Text(
                     text = "План: $planVal",
-                    fontSize = 14.sp,
+                    fontSize = 15.sp,
                     color = PixelTextMuted
                 )
                 Spacer(modifier = Modifier.width(8.dp))
             }
             Text(
                 text = "$actualPrefix$actualVal",
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = PixelTextDark
             )
@@ -396,7 +396,7 @@ private fun PlanFactRow(
             if (isOk != null) {
                 Spacer(modifier = Modifier.width(4.dp))
                 if (isOk) {
-                    Text(text = "✅", fontSize = 12.sp)
+                    Text(text = "✅", fontSize = 14.sp)
                 } else {
                     WarningIcon(modifier = Modifier.size(14.dp))
                 }

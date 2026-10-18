@@ -49,8 +49,8 @@ val PixelGoldBright = Color(0xFFFFC107)
 val PixelGoldGlow = Color(0xFFFFD54F)
 val PixelGoldDark = Color(0xFFC67D00)
 
-val PixelTextDark = Color(0xFF381F0E)
-val PixelTextMuted = Color(0xFF7A5839)
+val PixelTextDark = Color(0xFF26150B)
+val PixelTextMuted = Color(0xFF4A3423)
 val PixelGreenCrop = Color(0xFF2E7D32)
 val PixelRedBerry = Color(0xFFC62828)
 val PixelBlueWater = Color(0xFF1565C0)
@@ -95,7 +95,7 @@ fun StardewBoard(
                             text = headerTitle,
                             fontFamily = AppFontFamily,
                             fontWeight = FontWeight.Black,
-                            fontSize = 15.sp,
+                            fontSize = 18.sp,
                             color = PixelTextDark,
                             letterSpacing = 1.sp
                         )
@@ -136,7 +136,7 @@ fun PixelButton(
     textColor: Color = PixelTextDark,
     borderColor: Color = PixelGoldDark,
     enabled: Boolean = true,
-    fontSize: TextUnit = 14.sp,
+    fontSize: TextUnit = 16.sp,
     contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 7.dp),
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null

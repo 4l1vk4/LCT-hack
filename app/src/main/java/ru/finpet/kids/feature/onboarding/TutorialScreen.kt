@@ -146,11 +146,11 @@ fun TutorialScreen(
         ) {
             Text(
                 text = steps[step],
-                fontSize = 18.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF381F0E),
                 textAlign = TextAlign.Center,
-                lineHeight = 24.sp,
+                lineHeight = 23.sp,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -202,7 +202,7 @@ fun TutorialScreen(
             ) {
                 Text(
                     text = "Пропустить →",
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )

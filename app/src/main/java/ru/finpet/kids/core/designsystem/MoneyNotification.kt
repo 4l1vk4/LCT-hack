@@ -123,11 +123,11 @@ fun MoneyNotification(
                     // Источник
                     Text(
                         text = source,
-                        fontSize = 12.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = TextPrimary,
                         maxLines = 2,
-                        lineHeight = 15.sp
+                        lineHeight = 19.sp
                     )
                 }
 

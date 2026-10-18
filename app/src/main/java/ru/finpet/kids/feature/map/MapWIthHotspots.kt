@@ -67,7 +67,8 @@ fun MapWithHotspots(
     modifier: Modifier = Modifier,
     anchor: Alignment.Vertical = Alignment.Bottom,
     hasShopWarning: Boolean = false,
-    debug: Boolean = false
+    debug: Boolean = false,
+    isNight: Boolean = false
 ) {
     // контейнер карты с обрезкой по границам экрана
     BoxWithConstraints(
@@ -91,12 +92,18 @@ fun MapWithHotspots(
             else -> h - renderedHeight // Alignment.Bottom
         }
 
-        // фоновое изображение карты
+        // 1. фоновое изображение карты
         Image(
             painter = painterResource(id = mapRes),
             contentDescription = "Карта приключений",
             contentScale = ContentScale.Crop,
             alignment = Alignment.BottomCenter,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // 1.5. анимированный слой плывущих облаков над картой
+        ru.finpet.kids.feature.map.components.MovingCloudsOverlay(
+            isNight = isNight,
             modifier = Modifier.fillMaxSize()
         )
 
