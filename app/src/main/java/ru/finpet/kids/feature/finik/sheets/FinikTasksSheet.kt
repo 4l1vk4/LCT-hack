@@ -124,26 +124,6 @@ fun FinikTasksSheet(
                 }
             }
 
-            // прогресс-бар выполнения без сторонних точек индикатора
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0xFFD7C4A5))
-            ) {
-                val progressFraction = if (totalCount > 0) (completedCount.toFloat() / totalCount).coerceIn(0f, 1f) else 0f
-                if (progressFraction > 0f) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth(progressFraction)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(FreshGreen)
-                    )
-                }
-            }
-
             // список задач на сегодня
             LazyColumn(
                 modifier = Modifier
@@ -286,7 +266,7 @@ fun FinikTasksSheet(
                                                 text = badgeText,
                                                 fontSize = 14.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = JoyOrange
+                                                color = TextPrimary,
                                             )
                                             Spacer(modifier = Modifier.width(3.dp))
                                             CoinIcon(modifier = Modifier.size(13.dp))
@@ -295,7 +275,7 @@ fun FinikTasksSheet(
                                                 text = "${note.cost}",
                                                 fontSize = 14.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = JoyOrange
+                                                color = TextPrimary,
                                             )
                                             Spacer(modifier = Modifier.width(3.dp))
                                             CoinIcon(modifier = Modifier.size(13.dp))
@@ -304,12 +284,8 @@ fun FinikTasksSheet(
                                                 text = taskBadge,
                                                 fontSize = 14.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = JoyOrange
+                                                color = TextPrimary,
                                             )
-                                        }
-                                        if (isNavigable) {
-                                            Spacer(modifier = Modifier.width(3.dp))
-                                            Text(text = "👉", fontSize = 14.sp)
                                         }
                                     }
                                 }

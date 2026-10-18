@@ -111,7 +111,6 @@ fun FinikDailyTaskCard(
                         color = if (pendingTask == null) FreshGreen else JoyOrange
                     )
                     Spacer(modifier = Modifier.width(3.dp))
-                    Text(text = "👉", fontSize = 14.sp)
                 }
             }
 
@@ -199,8 +198,6 @@ fun FinikDailyTaskCard(
                                 color = JoyOrange
                             )
                         }
-                        Spacer(modifier = Modifier.width(3.dp))
-                        Text(text = "👉", fontSize = 13.sp)
                     }
                 }
             } else {

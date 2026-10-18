@@ -2,7 +2,9 @@ package ru.finpet.kids.feature.map.minigames
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -10,7 +12,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,13 +24,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,20 +46,23 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
@@ -70,43 +75,100 @@ import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
-import ru.finpet.kids.core.designsystem.StardewBoard
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
+import kotlin.random.Random
 
-private data class FloorSpot(
+private data class AutumnLeaf(
     val id: Int,
-    val percentX: Float, // 0f .. 1f безопасного пространства
-    val percentY: Float, // 0f .. 1f безопасного пространства
-    val spotEmoji: String,
-    val label: String,
-    val isCleaned: Boolean = false,
-    val isCleaning: Boolean = false
+    val xPercent: Float,
+    val yPercent: Float,
+    val rotation: Float,
+    val scale: Float
 )
 
-private val DIRT_VARIANTS = listOf(
-    "🐾" to "Следы лап",
-    "🧃" to "Пятно сока",
-    "💧" to "Лужица воды",
-    "🍪" to "Крошки печенья",
-    "🍂" to "Сухой листочек",
-    "🐾" to "Грязные лапки"
+private data class SpawnZone(
+    val minX: Float, val maxX: Float,
+    val minY: Float, val maxY: Float
 )
 
-// Безопасные координаты пятен в сетке 2x3
-private val SAFE_SPOT_POSITIONS = listOf(
-    0.12f to 0.10f,
-    0.72f to 0.12f,
-    0.15f to 0.45f,
-    0.70f to 0.48f,
-    0.14f to 0.80f,
-    0.74f to 0.82f
+// Зоны спавна строго на нижней зеленой траве осенней поляны с широким и органичным разбросом
+private val GRASS_SPAWN_ZONES = listOf(
+    // 1. Дальний левый фланг: трава у левого края поляны
+    SpawnZone(minX = 0.02f, maxX = 0.18f, minY = 0.52f, maxY = 0.67f),
+    // 2. Ближний левый угол: нижний левый край экрана
+    SpawnZone(minX = 0.04f, maxX = 0.24f, minY = 0.74f, maxY = 0.89f),
+    // 3. Дальний правый фланг: трава у правого края поляны
+    SpawnZone(minX = 0.80f, maxX = 0.96f, minY = 0.52f, maxY = 0.67f),
+    // 4. Ближний правый угол: нижний правый край экрана
+    SpawnZone(minX = 0.76f, maxX = 0.95f, minY = 0.74f, maxY = 0.89f),
+    // 5. Центр-лево: поляна чуть в глубине
+    SpawnZone(minX = 0.26f, maxX = 0.45f, minY = 0.58f, maxY = 0.71f),
+    // 6. Центр-право: поляна чуть в глубине
+    SpawnZone(minX = 0.54f, maxX = 0.73f, minY = 0.58f, maxY = 0.71f),
+    // 7. Передний план по центру: широкая поляна внизу
+    SpawnZone(minX = 0.35f, maxX = 0.65f, minY = 0.73f, maxY = 0.83f)
 )
+
+private fun generateAutumnLeaves(count: Int = 7): List<AutumnLeaf> {
+    val leaves = mutableListOf<AutumnLeaf>()
+    val random = Random.Default
+
+    // Перемешиваем зоны, чтобы порядок появления был уникальным
+    val selectedZones = GRASS_SPAWN_ZONES.shuffled(random).take(count)
+
+    selectedZones.forEachIndexed { i, zone ->
+        var bestX = (zone.minX + zone.maxX) / 2f
+        var bestY = (zone.minY + zone.maxY) / 2f
+
+        for (attempt in 0 until 25) {
+            val candidateX = random.nextFloat() * (zone.maxX - zone.minX) + zone.minX
+            val candidateY = random.nextFloat() * (zone.maxY - zone.minY) + zone.minY
+
+            if (leaves.isEmpty()) {
+                bestX = candidateX
+                bestY = candidateY
+                break
+            }
+
+            val minDist = leaves.minOf { l ->
+                val dx = (l.xPercent - candidateX)
+                val dy = (l.yPercent - candidateY) * 1.5f
+                kotlin.math.sqrt(dx * dx + dy * dy)
+            }
+
+            if (minDist >= 0.14f) {
+                bestX = candidateX
+                bestY = candidateY
+                break
+            }
+        }
+
+        // Ближние листочки чуть крупнее дальних (атмосферная перспектива)
+        val depthScale = if (bestY > 0.74f) 1.10f else 0.95f
+        // Полный естественный угол поворота упавших осенних листьев (0..360°)
+        val rotation = random.nextFloat() * 360f
+        val scale = (0.95f + random.nextFloat() * 0.15f) * depthScale
+
+        leaves.add(
+            AutumnLeaf(
+                id = i,
+                xPercent = bestX,
+                yPercent = bestY,
+                rotation = rotation,
+                scale = scale
+            )
+        )
+    }
+
+    return leaves
+}
 
 /**
- * Миниигра 1: «Мытье полов»
- * На полу разбросаны грязные пятна. При клике на пятно появляется швабра,
- * проигрывается быстрая анимация уборки и пятно исчезает.
- * Когда все убрано — победа и гарантированное начисление монет!
+ * Миниигра: «Уборка листьев» (заменяет мытье полов).
+ * На фоне осенней поляны с деревьями (autumn_game) растянутой на полный размер диалога
+ * на траве лежат осенние листочки (autumn_sheet) — по одному на точку.
+ * При клике по листику он сначала чуть увеличивается, затем уменьшается и исчезает.
+ * Когда все листочки собраны — победа и получение монет!
  */
 @Composable
 fun FloorCleaningGameDialog(
@@ -116,23 +178,8 @@ fun FloorCleaningGameDialog(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    val spots = remember {
-        val list = mutableStateListOf<FloorSpot>()
-        for (i in 0 until 6) {
-            val variant = DIRT_VARIANTS[i % DIRT_VARIANTS.size]
-            val pos = SAFE_SPOT_POSITIONS[i % SAFE_SPOT_POSITIONS.size]
-            list.add(
-                FloorSpot(
-                    id = i,
-                    percentX = pos.first,
-                    percentY = pos.second,
-                    spotEmoji = variant.first,
-                    label = variant.second
-                )
-            )
-        }
-        list
-    }
+    val leaves = remember { generateAutumnLeaves(7) }
+    val cleanedLeafIds = remember { mutableStateListOf<Int>() }
 
     var cleanedCount by remember { mutableIntStateOf(0) }
     var isWon by remember { mutableStateOf(false) }
@@ -142,31 +189,6 @@ fun FloorCleaningGameDialog(
         if (isWon) {
             delay(3500)
             onCompleteGame()
-        }
-    }
-
-    fun cleanSpot(spotId: Int) {
-        val index = spots.indexOfFirst { it.id == spotId }
-        if (index == -1) return
-        val current = spots[index]
-        if (current.isCleaned || current.isCleaning) return
-
-        // Мгновенно запускаем уборку пятна
-        spots[index] = current.copy(isCleaning = true)
-
-        coroutineScope.launch {
-            // Анимация взмаха швабры
-            delay(320)
-            val updatedIndex = spots.indexOfFirst { it.id == spotId }
-            if (updatedIndex != -1) {
-                spots[updatedIndex] = spots[updatedIndex].copy(isCleaned = true, isCleaning = false)
-            }
-            cleanedCount = spots.count { it.isCleaned }
-
-            if (cleanedCount >= spots.size && !isWon) {
-                delay(200)
-                isWon = true
-            }
         }
     }
 
@@ -186,252 +208,289 @@ fun FloorCleaningGameDialog(
         onDismissRequest = {
             if (isWon) onCompleteGame() else onDismiss()
         },
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        )
     ) {
         KeepScreenImmersive()
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.75f))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
                 ) {
                     if (isWon) onCompleteGame()
-                },
-            contentAlignment = Alignment.Center
+                }
         ) {
-            StardewBoard(
-                modifier = Modifier
-                    .fillMaxWidth(0.95f)
-                    .fillMaxHeight(0.85f),
-                headerTitle = "МЫТЬЕ ПОЛОВ",
-                headerIcon = "🧹"
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 8.dp, vertical = 6.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+            // 1. Фоновое изображение осенней поляны с деревьями — растянуто точно на полный размер диалога
+            Image(
+                painter = painterResource(R.drawable.autumn_game),
+                contentDescription = "Осенняя поляна с деревьями",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // 2. Игровое поле с отдельными осенними листочками
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val itemSize = 78.dp
+                val availW = (maxWidth - itemSize - 16.dp).coerceAtLeast(0.dp)
+                val availH = (maxHeight - itemSize - 16.dp).coerceAtLeast(0.dp)
+
+                leaves.forEach { leaf ->
+                    val spotX = 8.dp + availW * leaf.xPercent
+                    val spotY = 8.dp + availH * leaf.yPercent
+                    val isCleaned = cleanedLeafIds.contains(leaf.id)
+
+                    Box(
+                        modifier = Modifier.offset(x = spotX, y = spotY)
                     ) {
-                        // Информационная плашка со счетчиком
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(PixelParchmentLight)
-                                .border(1.5.dp, PixelParchmentBorder, RoundedCornerShape(8.dp))
-                                .padding(horizontal = 10.dp, vertical = 6.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Нажимай на грязные пятна!",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 17.sp,
-                                    color = PixelWoodDark
-                                )
-                                Text(
-                                    text = "Очисти весь пол, чтобы получить награду",
-                                    fontSize = 15.sp,
-                                    color = Color(0xFF6B4423)
-                                )
-                            }
+                        AutumnLeafItem(
+                            leaf = leaf,
+                            isCleaned = isCleaned,
+                            onClean = {
+                                if (!cleanedLeafIds.contains(leaf.id)) {
+                                    cleanedLeafIds.add(leaf.id)
+                                    cleanedCount = cleanedLeafIds.size
 
-                            // Прогресс
-                            Box(
-                                modifier = Modifier
-                                    .pixelButtonBackground(containerColor = if (cleanedCount == spots.size) FreshGreen else JoyOrange)
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = "$cleanedCount / ${spots.size}",
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 15.sp,
-                                    color = Color.White
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Игровая зона: деревянный паркет
-                        BoxWithConstraints(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(
-                                            Color(0xFFEAD2A8),
-                                            Color(0xFFD7B989),
-                                            Color(0xFFC7A26E)
-                                        )
-                                    )
-                                )
-                                .border(2.dp, Color(0xFF8D5B28), RoundedCornerShape(12.dp))
-                        ) {
-                            // Текстура досок паркета
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                val plankH = size.height / 8f
-                                for (i in 1..7) {
-                                    val y = plankH * i
-                                    drawLine(
-                                        color = Color(0xFFB58E58),
-                                        start = Offset(0f, y),
-                                        end = Offset(size.width, y),
-                                        strokeWidth = 2f
-                                    )
-                                }
-                            }
-
-                            // Безопасные размеры и отступы: каждый элемент строго внутри границ!
-                            val spotSize = 64.dp
-                            val availW = (maxWidth - spotSize - 16.dp).coerceAtLeast(0.dp)
-                            val availH = (maxHeight - spotSize - 16.dp).coerceAtLeast(0.dp)
-
-                            // Пятна грязи
-                            spots.forEach { spot ->
-                                val spotX = 8.dp + availW * spot.percentX
-                                val spotY = 8.dp + availH * spot.percentY
-
-                                Box(
-                                    modifier = Modifier
-                                        .offset(x = spotX, y = spotY)
-                                        .size(spotSize)
-                                        .clip(CircleShape)
-                                        .clickable(
-                                            enabled = !spot.isCleaned && !spot.isCleaning && !isWon
-                                        ) {
-                                            cleanSpot(spot.id)
-                                        },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    when {
-                                        spot.isCleaning -> {
-                                            // Анимация уборки шваброй прямо на пятне
-                                            Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                modifier = Modifier.scale(1.15f)
-                                            ) {
-                                                Text(text = "🧹", fontSize = 32.sp)
-                                                Text(text = "🫧", fontSize = 16.sp)
-                                            }
-                                        }
-                                        spot.isCleaned -> {
-                                            // Чистый пол: сияющая звездочка
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(46.dp)
-                                                    .clip(CircleShape)
-                                                    .background(Color(0x55FFFFFF)),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(text = "✨", fontSize = 24.sp)
-                                            }
-                                        }
-                                        else -> {
-                                            // Грязное пятно
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(52.dp)
-                                                    .clip(CircleShape)
-                                                    .background(Color(0x555C3A16))
-                                                    .border(1.5.dp, Color(0xAA7A481F), CircleShape),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(text = spot.spotEmoji, fontSize = 26.sp)
-                                            }
+                                    if (cleanedCount >= leaves.size && !isWon) {
+                                        coroutineScope.launch {
+                                            delay(200)
+                                            isWon = true
                                         }
                                     }
                                 }
                             }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Нижняя кнопка во время игры
-                        if (!isWon) {
-                            PixelButton(
-                                text = "Закончить позже",
-                                onClick = onDismiss,
-                                containerColor = PixelWoodMedium,
-                                textColor = PixelParchmentLight,
-                                fontSize = 15.sp,
-                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
-                            )
-                        }
+                        )
                     }
+                }
+            }
 
-                    // ВСЕГДА ВИДИМЫЙ ОВЕРЛЕЙ ПОБЕДЫ ПОВЕРХ ЭКРАНА
-                    AnimatedVisibility(
-                        visible = isWon,
-                        enter = fadeIn() + scaleIn(),
-                        modifier = Modifier.align(Alignment.Center)
+            // 3. Верхняя панель управления и счетчика
+            Row(
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(PixelParchmentLight.copy(alpha = 0.94f))
+                    .border(2.dp, PixelParchmentBorder, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Уборка листьев",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 17.sp,
+                            color = PixelWoodDark
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Image(
+                            painter = painterResource(R.drawable.autumn_sheet),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Text(
+                        text = "Нажимай на осенние листочки, чтобы убрать их!",
+                        fontSize = 13.sp,
+                        color = Color(0xFF6B4423)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Прогресс сбора
+                Box(
+                    modifier = Modifier
+                        .pixelButtonBackground(containerColor = if (cleanedCount == leaves.size) FreshGreen else JoyOrange)
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        text = "$cleanedCount / ${leaves.size}",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 15.sp,
+                        color = Color.White
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Кнопка выхода (крестик)
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(PixelWoodMedium.copy(alpha = 0.15f))
+                        .clickable { onDismiss() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "✕",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelWoodDark
+                    )
+                }
+            }
+
+            // 4. Нижняя кнопка во время игры
+            if (!isWon) {
+                PixelButton(
+                    text = "Закончить позже",
+                    onClick = onDismiss,
+                    containerColor = PixelWoodMedium.copy(alpha = 0.92f),
+                    textColor = PixelParchmentLight,
+                    fontSize = 14.sp,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 24.dp)
+                )
+            }
+
+            // 5. Оверлей победы поверх экрана
+            AnimatedVisibility(
+                visible = isWon,
+                enter = fadeIn() + scaleIn(),
+                modifier = Modifier.align(Alignment.Center)
+            ) {
+                PixelPanel(
+                    modifier = Modifier
+                        .fillMaxWidth(0.92f)
+                        .clickable { onCompleteGame() }
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 18.dp, vertical = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        PixelPanel(
+                        Text(
+                            text = "🎉 ВСЕ ЛИСТЬЯ СОБРАНЫ! 🎉",
+                            fontFamily = AppFontFamily,
+                            fontWeight = FontWeight.Black,
+                            fontSize = 19.sp,
+                            color = FreshGreen,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Осенняя поляна сияет чистотой, двор в полном порядке!",
+                            fontFamily = AppFontFamily,
+                            fontSize = 14.sp,
+                            color = PixelTextDark,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .fillMaxWidth(0.92f)
-                                .clickable { onCompleteGame() }
+                                .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
+                                .padding(horizontal = 14.dp, vertical = 6.dp)
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = "🎉 ВСЁ ЧИСТО! 🎉",
-                                    fontFamily = AppFontFamily,
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 20.sp,
-                                    color = FreshGreen,
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = "Пол блестит и сияет чистотой!",
-                                    fontFamily = AppFontFamily,
-                                    fontSize = 15.sp,
-                                    color = PixelTextDark,
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
-                                        .padding(horizontal = 14.dp, vertical = 6.dp)
-                                ) {
-                                    Text(
-                                        text = "Награда: +$rewardCoins ",
-                                        fontFamily = AppFontFamily,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 16.sp,
-                                        color = PixelTextDark
-                                    )
-                                    CoinIcon(modifier = Modifier.size(18.dp))
-                                }
-                                Spacer(modifier = Modifier.height(12.dp))
-                                PixelButton(
-                                    text = "Забрать $rewardCoins монет ➔",
-                                    onClick = onCompleteGame,
-                                    containerColor = FreshGreen,
-                                    textColor = Color.White,
-                                    fontSize = 16.sp,
-                                    trailingIcon = { CoinIcon(modifier = Modifier.size(18.dp)) },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .scale(pulseScale)
-                                )
-                            }
+                            Text(
+                                text = "Награда: +$rewardCoins ",
+                                fontFamily = AppFontFamily,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 16.sp,
+                                color = PixelTextDark
+                            )
+                            CoinIcon(modifier = Modifier.size(18.dp))
                         }
+                        Spacer(modifier = Modifier.height(14.dp))
+                        PixelButton(
+                            text = "Забрать $rewardCoins монет ➔",
+                            onClick = onCompleteGame,
+                            containerColor = FreshGreen,
+                            textColor = Color.White,
+                            fontSize = 16.sp,
+                            trailingIcon = { CoinIcon(modifier = Modifier.size(18.dp)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .scale(pulseScale)
+                        )
                     }
                 }
             }
         }
+    }
+}
+
+/**
+ * Элемент отдельного осеннего листочка.
+ * При клике листик сначала чуть увеличивается (1.0f -> 1.30f),
+ * а затем плавно уменьшается и исчезает (1.30f -> 0.0f, alpha -> 0f).
+ */
+@Composable
+private fun AutumnLeafItem(
+    leaf: AutumnLeaf,
+    isCleaned: Boolean,
+    onClean: () -> Unit
+) {
+    var isCleaning by remember { mutableStateOf(false) }
+    val animScale = remember { Animatable(1f) }
+    val animAlpha = remember { Animatable(1f) }
+    val coroutineScope = rememberCoroutineScope()
+
+    if (isCleaned && !isCleaning) {
+        return
+    }
+
+    Box(
+        modifier = Modifier
+            .size(78.dp)
+            .scale(animScale.value)
+            .alpha(animAlpha.value)
+            .clickable(
+                enabled = !isCleaning && !isCleaned,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                if (isCleaning || isCleaned) return@clickable
+                isCleaning = true
+                coroutineScope.launch {
+                    // 1. Сначала чуть увеличиться при клике
+                    animScale.animateTo(
+                        targetValue = 1.30f,
+                        animationSpec = tween(durationMillis = 130, easing = FastOutSlowInEasing)
+                    )
+                    // 2. Потом уменьшиться и исчезнуть
+                    launch {
+                        animAlpha.animateTo(
+                            targetValue = 0f,
+                            animationSpec = tween(durationMillis = 180, easing = LinearOutSlowInEasing)
+                        )
+                    }
+                    animScale.animateTo(
+                        targetValue = 0f,
+                        animationSpec = tween(durationMillis = 180, easing = FastOutLinearInEasing)
+                    )
+                    onClean()
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        // Мягкая естественная тень под листочком на траве
+        Box(
+            modifier = Modifier
+                .size(46.dp)
+                .offset(y = 4.dp)
+                .clip(CircleShape)
+                .background(Color(0x22000000))
+        )
+
+        // Один аккуратный осенний листочек
+        Image(
+            painter = painterResource(R.drawable.autumn_sheet),
+            contentDescription = null,
+            modifier = Modifier
+                .size(58.dp)
+                .scale(leaf.scale)
+                .rotate(leaf.rotation)
+        )
     }
 }

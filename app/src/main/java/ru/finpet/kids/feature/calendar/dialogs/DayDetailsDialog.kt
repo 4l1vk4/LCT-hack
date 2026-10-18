@@ -320,10 +320,6 @@ fun DayDetailsDialog(
                                                     color = PixelGoldBright
                                                 )
                                             }
-                                            if (isNavigable && onNavigateToTask != null) {
-                                                Spacer(modifier = Modifier.width(3.dp))
-                                                Text(text = "👉", fontSize = 13.sp)
-                                            }
                                         }
                                     }
                                 }

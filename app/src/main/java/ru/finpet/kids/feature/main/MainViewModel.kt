@@ -632,7 +632,8 @@ class MainViewModel @Inject constructor(
             }
             showMoneyEvent(
                 amount = rewardCoins,
-                source = "Домашнее дело: ${choreTitle(choreId)}"
+                source = "Домашнее дело: ${choreTitle(choreId)}",
+                icon = ""
             )
             loadCurrentPeriod()
         }
@@ -929,7 +930,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun choreTitle(choreId: String): String = when (choreId) {
-        "chore_floor" -> "Мытьё полов"
+        "chore_floor" -> "Уборка листьев"
         "chore_trash" -> "Вынос мусора"
         "chore_dishes" -> "Мытьё посуды"
         else -> "Помощь по дому"

@@ -75,9 +75,9 @@ data class HomeChoreItem(
 val DEFAULT_HOME_CHORES = listOf(
     HomeChoreItem(
         id = "chore_floor",
-        title = "Мытье полов",
-        description = "Помыть полы в комнатах для чистоты (раз в 3 суток)",
-        icon = "🧹",
+        title = "Уборка листьев",
+        description = "Собрать осенние листья во дворе (раз в 3 суток)",
+        icon = "🍂",
         rewardCoins = 10
     ),
     HomeChoreItem(

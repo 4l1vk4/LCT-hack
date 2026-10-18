@@ -174,7 +174,6 @@ fun FinikAdviceSheet(
                                 color = TextPrimary,
                                 modifier = Modifier.weight(1f)
                             )
-                            Text(text = "👉", fontSize = 16.sp)
                         }
                     }
                 }

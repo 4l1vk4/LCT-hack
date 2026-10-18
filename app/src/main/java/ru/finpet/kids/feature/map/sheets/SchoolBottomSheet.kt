@@ -133,7 +133,6 @@ fun SchoolBottomSheet(
                             lineHeight = 20.sp
                         )
                     }
-                    Text(text = "👉", fontSize = 20.sp)
                 }
             }
 
