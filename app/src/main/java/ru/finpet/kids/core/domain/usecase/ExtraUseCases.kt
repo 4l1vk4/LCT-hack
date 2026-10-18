@@ -71,14 +71,16 @@ class QuestEngineUseCase @Inject constructor(
     private val contentRepository: ContentRepository
 ) {
     suspend fun executeOption(questId: String, optionId: String): QuestExecutionResult? {
-        // JSON-кэш читаем до транзакции: внутри транзакции нельзя уходить
-        // на другой диспетчер (это разорвало бы привязку к транзакционному потоку).
         val quests = contentRepository.getQuests()
         val quest = quests.find { it.id == questId } ?: return null
         val option = quest.options.find { it.id == optionId } ?: return null
 
         return repository.inTransaction<QuestExecutionResult?> {
             val profile = repository.getProfileSync() ?: return@inTransaction null
+
+            val coinsToAward = option.rewardCoins
+            val newBalance = profile.balance + coinsToAward
+            repository.saveProfile(profile.copy(balance = newBalance))
 
             val progress = QuestProgressEntity(
                 questId = questId,
@@ -90,10 +92,89 @@ class QuestEngineUseCase @Inject constructor(
             repository.saveQuestProgress(progress)
 
             QuestExecutionResult(
-                coinsAwarded = 0,
+                coinsAwarded = coinsToAward,
                 feedback = option.feedback,
                 isRecommended = option.isRecommended,
-                newBalance = profile.balance
+                newBalance = newBalance
+            )
+        }
+    }
+
+    suspend fun executeTextAnswer(questId: String, answer: String): QuestExecutionResult? {
+        val quests = contentRepository.getQuests()
+        val quest = quests.find { it.id == questId } ?: return null
+
+        val cleanAnswer = answer.trim().lowercase()
+        val isCorrect = quest.expectedAnswers.any { expected ->
+            val cleanExpected = expected.trim().lowercase()
+            cleanAnswer == cleanExpected || cleanAnswer.contains(cleanExpected) || cleanExpected.contains(cleanAnswer)
+        }
+
+        return repository.inTransaction<QuestExecutionResult?> {
+            val profile = repository.getProfileSync() ?: return@inTransaction null
+
+            val coinsToAward = if (isCorrect) quest.rewardCoins else 0
+            val newBalance = profile.balance + coinsToAward
+            repository.saveProfile(profile.copy(balance = newBalance))
+
+            val progress = QuestProgressEntity(
+                questId = questId,
+                isCompleted = true,
+                selectedOptionId = "text:$cleanAnswer",
+                rewardClaimed = true,
+                completedInPeriod = profile.currentPeriodIndex
+            )
+            repository.saveQuestProgress(progress)
+
+            val feedback = if (isCorrect) {
+                quest.feedbackSuccess.ifEmpty { "Правильно! Ты отлично разбираешься в финансовых терминах!" }
+            } else {
+                val correctExample = quest.expectedAnswers.firstOrNull() ?: ""
+                quest.feedbackFailure.ifEmpty { "Хорошая попытка! Верный ответ: $correctExample." }
+            }
+
+            QuestExecutionResult(
+                coinsAwarded = coinsToAward,
+                feedback = feedback,
+                isRecommended = isCorrect,
+                newBalance = newBalance
+            )
+        }
+    }
+
+    suspend fun executeAllocation(questId: String, allocatedAmount: Int): QuestExecutionResult? {
+        val quests = contentRepository.getQuests()
+        val quest = quests.find { it.id == questId } ?: return null
+
+        val isBalanced = allocatedAmount in quest.recommendedMin..quest.recommendedMax
+
+        return repository.inTransaction<QuestExecutionResult?> {
+            val profile = repository.getProfileSync() ?: return@inTransaction null
+
+            val coinsToAward = if (isBalanced) quest.rewardCoins else 0
+            val newBalance = profile.balance + coinsToAward
+            repository.saveProfile(profile.copy(balance = newBalance))
+
+            val progress = QuestProgressEntity(
+                questId = questId,
+                isCompleted = true,
+                selectedOptionId = "alloc:$allocatedAmount",
+                rewardClaimed = true,
+                completedInPeriod = profile.currentPeriodIndex
+            )
+            repository.saveQuestProgress(progress)
+
+            val feedback = if (isBalanced) {
+                quest.allocationSuccessFeedback.ifEmpty { "Прекрасное распределение бюджета! Мудрый и взвешенный выбор." }
+            } else {
+                quest.allocationWarningFeedback.ifEmpty { "Ты сделал выбор! Стремись находить баланс между текущими радостями и будущей целью." }
+            }
+
+            QuestExecutionResult(
+                coinsAwarded = coinsToAward,
+                feedback = feedback,
+                isRecommended = isBalanced,
+                newBalance = newBalance
             )
         }
     }
@@ -245,6 +326,8 @@ class CompetencyTracker @Inject constructor(
 
         val totalSaved = savedDeferred.await()
         val completedQuests = questsDeferred.await()
+        val allQuests = contentRepository.getQuests()
+        val totalQuestsCount = allQuests.size.coerceAtLeast(1)
 
         val competencies = listOf(
             CompetencyItem(
@@ -267,8 +350,8 @@ class CompetencyTracker @Inject constructor(
             ),
             CompetencyItem(
                 title = "Осознанные финансовые решения",
-                scorePercent = ((completedQuests.toDouble() / 6.0) * 100).toInt().coerceIn(15, 100),
-                statusDescription = "Решено $completedQuests из 6 ситуаций",
+                scorePercent = ((completedQuests.toDouble() / totalQuestsCount) * 100).toInt().coerceIn(15, 100),
+                statusDescription = "Решено $completedQuests из $totalQuestsCount ситуаций",
                 advice = "Понимает, как противостоять уловкам и действовать при поломках."
             )
         )
