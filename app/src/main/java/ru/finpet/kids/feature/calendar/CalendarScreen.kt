@@ -68,6 +68,7 @@ fun CalendarScreen(
     onConfirmBudget: (BudgetPlan) -> Unit = {},
     onCompletePeriod: () -> Unit,
     onAdvancePeriod: () -> Unit = onCompletePeriod,
+    onAdvanceToNextGrowthStage: () -> Unit = {},
     onAddNote: (dayIndex: Int, title: String, cost: Int, category: String) -> Unit,
     onDeleteNote: (CalendarNoteEntity) -> Unit,
     onToggleNote: (CalendarNoteEntity) -> Unit,
@@ -233,6 +234,25 @@ fun CalendarScreen(
                         fontSize = 15.sp
                     )
                 }
+
+                val currentStage = profile?.growthStage ?: "BABY"
+                if (currentStage != "ADULT") {
+                    val nextStageText = if (currentStage == "BABY") {
+                        "🐾 Пропустить 7 периодов (до «Подростка»)"
+                    } else {
+                        "👑 Пропустить 11 периодов (до «Взрослого»)"
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PixelButton(
+                        text = nextStageText,
+                        onClick = onAdvanceToNextGrowthStage,
+                        containerColor = PixelGoldBright,
+                        textColor = PixelTextDark,
+                        borderColor = PixelGoldDark,
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 15.sp
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -275,6 +295,11 @@ fun CalendarScreen(
                     activeDialog = null
                     onAdvancePeriod()
                 },
+                onAdvanceToNextGrowthStage = {
+                    activeDialog = null
+                    onAdvanceToNextGrowthStage()
+                },
+                growthStage = profile?.growthStage ?: "BABY",
                 onNavigateToTask = onNavigateToTask,
                 onDismiss = { activeDialog = null },
                 isPetRunaway = profile?.isPetRunaway == true

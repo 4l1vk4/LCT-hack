@@ -177,7 +177,8 @@ class CompletePeriodUseCase @Inject constructor(
     suspend operator fun invoke(
         nextDayIndex: Int? = null,
         yearMonth: java.time.YearMonth? = null,
-        isPeriodSkip: Boolean = false
+        isPeriodSkip: Boolean = false,
+        isDemoPeriodSkip: Boolean = false
     ): PeriodResolution? = repository.inTransaction<PeriodResolution?> {
         val profile = repository.getProfileSync() ?: return@inTransaction null
         val period = repository.getPeriodSync(profile.currentPeriodIndex) ?: PeriodEntity(profile.currentPeriodIndex)
@@ -187,23 +188,39 @@ class CompletePeriodUseCase @Inject constructor(
             plannedOptional = period.plannedOptional,
             plannedSavings = period.plannedSavings
         )
-        val actual = ActualExpenses(
-            actualMandatory = period.actualMandatory,
-            actualOptional = period.actualOptional,
-            actualSavings = period.actualSavings,
-            withdrawnSavings = period.withdrawnSavings,
-            borrowedFromOptional = period.borrowedFromOptional,
-            hasPurchasedFood = period.actualMandatory >= PetEconomyCalculator.MIN_FOOD_COST,
-            hasPurchasedWater = period.actualMandatory >= PetEconomyCalculator.MIN_WATER_COST
-        )
+        val actual = if (isDemoPeriodSkip) {
+            ActualExpenses(
+                actualMandatory = maxOf(period.actualMandatory, maxOf(period.plannedMandatory, PetEconomyCalculator.MIN_FOOD_COST)),
+                actualOptional = period.actualOptional,
+                actualSavings = maxOf(period.actualSavings, maxOf(period.plannedSavings, 20)),
+                withdrawnSavings = 0,
+                borrowedFromOptional = 0,
+                hasPurchasedFood = true,
+                hasPurchasedWater = true
+            )
+        } else {
+            ActualExpenses(
+                actualMandatory = period.actualMandatory,
+                actualOptional = period.actualOptional,
+                actualSavings = period.actualSavings,
+                withdrawnSavings = period.withdrawnSavings,
+                borrowedFromOptional = period.borrowedFromOptional,
+                hasPurchasedFood = period.actualMandatory >= PetEconomyCalculator.MIN_FOOD_COST,
+                hasPurchasedWater = period.actualMandatory >= PetEconomyCalculator.MIN_WATER_COST
+            )
+        }
 
         val currentStats = PetStats(
-            satiety = profile.satiety,
-            health = profile.health,
-            mood = if (profile.isPetRunaway) 0 else profile.mood,
+            satiety = if (isDemoPeriodSkip) 100 else profile.satiety,
+            health = if (isDemoPeriodSkip) 100 else profile.health,
+            mood = if (isDemoPeriodSkip) 100 else (if (profile.isPetRunaway) 0 else profile.mood),
             carePoints = profile.carePoints,
             stage = GrowthStage.valueOf(profile.growthStage),
-            emotion = PetEconomyCalculator.resolveEmotion(profile.satiety, profile.health, if (profile.isPetRunaway) 0 else profile.mood),
+            emotion = PetEconomyCalculator.resolveEmotion(
+                if (isDemoPeriodSkip) 100 else profile.satiety,
+                if (isDemoPeriodSkip) 100 else profile.health,
+                if (isDemoPeriodSkip) 100 else (if (profile.isPetRunaway) 0 else profile.mood)
+            ),
             feedback = ""
         )
 
@@ -214,8 +231,8 @@ class CompletePeriodUseCase @Inject constructor(
             actual = actual,
             nextDayIndex = nextDayIndex ?: nextPeriodIndex,
             yearMonth = yearMonth,
-            isPetRunaway = profile.isPetRunaway,
-            hasRecoveredPet = profile.isPetRunaway && profile.bowlPlacedToday,
+            isPetRunaway = if (isDemoPeriodSkip) false else profile.isPetRunaway,
+            hasRecoveredPet = if (isDemoPeriodSkip) true else (profile.isPetRunaway && profile.bowlPlacedToday),
             isPeriodSkip = isPeriodSkip
         ).copy(closedDayIndex = profile.currentPeriodIndex)
 
@@ -254,7 +271,18 @@ class CompletePeriodUseCase @Inject constructor(
         var finalCarePoints = resolution.newStats.carePoints
         var finalGrowthStage = resolution.newStats.stage.name
 
-        if (profile.isPetRunaway) {
+        if (isDemoPeriodSkip) {
+            // В демо-режиме кот всегда сыт, счастлив, здоров, получает максимум очков и не сбегает
+            newIsPetRunaway = false
+            newRunawayDaysLeft = 0
+            newConsecutivePeriodSkips = 0
+            newLastSkipMood = 100
+            finalMood = 100
+            finalSatiety = 100
+            finalHealth = 100
+            finalCarePoints = resolution.newStats.carePoints
+            finalGrowthStage = resolution.newStats.stage.name
+        } else if (profile.isPetRunaway) {
             // пока питомец в побеге, очки заботы, рост и все статы (сытость, настроение, здоровье) заморожены
             finalCarePoints = profile.carePoints
             finalGrowthStage = profile.growthStage

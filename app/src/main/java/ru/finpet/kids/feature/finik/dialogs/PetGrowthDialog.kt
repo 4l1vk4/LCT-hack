@@ -23,12 +23,16 @@ import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.StardewBoard
 
+import ru.finpet.kids.core.domain.model.GrowthStage
+
 // диалог уведомления о взрослении питомца
 @Composable
 fun PetGrowthDialog(
     petName: String,
+    stage: GrowthStage = GrowthStage.ADULT,
     onDismiss: () -> Unit
 ) {
+    val isAdult = stage == GrowthStage.ADULT
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -40,8 +44,8 @@ fun PetGrowthDialog(
                 .padding(16.dp)
         ) {
             StardewBoard(
-                headerTitle = "УРА, ПИТОМЕЦ ВЫРОС!",
-                headerIcon = "🌟"
+                headerTitle = if (isAdult) "УРА, ПИТОМЕЦ ВЫРОС!" else "УРА, ПИТОМЕЦ ПОДРОС!",
+                headerIcon = if (isAdult) "🌟" else "🐾"
             ) {
                 Column(
                     modifier = Modifier
@@ -51,13 +55,13 @@ fun PetGrowthDialog(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "🐾",
+                        text = if (isAdult) "👑" else "✨",
                         fontSize = 44.sp,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "$petName подрос!",
+                        text = if (isAdult) "$petName теперь взрослый!" else "$petName стал подростком!",
                         fontFamily = AppFontFamily,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
@@ -66,7 +70,11 @@ fun PetGrowthDialog(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Через неделю он сможет составлять план предзакупок.",
+                        text = if (isAdult) {
+                            "Он вырос во взрослого и умного котика! Через неделю он сможет помогать с планом предзакупок."
+                        } else {
+                            "Котик заметно подрос, окреп и стал веселее! Продолжай кормить его и вести бюджет, чтобы вырастить взрослого питомца."
+                        },
                         fontFamily = AppFontFamily,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
@@ -76,7 +84,7 @@ fun PetGrowthDialog(
                     )
                     Spacer(modifier = Modifier.height(18.dp))
                     PixelButton(
-                        text = "Понятно!",
+                        text = "Отлично!",
                         onClick = onDismiss,
                         modifier = Modifier.fillMaxWidth(0.7f),
                         fontSize = 15.sp

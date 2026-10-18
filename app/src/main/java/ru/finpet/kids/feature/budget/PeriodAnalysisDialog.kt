@@ -47,6 +47,7 @@ import ru.finpet.kids.core.designsystem.StardewBoard
 import ru.finpet.kids.core.designsystem.TargetIcon
 import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
+import ru.finpet.kids.core.domain.model.GrowthStage
 import ru.finpet.kids.core.domain.model.PeriodResolution
 
 /**
@@ -383,39 +384,165 @@ fun PeriodAnalysisDialog(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // 3. Блок наград и состояния питомца
-                    // Настроение питомца
+                    // 3. Блок наград и эволюции питомца
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Настроение питомца
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(PixelParchmentLight)
+                                .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
+                                .padding(8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                val effectiveMood = PetEconomyCalculator.calculateEffectiveMood(
+                                    mood = newStats.mood,
+                                    satiety = newStats.satiety,
+                                    health = newStats.health
+                                )
+                                val moodColor = when {
+                                    effectiveMood >= 70 -> PixelGreenCrop
+                                    effectiveMood >= 40 -> PixelGoldDark
+                                    else -> PixelRedBerry
+                                }
+                                Text(
+                                    text = "$effectiveMood% 🐾",
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 17.sp,
+                                    color = moodColor
+                                )
+                                Text(
+                                    text = "Настроение",
+                                    fontSize = 14.sp,
+                                    color = PixelTextMuted
+                                )
+                            }
+                        }
+
+                        // Очки заботы за период
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(PixelParchmentLight)
+                                .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
+                                .padding(8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "+${resolution.carePointsEarned} ⭐",
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 17.sp,
+                                    color = if (resolution.carePointsEarned > 0) PixelGoldDark else PixelTextMuted
+                                )
+                                Text(
+                                    text = "Очки заботы",
+                                    fontSize = 14.sp,
+                                    color = PixelTextMuted
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Карточка прогресса эволюции
+                    val stage = newStats.stage
+                    val stageTitle = when (stage) {
+                        GrowthStage.BABY -> "Малыш 🐾"
+                        GrowthStage.TEEN -> "Подросток 🐾"
+                        GrowthStage.ADULT -> "Взрослый кот 👑"
+                    }
+                    val targetPoints = when (stage) {
+                        GrowthStage.BABY -> 28
+                        GrowthStage.TEEN -> 70
+                        GrowthStage.ADULT -> 70
+                    }
+                    val progressFraction = when (stage) {
+                        GrowthStage.BABY -> (newStats.carePoints.toFloat() / 28f).coerceIn(0f, 1f)
+                        GrowthStage.TEEN -> (newStats.carePoints.toFloat() / 70f).coerceIn(0f, 1f)
+                        GrowthStage.ADULT -> 1f
+                    }
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(6.dp))
-                            .background(PixelParchmentLight)
+                            .background(PixelParchmentMedium)
                             .border(1.dp, PixelParchmentBorder, RoundedCornerShape(6.dp))
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center
+                            .padding(10.dp)
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            val effectiveMood = PetEconomyCalculator.calculateEffectiveMood(
-                                mood = newStats.mood,
-                                satiety = newStats.satiety,
-                                health = newStats.health
-                            )
-                            val moodColor = when {
-                                effectiveMood >= 70 -> PixelGreenCrop
-                                effectiveMood >= 40 -> PixelGoldDark
-                                else -> PixelRedBerry
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(text = "🌟", fontSize = 16.sp)
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Стадия: $stageTitle",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp,
+                                        color = PixelTextDark
+                                    )
+                                }
+                                Text(
+                                    text = if (stage == GrowthStage.ADULT) "${newStats.carePoints} ⭐" else "${newStats.carePoints} / $targetPoints ⭐",
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 15.sp,
+                                    color = PixelGoldDark
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            // Прогресс-бар
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color(0xFFD7CCC8))
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(progressFraction)
+                                        .height(8.dp)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(if (stage == GrowthStage.ADULT) PixelGreenCrop else PixelGoldDark)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            val remainingMsg = when (stage) {
+                                GrowthStage.BABY -> "До «Подростка» осталось: ${maxOf(0, 28 - newStats.carePoints)} ⭐ (порог 28 ⭐)"
+                                GrowthStage.TEEN -> "До «Взрослого» осталось: ${maxOf(0, 70 - newStats.carePoints)} ⭐ (порог 70 ⭐)"
+                                GrowthStage.ADULT -> "Максимальная стадия роста достигнута!"
                             }
                             Text(
-                                text = "$effectiveMood% 🐾",
-                                fontWeight = FontWeight.Black,
-                                fontSize = 17.sp,
-                                color = moodColor
-                            )
-                            Text(
-                                text = "Настроение",
-                                fontSize = 15.sp,
+                                text = remainingMsg,
+                                fontSize = 13.sp,
                                 color = PixelTextMuted
                             )
+
+                            if (resolution.carePointsEarned == 0) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "💡 Чтобы получать очки заботы: накорми питомца (сытость ≥60%, здоровье ≥80%), пополни копилку и держи точность бюджета от 75%.",
+                                    fontSize = 13.sp,
+                                    color = Color(0xFFC62828),
+                                    lineHeight = 17.sp
+                                )
+                            }
                         }
                     }
 

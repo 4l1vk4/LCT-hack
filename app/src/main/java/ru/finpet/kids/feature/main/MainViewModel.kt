@@ -69,6 +69,11 @@ data class MoneyEvent(
     val icon: String = "🪙"
 )
 
+data class PetGrowthInfo(
+    val petName: String,
+    val stage: GrowthStage
+)
+
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val repository: FinPetRepository,
@@ -162,15 +167,15 @@ class MainViewModel @Inject constructor(
         _periodAnalysisEvent.value = null
     }
 
-    private val _petGrowthEvent = MutableStateFlow<String?>(null)
-    val petGrowthEvent: StateFlow<String?> = _petGrowthEvent.asStateFlow()
+    private val _petGrowthEvent = MutableStateFlow<PetGrowthInfo?>(null)
+    val petGrowthEvent: StateFlow<PetGrowthInfo?> = _petGrowthEvent.asStateFlow()
 
     fun dismissPetGrowthEvent() {
         _petGrowthEvent.value = null
     }
 
-    fun triggerPetGrowthEventForTest(petName: String) {
-        _petGrowthEvent.value = petName
+    fun triggerPetGrowthEventForTest(petName: String, stage: GrowthStage = GrowthStage.ADULT) {
+        _petGrowthEvent.value = PetGrowthInfo(petName, stage)
     }
 
     val preorderItemIds: StateFlow<Set<String>> = settingsRepository.preorderItemIds
@@ -719,8 +724,8 @@ class MainViewModel @Inject constructor(
                 val result = completePeriodUseCase(nextDayIndex = nextDayIndex, yearMonth = nextYM, isPeriodSkip = false)
                 if (result != null) {
                     val stageAfter = result.newStats.stage.name
-                    if (stageAfter != stageBefore && result.newStats.stage == GrowthStage.ADULT) {
-                        _petGrowthEvent.value = petName
+                    if (stageAfter != stageBefore) {
+                        _petGrowthEvent.value = PetGrowthInfo(petName, result.newStats.stage)
                     }
                     if (result.newStats.stage == GrowthStage.ADULT) {
                         val currentStart = settingsRepository.adultStageStartDay.first()
@@ -769,11 +774,15 @@ class MainViewModel @Inject constructor(
             val stageBefore = profBefore?.growthStage ?: "BABY"
             val petName = profBefore?.petName ?: "Котик"
 
-            val result = completePeriodUseCase(nextDayIndex = nextDayIndex, yearMonth = nextYM, isPeriodSkip = true)
+            val result = completePeriodUseCase(
+                nextDayIndex = nextDayIndex,
+                yearMonth = nextYM,
+                isPeriodSkip = true
+            )
             if (result != null) {
                 val stageAfter = result.newStats.stage.name
-                if (stageAfter != stageBefore && result.newStats.stage == GrowthStage.ADULT) {
-                    _petGrowthEvent.value = petName
+                if (stageAfter != stageBefore) {
+                    _petGrowthEvent.value = PetGrowthInfo(petName, result.newStats.stage)
                 }
                 if (result.newStats.stage == GrowthStage.ADULT) {
                     val currentStart = settingsRepository.adultStageStartDay.first()
@@ -797,6 +806,83 @@ class MainViewModel @Inject constructor(
                     )
                 }
             }
+            loadCurrentPeriod()
+        }
+    }
+
+    fun advanceToNextGrowthStage() {
+        viewModelScope.launch {
+            val profBefore = repository.getProfileSync() ?: return@launch
+            val stageBefore = profBefore.growthStage
+            val petName = profBefore.petName
+
+            val periodsToSkip = when (stageBefore) {
+                "BABY" -> 7
+                "TEEN" -> 11
+                else -> return@launch
+            }
+
+            var curDate = _virtualDate.value
+            var lastResult: PeriodResolution? = null
+            var totalIncome = 0
+
+            for (i in 1..periodsToSkip) {
+                val nextDate = curDate.plusDays(7)
+                curDate = nextDate
+
+                val monthChanged = nextDate.month != curDate.minusDays(7).month
+                val nextDayIndex = nextDate.dayOfMonth
+                val nextYM = YearMonth.from(nextDate)
+
+                if (monthChanged) {
+                    seedCalendarNotesForMonth(nextYM)
+                }
+
+                val result = completePeriodUseCase(
+                    nextDayIndex = nextDayIndex,
+                    yearMonth = nextYM,
+                    isPeriodSkip = true,
+                    isDemoPeriodSkip = true
+                )
+                if (result != null) {
+                    lastResult = result
+                    totalIncome += result.periodIncome
+                    if (result.newStats.stage == GrowthStage.ADULT) {
+                        val currentStart = settingsRepository.adultStageStartDay.first()
+                        if (currentStart == 0) {
+                            settingsRepository.setAdultStageStartDay(nextDayIndex)
+                        }
+                    }
+                }
+            }
+
+            _virtualDate.value = curDate
+            settingsRepository.setVirtualDate(curDate)
+
+            if (lastResult != null) {
+                val stageAfter = lastResult.newStats.stage.name
+                if (stageAfter != stageBefore) {
+                    _petGrowthEvent.value = PetGrowthInfo(petName, lastResult.newStats.stage)
+                }
+
+                val curYM = YearMonth.from(curDate)
+                val enrichedResult = lastResult.copy(
+                    isMonthTransition = false,
+                    closedMonthName = CalendarMonthInfo.of(curYM).monthName,
+                    newMonthName = CalendarMonthInfo.of(curYM).monthName,
+                    isIncomeDay = totalIncome > 0,
+                    periodIncome = totalIncome
+                )
+                _periodAnalysisEvent.value = enrichedResult
+
+                if (totalIncome > 0) {
+                    showMoneyEvent(
+                        amount = totalIncome,
+                        source = "Карманные деньги за $periodsToSkip нед. (+$totalIncome)"
+                    )
+                }
+            }
+
             loadCurrentPeriod()
         }
     }

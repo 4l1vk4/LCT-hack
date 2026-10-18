@@ -483,4 +483,42 @@ class EconomyUseCasesTest {
         assertEquals(75, resolution?.newStats?.health)
         assertEquals(55, resolution?.newStats?.mood)
     }
+
+    @Test
+    fun `CompletePeriodUseCase in demo mode awards max care points, prevents runaway, and advances pet stages`() = runTest {
+        repository.saveProfile(
+            ProfileEntity(
+                growthStage = "BABY",
+                carePoints = 0,
+                satiety = 100,
+                health = 100,
+                mood = 100,
+                balance = 300
+            )
+        )
+
+        // Симулируем 7 периодов пропуска в демо-режиме
+        for (i in 1..7) {
+            val res = completePeriodUseCase(isPeriodSkip = true, isDemoPeriodSkip = true)
+            assertEquals(4, res?.carePointsEarned)
+            assertFalse("Кот не должен убегать в демо-режиме", repository.getProfileSync()?.isPetRunaway == true)
+        }
+
+        val teenProfile = repository.getProfileSync()
+        assertEquals(28, teenProfile?.carePoints)
+        assertEquals("TEEN", teenProfile?.growthStage)
+        assertFalse(teenProfile?.isPetRunaway == true)
+
+        // Симулируем еще 11 периодов пропуска в демо-режиме
+        for (i in 1..11) {
+            val res = completePeriodUseCase(isPeriodSkip = true, isDemoPeriodSkip = true)
+            assertEquals(4, res?.carePointsEarned)
+            assertFalse("Кот не должен убегать в демо-режиме", repository.getProfileSync()?.isPetRunaway == true)
+        }
+
+        val adultProfile = repository.getProfileSync()
+        assertEquals(72, adultProfile?.carePoints)
+        assertEquals("ADULT", adultProfile?.growthStage)
+        assertFalse(adultProfile?.isPetRunaway == true)
+    }
 }

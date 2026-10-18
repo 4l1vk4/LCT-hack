@@ -293,7 +293,9 @@ fun FinikScreen(
                     satiety = satiety,
                     mood = mood,
                     health = health,
-                    isPetRunaway = isPetRunaway
+                    isPetRunaway = isPetRunaway,
+                    carePoints = profile?.carePoints ?: 0,
+                    growthStage = profile?.growthStage ?: "BABY"
                 )
             }
 

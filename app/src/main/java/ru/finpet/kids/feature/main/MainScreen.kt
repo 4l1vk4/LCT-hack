@@ -129,7 +129,7 @@ fun MainScreen(
     val calendarMonthInfo = remember(virtualDate) { CalendarMonthInfo.of(YearMonth.from(virtualDate)) }
     val moneyEvent by viewModel.moneyEvent.collectAsStateWithLifecycle()
     val periodAnalysis by viewModel.periodAnalysisEvent.collectAsStateWithLifecycle()
-    val petGrowthPetName by viewModel.petGrowthEvent.collectAsStateWithLifecycle()
+    val petGrowthInfo by viewModel.petGrowthEvent.collectAsStateWithLifecycle()
     val preorderItemIds by viewModel.preorderItemIds.collectAsStateWithLifecycle()
     val adultStageStartDay by viewModel.adultStageStartDay.collectAsStateWithLifecycle()
     var showBudgetPlanningDialog by remember { mutableStateOf(false) }
@@ -330,6 +330,7 @@ fun MainScreen(
                             onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
                             onCompletePeriod = { viewModel.advanceOneDay() },
                             onAdvancePeriod = { viewModel.advanceOnePeriod() },
+                            onAdvanceToNextGrowthStage = { viewModel.advanceToNextGrowthStage() },
                             onAddNote = { day, title, cost, cat ->
                                 viewModel.addCalendarNote(
                                     day,
@@ -530,11 +531,15 @@ fun MainScreen(
             }
 
             // диалог взросления питомца
-            if (periodAnalysis == null && petGrowthPetName != null) {
-                PetGrowthDialog(
-                    petName = petGrowthPetName ?: "Питомец",
-                    onDismiss = { viewModel.dismissPetGrowthEvent() }
-                )
+            if (periodAnalysis == null && petGrowthInfo != null) {
+                val growth = petGrowthInfo
+                if (growth != null) {
+                    PetGrowthDialog(
+                        petName = growth.petName,
+                        stage = growth.stage,
+                        onDismiss = { viewModel.dismissPetGrowthEvent() }
+                    )
+                }
             }
 
             // диалог планирования бюджета на день

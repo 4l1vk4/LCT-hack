@@ -79,6 +79,8 @@ fun DayDetailsDialog(
     onDeleteNote: (CalendarNoteEntity) -> Unit,
     onCompletePeriod: () -> Unit,
     onAdvancePeriod: () -> Unit = onCompletePeriod,
+    onAdvanceToNextGrowthStage: () -> Unit = {},
+    growthStage: String = "BABY",
     onNavigateToTask: ((CalendarNoteEntity) -> Unit)? = null,
     onDismiss: () -> Unit,
     isPetRunaway: Boolean = false
@@ -380,6 +382,24 @@ fun DayDetailsDialog(
                                     textColor = Color.White,
                                     borderColor = Color(0xFFBF360C),
                                     modifier = Modifier.weight(1f),
+                                    fontSize = 15.sp
+                                )
+                            }
+
+                            if (growthStage != "ADULT") {
+                                val nextStageText = if (growthStage == "BABY") {
+                                    "🐾 Пропустить 7 периодов (до «Подростка»)"
+                                } else {
+                                    "👑 Пропустить 11 периодов (до «Взрослого»)"
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                PixelButton(
+                                    text = nextStageText,
+                                    onClick = onAdvanceToNextGrowthStage,
+                                    containerColor = PixelGoldBright,
+                                    textColor = PixelTextDark,
+                                    borderColor = PixelGoldDark,
+                                    modifier = Modifier.fillMaxWidth(),
                                     fontSize = 15.sp
                                 )
                             }
