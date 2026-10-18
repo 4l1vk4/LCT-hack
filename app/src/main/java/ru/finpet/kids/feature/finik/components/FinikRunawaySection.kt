@@ -57,6 +57,7 @@ fun FinikRunawaySection(
     bowlPlacedToday: Boolean,
     balance: Int,
     onPlaceFoodBowl: () -> Unit,
+    onNavigateToHomeChores: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var showConfirmDialog by remember { mutableStateOf(false) }
@@ -196,7 +197,7 @@ fun FinikRunawaySection(
             if (!canAffordBowl) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Не хватает монет (нужно 60 монет). Загляни в Школу или выполни дела по дому!",
+                    text = "Не хватает монет (нужно 60 монет). Загляни в домик и выполни задания по дому!",
                     fontFamily = AppFontFamily,
                     fontSize = 14.sp,
                     lineHeight = 19.sp,
@@ -204,6 +205,18 @@ fun FinikRunawaySection(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
+                if (onNavigateToHomeChores != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    PixelButton(
+                        text = "В Домик к заданиям 🏡",
+                        onClick = onNavigateToHomeChores,
+                        containerColor = JoyOrange,
+                        textColor = PixelTextDark,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
+                    )
+                }
             }
         }
     }

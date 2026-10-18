@@ -89,7 +89,7 @@ private const val TOTAL_PLATES = 5
  */
 @Composable
 fun DishesCleaningGameDialog(
-    rewardCoins: Int = 20,
+    rewardCoins: Int = 5,
     onCompleteGame: () -> Unit,
     onDismiss: () -> Unit
 ) {

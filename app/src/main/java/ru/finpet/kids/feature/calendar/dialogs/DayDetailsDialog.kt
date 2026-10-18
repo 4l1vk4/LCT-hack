@@ -46,6 +46,7 @@ import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGoldGlow
+import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
@@ -77,6 +78,7 @@ fun DayDetailsDialog(
     onOpenAddNote: () -> Unit,
     onDeleteNote: (CalendarNoteEntity) -> Unit,
     onCompletePeriod: () -> Unit,
+    onAdvancePeriod: () -> Unit = onCompletePeriod,
     onNavigateToTask: ((CalendarNoteEntity) -> Unit)? = null,
     onDismiss: () -> Unit,
     isPetRunaway: Boolean = false
@@ -357,25 +359,34 @@ fun DayDetailsDialog(
                         )
                     }
 
-                    // 5. Завершение дня (только если день — СЕГОДНЯ и включен демо-режим)
+                    // 5. Завершение дня или периода (только если день — СЕГОДНЯ и включен демо-режим)
                     if (isToday && demoMode) {
                         item {
                             Spacer(modifier = Modifier.height(4.dp))
-                            val completeButtonText = if (isNextMonday) {
-                                "🌅 Завершить день (+200 монет на неделю!)"
-                            } else {
-                                "🌅 Завершить день"
-                            }
-
-                            PixelButton(
-                                text = completeButtonText,
-                                onClick = onCompletePeriod,
-                                containerColor = PixelGreenCrop,
-                                textColor = Color.White,
-                                borderColor = Color(0xFF1B5E20),
+                            Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                fontSize = 16.sp
-                            )
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                PixelButton(
+                                    text = "⏩ Пропустить день",
+                                    onClick = onCompletePeriod,
+                                    containerColor = PixelGreenCrop,
+                                    textColor = Color.White,
+                                    borderColor = Color(0xFF1B5E20),
+                                    modifier = Modifier.weight(1f),
+                                    fontSize = 15.sp
+                                )
+
+                                PixelButton(
+                                    text = "🗓️ Пропустить период (+200)",
+                                    onClick = onAdvancePeriod,
+                                    containerColor = JoyOrange,
+                                    textColor = Color.White,
+                                    borderColor = Color(0xFFBF360C),
+                                    modifier = Modifier.weight(1f),
+                                    fontSize = 15.sp
+                                )
+                            }
                         }
                     }
 

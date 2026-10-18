@@ -39,6 +39,7 @@ import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.TargetIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
 import androidx.compose.foundation.ExperimentalFoundationApi
 import ru.finpet.kids.core.designsystem.TextSecondary
@@ -117,7 +118,11 @@ fun GoalProgressCard(
                     }
 
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text(text = goalEmoji, fontSize = 24.sp)
+                    if (goalEmoji == "🎯") {
+                        TargetIcon(modifier = Modifier.size(24.dp))
+                    } else {
+                        Text(text = goalEmoji, fontSize = 24.sp)
+                    }
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(

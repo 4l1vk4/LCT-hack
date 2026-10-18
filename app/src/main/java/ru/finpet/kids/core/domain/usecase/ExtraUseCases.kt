@@ -2,6 +2,7 @@ package ru.finpet.kids.core.domain.usecase
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.data.repository.ContentRepository
 import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
@@ -35,6 +36,21 @@ class WithdrawFromGoalUseCase @Inject constructor(
 
             repository.updateGoal(goal.copy(savedAmount = newSaved, isReached = false))
             repository.updateBalance(newBalance)
+
+            // Учет в периоде:
+            // 1. Если копили в текущем периоде — монетки забираются из банки текущего периода (actualSavings уменьшается).
+            // 2. Если сумма превышает накопленное в текущем периоде (накоплено ранее в прошлых периодах) —
+            //    это не уводит текущую банку в минус (не искажает визуал), но фиксируется в факте (withdrawnSavings),
+            //    что мы забрали ранее накопленные средства.
+            val period = repository.getPeriodSync(profile.currentPeriodIndex) ?: PeriodEntity(profile.currentPeriodIndex)
+            val fromCurrentPeriod = minOf(period.actualSavings, amount)
+            val fromPastSavings = amount - fromCurrentPeriod
+
+            val updatedPeriod = period.copy(
+                actualSavings = maxOf(0, period.actualSavings - fromCurrentPeriod),
+                withdrawnSavings = period.withdrawnSavings + fromPastSavings
+            )
+            repository.savePeriod(updatedPeriod)
 
             val delayPeriods = ceil(amount.toDouble() / 50.0).toInt().coerceAtLeast(1)
 
@@ -180,7 +196,7 @@ class AdultSectionUseCase @Inject constructor(
         repository.inTransaction {
             val profile = repository.getProfileSync() ?: return@inTransaction 0
             val newBalance = profile.balance + coins
-            val newMood = (profile.mood + 15).coerceAtMost(100)
+            val newMood = if (profile.isPetRunaway) 0 else (profile.mood + 15).coerceAtMost(100)
             repository.saveProfile(profile.copy(balance = newBalance, mood = newMood))
             newBalance
         }

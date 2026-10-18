@@ -88,11 +88,11 @@ class PreorderAndGrowthTest {
     @Test
     fun `growth stages progression advances from BABY to TEEN to ADULT`() {
         assertEquals(GrowthStage.BABY, GrowthStage.fromPoints(0))
-        assertEquals(GrowthStage.BABY, GrowthStage.fromPoints(4))
-        assertEquals(GrowthStage.TEEN, GrowthStage.fromPoints(5))
-        assertEquals(GrowthStage.TEEN, GrowthStage.fromPoints(9))
-        assertEquals(GrowthStage.ADULT, GrowthStage.fromPoints(10))
-        assertEquals(GrowthStage.ADULT, GrowthStage.fromPoints(25))
+        assertEquals(GrowthStage.BABY, GrowthStage.fromPoints(27))
+        assertEquals(GrowthStage.TEEN, GrowthStage.fromPoints(28))
+        assertEquals(GrowthStage.TEEN, GrowthStage.fromPoints(69))
+        assertEquals(GrowthStage.ADULT, GrowthStage.fromPoints(70))
+        assertEquals(GrowthStage.ADULT, GrowthStage.fromPoints(100))
     }
 
     @Test

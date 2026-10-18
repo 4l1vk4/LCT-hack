@@ -45,6 +45,14 @@ class FakeCalendarDaoForTest : CalendarDao {
         val idx = notes.indexOfFirst { it.dayIndex == dayIndex && it.category == category }
         if (idx != -1) notes[idx] = notes[idx].copy(isCompleted = true)
     }
+    override suspend fun completeBudgetPlanTasksUpToDay(dayIndex: Int) {
+        notes.forEachIndexed { idx, note ->
+            if (note.category == "BUDGET_PLAN" && note.dayIndex <= dayIndex) {
+                notes[idx] = note.copy(isCompleted = true)
+            }
+        }
+    }
+    override suspend fun getAllNotesSync(): List<CalendarNoteEntity> = notes.toList()
     override suspend fun updateChecklistNoteByCategory(
         dayIndex: Int,
         category: String,
@@ -53,6 +61,17 @@ class FakeCalendarDaoForTest : CalendarDao {
     ) {
         val idx = notes.indexOfFirst { it.dayIndex == dayIndex && it.category == category }
         if (idx != -1) notes[idx] = notes[idx].copy(isCompleted = isCompleted, cost = cost)
+    }
+    override suspend fun completeChecklistTaskWithDetails(
+        dayIndex: Int,
+        category: String,
+        cost: Int,
+        title: String
+    ) {
+        val idx = notes.indexOfFirst { it.dayIndex == dayIndex && it.category == category }
+        if (idx != -1) {
+            notes[idx] = notes[idx].copy(isCompleted = true, cost = cost, title = title)
+        }
     }
     override suspend fun getNoteByDayAndCategory(dayIndex: Int, category: String): CalendarNoteEntity? {
         return notes.find { it.dayIndex == dayIndex && it.category == category }

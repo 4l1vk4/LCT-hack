@@ -81,6 +81,7 @@ fun MapScreen(
 ) {
     // какая локация сейчас открыта: "SHOP", "QUESTS" или "GOALS"
     var activeModal by remember(initialModal) { mutableStateOf<String?>(initialModal) }
+    var focusOnHomeChores by remember { mutableStateOf(false) }
     var notEnoughMoneyInfo by remember { mutableStateOf<Pair<Int, Int>?>(null) } // сколько не хватает, цена
     var questFeedback by remember { mutableStateOf<String?>(null) }
     var showNoPetDialog by remember { mutableStateOf(false) }
@@ -193,14 +194,16 @@ fun MapScreen(
             balance = balance,
             goals = goals,
             activeGoalId = profile?.activeGoalId,
-            currentPeriodIndex = profile?.currentPeriodIndex ?: 1,
+            currentPeriodIndex = todayNotes.firstOrNull()?.dayIndex ?: (profile?.currentPeriodIndex ?: 1),
             questProgress = questProgress,
             onSelectActiveGoal = onSelectActiveGoal,
             onCompleteHomeChore = onCompleteHomeChore,
-            initialPiggyBankExpanded = (initialModal == "GOALS"),
+            initialPiggyBankExpanded = if (focusOnHomeChores) false else (initialModal == "GOALS"),
+            focusOnChores = focusOnHomeChores,
             targetGoalId = targetGoalId,
             onDismiss = {
                 activeModal = null
+                focusOnHomeChores = false
                 onModalDismissed()
             },
             onDeposit = { goalId, amount ->
@@ -214,7 +217,7 @@ fun MapScreen(
         )
     }
 
-    // диалог нехватки монет: подсказываем ребенку заглянуть в школу
+    // диалог нехватки монет: подсказываем ребенку заглянуть в домик к заданиям
     notEnoughMoneyInfo?.let { (missing, price) ->
         PixelAlertDialog(
             onDismissRequest = { notEnoughMoneyInfo = null },
@@ -222,10 +225,11 @@ fun MapScreen(
             icon = "🪙",
             confirmButton = {
                 PixelButton(
-                    text = "В Школу 🏫",
+                    text = "В Домик к заданиям 🏡",
                     onClick = {
                         notEnoughMoneyInfo = null
-                        activeModal = "QUESTS"
+                        focusOnHomeChores = true
+                        activeModal = "GOALS"
                     },
                     containerColor = JoyOrange,
                     textColor = PixelTextDark,
@@ -243,7 +247,7 @@ fun MapScreen(
             }
         ) {
             Text(
-                text = "Тебе не хватает $missing монет для покупки за $price.\n\nЗагляни в Школу финансовой грамотности и реши задание, чтобы заработать монет!",
+                text = "Тебе не хватает $missing монет для покупки за $price.\n\nЗагляни в домик и выполни задания по дому, чтобы заработать монет!",
                 fontFamily = AppFontFamily,
                 fontSize = 16.sp,
                 lineHeight = 22.sp,

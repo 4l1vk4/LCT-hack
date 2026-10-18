@@ -121,6 +121,9 @@ fun RenderBoardIcon(icon: String, modifier: Modifier = Modifier.size(26.dp)) {
         "🛡️" -> ShieldIcon(modifier = modifier)
         "🍎" -> AppleIcon(modifier = modifier)
         "❗", "!" -> ExclamationIcon(modifier = modifier)
+        "🔒" -> LockIcon(modifier = modifier)
+        "🎯" -> TargetIcon(modifier = modifier)
+        "🪙" -> CoinIcon(modifier = modifier)
         else -> Text(text = icon, fontSize = 26.sp)
     }
 }

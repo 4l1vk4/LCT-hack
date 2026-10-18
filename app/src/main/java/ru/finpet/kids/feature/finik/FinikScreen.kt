@@ -77,7 +77,6 @@ fun FinikScreen(
     accessoryId: String = "none",
     onToggleAccessory: (String) -> Unit = {},
     animationsEnabled: Boolean = true,
-    onPetTapped: () -> Unit = {},
     onNavigateToGoals: ((String?) -> Unit)? = null,
     onNavigateToMap: (() -> Unit)? = null,
     onNavigateToPlans: (() -> Unit)? = null,
@@ -107,8 +106,8 @@ fun FinikScreen(
 
     val satiety = profile?.satiety ?: 80
     val health = profile?.health ?: 90
-    val mood = profile?.mood ?: 70
     val isPetRunaway = profile?.isPetRunaway == true
+    val mood = if (isPetRunaway) 0 else (profile?.mood ?: 70)
     val displayName = petName ?: profile?.petName ?: "Финни"
 
     // Взвешенное общее самочувствие котика
@@ -268,7 +267,6 @@ fun FinikScreen(
                             stage = currentStage,
                             enabled = animationsEnabled,
                             onClick = {
-                                onPetTapped()
                                 panelOpen = true
                             }
                         )
@@ -281,7 +279,8 @@ fun FinikScreen(
                         petName = displayName,
                         bowlPlacedToday = profile?.bowlPlacedToday == true,
                         balance = profile?.balance ?: 0,
-                        onPlaceFoodBowl = onPlaceFoodBowl
+                        onPlaceFoodBowl = onPlaceFoodBowl,
+                        onNavigateToHomeChores = { onNavigateToGoals?.invoke(null) }
                     )
                 }
             }
@@ -387,11 +386,22 @@ fun FinikScreen(
                 ActualExpenses(
                     actualMandatory = currentPeriod.actualMandatory,
                     actualOptional = currentPeriod.actualOptional,
-                    actualSavings = currentPeriod.actualSavings
+                    actualSavings = currentPeriod.actualSavings,
+                    withdrawnSavings = currentPeriod.withdrawnSavings,
+                    borrowedFromOptional = currentPeriod.borrowedFromOptional,
+                    hasPurchasedFood = currentPeriod.actualMandatory >= PetEconomyCalculator.MIN_FOOD_COST,
+                    hasPurchasedWater = currentPeriod.actualMandatory >= PetEconomyCalculator.MIN_WATER_COST
                 )
             }
-            val compliance = remember(plan, actual) {
-                PetEconomyCalculator.calculateCompliance(plan, actual)
+            val compliance = remember(plan, actual, profile) {
+                PetEconomyCalculator.calculateCompliance(
+                    plan = plan,
+                    actual = actual,
+                    isPetRunaway = profile?.isPetRunaway == true,
+                    petMood = if (profile?.isPetRunaway == true) 0 else (profile?.mood ?: 70),
+                    petSatiety = profile?.satiety ?: 100,
+                    petHealth = profile?.health ?: 100
+                )
             }
             BudgetPlanVsFactDialog(
                 currentDay = profile?.currentPeriodIndex ?: 1,

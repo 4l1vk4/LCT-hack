@@ -36,6 +36,7 @@ import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.TargetIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 
@@ -90,7 +91,11 @@ fun FinikGoalCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f, fill = false)
                 ) {
-                    Text(text = goalEmoji, fontSize = 17.sp)
+                    if (goalEmoji == "🎯") {
+                        TargetIcon(modifier = Modifier.size(17.dp))
+                    } else {
+                        Text(text = goalEmoji, fontSize = 17.sp)
+                    }
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Цель: ${activeGoal.title}",

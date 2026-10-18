@@ -8,8 +8,8 @@ enum class PetEmotion {
 
 enum class GrowthStage(val title: String, val minPoints: Int) {
     BABY("Малыш", 0),
-    TEEN("Подросток", 5),
-    ADULT("Взрослый", 10);
+    TEEN("Подросток", 28),
+    ADULT("Взрослый", 70);
 
     companion object {
         fun fromPoints(points: Int): GrowthStage = when {
@@ -45,6 +45,8 @@ data class ActualExpenses(
     val actualMandatory: Int = 0,
     val actualOptional: Int = 0,
     val actualSavings: Int = 0,
+    val withdrawnSavings: Int = 0,
+    val borrowedFromOptional: Int = 0,
     val hasPurchasedFood: Boolean = false,
     val hasPurchasedWater: Boolean = false,
     val hasPurchasedMedicine: Boolean = false
@@ -58,7 +60,13 @@ data class BudgetCompliance(
     val savingsScore: Float,    // 0.0 .. 1.0
     val totalPercent: Int,      // 0 .. 100
     val isDisciplined: Boolean, // true if totalPercent >= 75
-    val feedback: String
+    val feedback: String,
+    val overspendAmount: Int = 0,
+    val mandatoryOverspend: Int = 0,
+    val optionalOverspend: Int = 0,
+    val isPetHungry: Boolean = false,
+    val withdrawnSavings: Int = 0,
+    val borrowedFromOptional: Int = 0
 )
 
 data class PeriodResolution(

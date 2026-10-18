@@ -38,16 +38,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.CoinText
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
+import ru.finpet.kids.core.designsystem.LockIcon
 import ru.finpet.kids.core.designsystem.PixelBlueWater
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGoldGlow
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
+import ru.finpet.kids.core.designsystem.PixelJar
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelParchmentMedium
@@ -61,8 +64,10 @@ import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.PixelWoodLight
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.designsystem.TargetIcon
 import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.domain.model.BudgetPlan
+import kotlin.math.roundToInt
 
 /**
  * диалог планирования личного бюджета «волшебные баночки заботы» (ТЗ 2.5.5).
@@ -132,7 +137,7 @@ fun BudgetPlanningDialog(
                 .clip(RoundedCornerShape(8.dp))
         ) {
             StardewBoard(
-                headerTitle = "ВОЛШЕБНЫЕ БАНОЧКИ • ДЕНЬ $currentDay",
+                headerTitle = "ВОЛШЕБНЫЕ БАНОЧКИ • ПЕРИОД $currentDay",
                 headerIcon = "🍯"
             ) {
                 LazyColumn(
@@ -190,17 +195,17 @@ fun BudgetPlanningDialog(
                                     .padding(horizontal = 10.dp, vertical = 8.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(text = "🔒", fontSize = 18.sp)
+                                    LockIcon(modifier = Modifier.size(18.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Column {
                                         Text(
-                                            text = "Бюджет на сегодня утверждён!",
+                                            text = "Бюджет на период утверждён!",
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF1B5E20)
                                         )
                                         Text(
-                                            text = "Распределение монет зафиксировано. Новый план можно составить в следующий день.",
+                                            text = "Распределение монет зафиксировано. Новый план можно составить в начале следующей недели.",
                                             fontSize = 15.sp,
                                             color = Color(0xFF2E7D32),
                                             lineHeight = 19.sp
@@ -367,6 +372,7 @@ fun BudgetPlanningDialog(
                     // баночка 1: обязательные расходы (еда, здоровье)
                     item {
                         MagicJarCard(
+                            jarRes = R.drawable.life_jar,
                             icon = "🍲",
                             title = "«Миска жизни»",
                             categoryLabel = "Обязательное",
@@ -393,6 +399,7 @@ fun BudgetPlanningDialog(
                     // баночка 2: желаемые расходы (игрушки, вкусняшки)
                     item {
                         MagicJarCard(
+                            jarRes = R.drawable.joy_jar,
                             icon = "🎈",
                             title = "«Сундучок радости»",
                             categoryLabel = "Желаемое",
@@ -419,6 +426,7 @@ fun BudgetPlanningDialog(
                     // баночка 3: накопления в копилку
                     item {
                         MagicJarCard(
+                            jarRes = R.drawable.saving_jar,
                             icon = "🏦",
                             title = "«Копилка мечты»",
                             categoryLabel = "В копилку",
@@ -534,7 +542,11 @@ private fun PresetCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = icon, fontSize = 16.sp)
+                if (icon == "🎯") {
+                    TargetIcon(modifier = Modifier.size(16.dp))
+                } else {
+                    Text(text = icon, fontSize = 16.sp)
+                }
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = title,
@@ -563,6 +575,7 @@ private fun PresetCard(
  */
 @Composable
 private fun MagicJarCard(
+    jarRes: Int = 0,
     icon: String,
     title: String,
     categoryLabel: String,
@@ -581,6 +594,7 @@ private fun MagicJarCard(
         0f
     }
     val fillPercent = (fillRatio * 100).toInt()
+    val fillDivisions = (fillRatio * 10f).roundToInt()
 
     Column(
         modifier = Modifier
@@ -592,13 +606,21 @@ private fun MagicJarCard(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .pixelButtonBackground(containerColor = color.copy(alpha = 0.25f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = icon, fontSize = 20.sp)
+            if (jarRes != 0) {
+                PixelJar(
+                    jarRes = jarRes,
+                    fillDivisions = fillDivisions,
+                    modifier = Modifier.size(46.dp)
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .pixelButtonBackground(containerColor = color.copy(alpha = 0.25f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = icon, fontSize = 20.sp)
+                }
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -617,20 +639,30 @@ private fun MagicJarCard(
                 )
             }
             Spacer(modifier = Modifier.width(6.dp))
-            // текущая сумма в баночке в пиксельном бейдже
+            // текущая сумма в баночке в пиксельном бейдже (слово категории ПОД монетками)
             Box(
                 modifier = Modifier
                     .pixelButtonBackground(containerColor = PixelParchmentLight)
                     .padding(horizontal = 10.dp, vertical = 5.dp),
                 contentAlignment = Alignment.Center
             ) {
-                CoinText(
-                    prefix = "$amount",
-                    fontWeight = FontWeight.ExtraBold,
-                    color = color,
-                    fontSize = 17.sp,
-                    fontFamily = AppFontFamily
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CoinText(
+                        prefix = "$amount",
+                        fontWeight = FontWeight.ExtraBold,
+                        color = color,
+                        fontSize = 17.sp,
+                        fontFamily = AppFontFamily
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = categoryLabel,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelTextMuted,
+                        fontFamily = AppFontFamily
+                    )
+                }
             }
         }
 

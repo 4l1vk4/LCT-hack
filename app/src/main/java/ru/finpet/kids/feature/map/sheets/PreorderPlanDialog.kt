@@ -39,8 +39,10 @@ import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import ru.finpet.kids.core.data.repository.PurchaseItem
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.AppleIcon
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.ExclamationIcon
+import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.HeartIcon
 import ru.finpet.kids.core.designsystem.JoyOrange
@@ -251,7 +253,8 @@ fun PreorderPlanDialog(
                                                     if (boostsLowSatiety) {
                                                         ExclamationIcon(modifier = Modifier.size(12.dp))
                                                     }
-                                                    Text("🍎 +${item.satietyBonus}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = JoyOrange)
+                                                    AppleIcon(modifier = Modifier.size(13.dp))
+                                                    Text("+${item.satietyBonus}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = JoyOrange)
                                                 }
                                             }
                                             if (item.moodBonus > 0) {
@@ -445,7 +448,13 @@ fun QuickBuyConfirmDialog(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         if (item.satietyBonus > 0) {
-                                            Text("🍎 Сытость +${item.satietyBonus}", fontSize = 16.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                            ) {
+                                                AppleIcon(modifier = Modifier.size(16.dp))
+                                                Text("Сытость +${item.satietyBonus}", fontSize = 16.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
+                                            }
                                         }
                                         if (item.moodBonus > 0) {
                                             Row(
@@ -534,12 +543,18 @@ fun QuickBuyConfirmDialog(
                                         fontFamily = AppFontFamily
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "🍎 Сытость: ${formatStatGain(curSatiety, totalSatiety)}",
-                                        fontSize = 16.sp,
-                                        color = JoyOrange,
-                                        fontFamily = AppFontFamily
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        AppleIcon(modifier = Modifier.size(16.dp))
+                                        Text(
+                                            text = "Сытость: ${formatStatGain(curSatiety, totalSatiety)}",
+                                            fontSize = 16.sp,
+                                            color = JoyOrange,
+                                            fontFamily = AppFontFamily
+                                        )
+                                    }
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -619,6 +634,45 @@ fun QuickBuyConfirmDialog(
                                             Text("Не хватает:", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = PixelRedBerry)
                                             CoinPriceTag(amount = totalCost - balance, fontSize = 18.sp, color = PixelRedBerry)
                                         }
+                                    }
+                                }
+                            }
+                        }
+
+                        val selectedMandatorySum = selectedItems.filter { it.category == "MANDATORY" }.sumOf { it.price }
+                        val selectedOptionalSum = selectedItems.filter { it.category == "OPTIONAL" }.sumOf { it.price }
+                        val isOptOver = currentPeriod != null && currentPeriod.isBudgetConfirmed && currentPeriod.plannedOptional > 0 &&
+                                (currentPeriod.actualOptional + selectedOptionalSum > currentPeriod.plannedOptional)
+                        val isMandOver = currentPeriod != null && currentPeriod.isBudgetConfirmed && currentPeriod.plannedMandatory > 0 &&
+                                (currentPeriod.actualMandatory + selectedMandatorySum > currentPeriod.plannedMandatory)
+
+                        if (isOptOver || isMandOver) {
+                            item {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color(0xFFFFF3E0))
+                                        .border(2.dp, Color(0xFFFF9800), RoundedCornerShape(8.dp))
+                                        .padding(12.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.Top) {
+                                        WarningIcon(modifier = Modifier.size(34.dp))
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        val overText = when {
+                                            isMandOver && isOptOver -> "Внимание: покупка превысит лимиты в обеих банках («Обязательное» и «Желаемое»). Перерасход снизит точность бюджета («План vs Факт»)."
+                                            isMandOver -> "Внимание: в банке «Обязательное» не хватает монет! Недостающая часть будет взята из банки «Желаемое», что создаст перерасход и снизит точность бюджета («План vs Факт»)."
+                                            else -> "Внимание: в банке «Желаемое» не хватает монет! Покупка сверх плана снизит итоговую точность бюджета («План vs Факт»)."
+                                        }
+                                        Text(
+                                            text = overText,
+                                            fontFamily = AppFontFamily,
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFE65100),
+                                            lineHeight = 20.sp
+                                        )
                                     }
                                 }
                             }

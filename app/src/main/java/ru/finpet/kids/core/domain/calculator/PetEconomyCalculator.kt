@@ -38,12 +38,13 @@ object PetEconomyCalculator {
     }
 
     // карманные деньги начисляются по понедельникам: +200 крокетсов на неделю вперед
-    fun calculateDayIncome(nextDayIndex: Int, yearMonth: java.time.YearMonth? = null): Int {
-        return if (isMonday(nextDayIndex, yearMonth)) WEEKLY_ALLOWANCE else DAILY_INCOME
+    fun calculateDayIncome(nextDayIndex: Int, yearMonth: java.time.YearMonth? = null, isPeriodSkip: Boolean = false): Int {
+        return if (isPeriodSkip || isMonday(nextDayIndex, yearMonth)) WEEKLY_ALLOWANCE else DAILY_INCOME
     }
 
     // считаем взвешенное настроение (0..100): если сытость или здоровье на дне, настроение тоже резко проседает
     fun calculateEffectiveMood(mood: Int, satiety: Int, health: Int): Int {
+        if (mood <= 0) return 0
         var calculated = (mood * 0.60f + satiety * 0.20f + health * 0.20f)
         if (satiety < 50) {
             calculated -= (50 - satiety) * 0.5f
@@ -94,20 +95,21 @@ object PetEconomyCalculator {
         }
     }
 
-    // базовое настроение: растут бонусы за игрушки и копилку, но за перерасход и голод штрафуем
+    // базовое настроение: растет за игрушки и копилку, но если экономим на жизни (обязательное/еда), настроение падает
     fun calculateMood(
         satiety: Int,
         plan: BudgetPlan,
         actualExpenses: ActualExpenses,
         currentMood: Int = 60
     ): Int {
+        if (currentMood <= 0) return 0
         var mood = if (satiety < 50) {
             minOf(currentMood, 60)
         } else {
-            maxOf(currentMood, 60)
+            currentMood
         }
 
-        // бонус за радости и лакомства
+        // бонус за радости и лакомства (желаемое)
         val optionalBonus = min(35, (actualExpenses.actualOptional / 10) * 10)
         mood += optionalBonus
 
@@ -144,19 +146,45 @@ object PetEconomyCalculator {
         }
     }
 
-    // считаем точность соблюдения бюджета по 3 корзинам (экономия и перевыполнение накоплений не штрафуются)
-    fun calculateCompliance(plan: BudgetPlan, actual: ActualExpenses): BudgetCompliance {
-        // обязательные траты: штрафуем за перерасход или если не куплен минимум для питомца
+    // считаем точность соблюдения бюджета по 3 корзинам:
+    // Главный приоритет — сытость, здоровье и состояние питомца.
+    // Накопления поощряются только при сытом питомце, а перерасход и чрезмерные траты снижают точность.
+    fun calculateCompliance(
+        plan: BudgetPlan,
+        actual: ActualExpenses,
+        isPetRunaway: Boolean = false,
+        hasRecoveredPet: Boolean = false,
+        petMood: Int = 70,
+        petSatiety: Int = 100,
+        petHealth: Int = 100
+    ): BudgetCompliance {
+        // 1. Проверка качества жизни: сыт и ухожен ли питомец
+        val isPetHungry = !hasRecoveredPet && (
+            petSatiety < 50 ||
+            ((!actual.hasPurchasedFood && actual.actualMandatory < MIN_FOOD_COST) && (actual.totalActual > 0 || petSatiety < 70))
+        )
+        val isPetCriticallyStarving = !hasRecoveredPet && (
+            petSatiety < 30 ||
+            (!actual.hasPurchasedFood && actual.actualMandatory == 0 && actual.totalActual > 0)
+        )
+        val hasAdequateCare = !isPetHungry && (actual.hasPurchasedFood || actual.actualMandatory >= MIN_FOOD_COST || hasRecoveredPet)
+        val isDepressedLife = (petMood < 40 || isPetHungry || petHealth < 60) && !isPetRunaway
+
+        // 2. Обязательные траты (Миска жизни):
         val mandScore = when {
-            plan.plannedMandatory == 0 && actual.actualMandatory == 0 -> 1.0f
+            // если питомец вернулся и куплен корм для возвращения (60 монет)
+            hasRecoveredPet || (isPetRunaway && actual.actualMandatory >= 60) -> 1.0f
+            isPetCriticallyStarving -> 0.0f
+            isPetHungry -> {
+                val ratio = (actual.actualMandatory.toFloat() / max(plan.plannedMandatory, MIN_FOOD_COST).toFloat()).coerceIn(0f, 1f)
+                ratio * 0.15f
+            }
+            // если план 0 и факт 0: если питомец сыт — 1.0, иначе 0.0 (планировать 0 на еду голодному питомцу нельзя!)
+            plan.plannedMandatory == 0 && actual.actualMandatory == 0 -> {
+                if (hasAdequateCare) 1.0f else 0.0f
+            }
             actual.actualMandatory <= plan.plannedMandatory -> {
-                // если потратили в пределах плана — проверяем, покормлен ли питомец
-                if (actual.hasPurchasedFood || actual.actualMandatory >= MIN_FOOD_COST || plan.plannedMandatory == 0) {
-                    1.0f
-                } else {
-                    // потратили меньше, но еду не купили
-                    (actual.actualMandatory.toFloat() / max(plan.plannedMandatory, 1).toFloat()).coerceIn(0.5f, 1.0f)
-                }
+                if (isDepressedLife) 0.70f else 1.0f
             }
             else -> {
                 // перерасход обязательных трат
@@ -165,8 +193,14 @@ object PetEconomyCalculator {
             }
         }
 
-        // спонтанные траты (хотелки): если сэкономили и потратили меньше плана — отлично (100%), штраф только за перерасход
+        // 3. Спонтанные траты (хотелки / Сундучок радости):
+        // если сэкономили и потратили меньше плана — отлично (100%), штраф только за перерасход.
+        // При голодном питомце траты на хотелки строго наказываются, а экономия не дает 100%.
         val optScore = when {
+            isPetCriticallyStarving -> 0.0f
+            isPetHungry -> {
+                if (actual.actualOptional > 0) 0.0f else 0.20f
+            }
             plan.plannedOptional == 0 && actual.actualOptional == 0 -> 1.0f
             actual.actualOptional <= plan.plannedOptional -> 1.0f
             else -> {
@@ -175,8 +209,9 @@ object PetEconomyCalculator {
             }
         }
 
-        // накопления: если отложили столько же или БОЛЬШЕ плана — отлично (100%), штраф только если отложили меньше
-        val savScore = when {
+        // 4. Накопления (Копилка мечты):
+        val isExceededSavings = actual.actualSavings > plan.plannedSavings && plan.plannedSavings > 0
+        val rawSavScore = when {
             plan.plannedSavings == 0 && actual.actualSavings == 0 -> 1.0f
             actual.actualSavings >= plan.plannedSavings -> 1.0f
             else -> {
@@ -186,14 +221,90 @@ object PetEconomyCalculator {
             }
         }
 
-        val totalPercent = (((mandScore + optScore + savScore) / 3.0f) * 100.0f).roundToInt().coerceIn(0, 100)
-        val isDisciplined = totalPercent >= 75
+        // ПРИОРИТЕТ СОСТОЯНИЯ ПИТОМЦА НАД НАКОПЛЕНИЯМИ:
+        // Если питомец голоден (экономия на жизни), накопления не могут считаться успехом!
+        val savScore = when {
+            isPetCriticallyStarving && !hasRecoveredPet -> 0.0f
+            isPetHungry && !hasRecoveredPet -> rawSavScore * 0.15f
+            else -> rawSavScore
+        }
+
+        val mandOverspend = if (hasRecoveredPet || isPetRunaway) 0 else max(0, actual.actualMandatory - plan.plannedMandatory)
+        val optOverspend = max(0, actual.actualOptional - plan.plannedOptional)
+        val totalOverspend = mandOverspend + optOverspend
+
+        val basePercent = (((mandScore + optScore + savScore) / 3.0f) * 100.0f).roundToInt()
+
+        // Штраф за перерасход: перерасход напрямую уменьшает итоговую статистику плана vs факта
+        val overspendPenalty = if (totalOverspend > 0) {
+            val totalPlanBasis = max(plan.totalPlanned, 30).toFloat()
+            ((totalOverspend.toFloat() / totalPlanBasis) * 40.0f).roundToInt().coerceAtLeast(minOf(totalOverspend, 5))
+        } else 0
+
+        // Штраф за экономию на жизни (питомец голоден / угнетен):
+        val lifeEconomyPenalty = when {
+            isPetCriticallyStarving && !hasRecoveredPet -> 15
+            isPetHungry && !hasRecoveredPet -> 10
+            isDepressedLife && !hasRecoveredPet -> 5
+            else -> 0
+        }
+
+        // Штраф за снятие монет из прошлых накоплений:
+        val pastSavingsPenalty = if (actual.withdrawnSavings > 0) {
+            minOf(20, (actual.withdrawnSavings * 0.4f).roundToInt() + 5)
+        } else 0
+
+        // Штраф за взятие монет из «Желаемого» на обязательные расходы:
+        val borrowedPenalty = if (actual.borrowedFromOptional > 0) {
+            minOf(15, (actual.borrowedFromOptional * 0.3f).roundToInt() + 3)
+        } else 0
+
+        val totalPercent = (basePercent - overspendPenalty - lifeEconomyPenalty - pastSavingsPenalty - borrowedPenalty).coerceIn(0, 100)
+        val isDisciplined = totalPercent >= 75 && !isPetHungry
+
+        val overspendCause = when {
+            mandOverspend > 0 && optOverspend > 0 ->
+                "в «Обязательном» (+${mandOverspend} 🪙) и «Желаемом» (+${optOverspend} 🪙)"
+            mandOverspend > 0 ->
+                "в «Обязательном» («Миска жизни») на ${mandOverspend} 🪙"
+            optOverspend > 0 ->
+                "в «Желаемом» («Сундучок радости») на ${optOverspend} 🪙"
+            else -> ""
+        }
 
         val feedback = when {
-            totalPercent >= 90 -> "Превосходно! Твой бюджет соблюдён почти идеально, а экономия пошла на пользу!"
-            totalPercent >= 75 -> "Отличная работа! Ты уверенно управляешь своими монетками и бережёшь бюджет."
-            totalPercent >= 50 -> "Неплохо, но траты немного разошлись с планом. Попробуем ещё раз!"
-            else -> "План не совсем сошёлся с покупками. В следующем периоде сначала купи главное и не перерасходуй хотелки!"
+            isPetCriticallyStarving && !hasRecoveredPet && actual.actualSavings > 0 ->
+                "Питомец сильно голодает! Забота о жизни важнее накоплений: не экономь на питании котика ради копилки, срочно накорми питомца!"
+            isPetCriticallyStarving && !hasRecoveredPet ->
+                "Питомец сильно голодает! Срочно накорми котика: забота о жизни и здоровье питомца — это главный приоритет бюджета!"
+            isPetHungry && !hasRecoveredPet && actual.actualSavings > 0 ->
+                "Питомец голоден! Забота о жизни важнее накоплений: не экономь на питании питомца ради копилки, сначала накорми котика!"
+            isPetHungry && !hasRecoveredPet ->
+                "Питомец остался голодным! Забота о жизни и здоровье питомца — это главный приоритет бюджета."
+            isDepressedLife && !hasRecoveredPet ->
+                "Настроение питомца ухудшилось из-за жесткой экономии на его жизни! Не стоит урезать обязательные траты во вред здоровью."
+            actual.withdrawnSavings > 0 ->
+                "Снятие монет из прошлых накоплений (-${actual.withdrawnSavings} 🪙) снизило точность бюджета. Старайся не вскрывать копилку без необходимости!"
+            actual.borrowedFromOptional > 0 ->
+                "В банке «Обязательное» не хватило монет, и ${actual.borrowedFromOptional} 🪙 было взято из «Желаемого». Это снизило точность бюджета."
+            isExceededSavings && hasAdequateCare && totalOverspend == 0 ->
+                "Великолепно! Ты скопил даже больше, чем планировал, не допустил перерасхода и сохранил питомца сытым и довольным! Отличный баланс!"
+            hasRecoveredPet || (isPetRunaway && actual.actualMandatory >= 60) ->
+                "Молодец, что правильно выделил монеты и вернул питомца домой!"
+            totalOverspend > 0 && actual.actualSavings == 0 ->
+                "Перерасход $overspendCause снизил точность бюджета! Ты потратил слишком много денег на хотелки и ничего не отложил в копилку."
+            totalOverspend > 0 ->
+                "Перерасход $overspendCause снизил точность бюджета! Чтобы поднять точность: держи покупки в рамках баночек или пополняй копилку."
+            actual.actualSavings == 0 && plan.plannedSavings > 0 ->
+                "Питомец сыт и траты под контролем, но ты не пополнил копилку мечты. Для высокой точности не забывай откладывать на цель!"
+            totalPercent >= 90 ->
+                "Превосходно! Твой бюджет соблюдён почти идеально: питомец сыт и счастлив, перерасхода нет, а копилка растет!"
+            totalPercent >= 75 ->
+                "Отличная работа! Ты уверенно держишь баланс: питомец сыт, траты под контролем, а накопления пополняются."
+            totalPercent >= 50 ->
+                "Неплохо, но траты разошлись с планом. Помни о балансе: сытый питомец, умеренные радости и регулярная копилка."
+            else ->
+                "Низкая точность бюджета. Сбалансируй траты: сначала еда для питомца, затем умеренные радости и копилка без перерасхода!"
         }
 
         return BudgetCompliance(
@@ -202,7 +313,13 @@ object PetEconomyCalculator {
             savingsScore = savScore,
             totalPercent = totalPercent,
             isDisciplined = isDisciplined,
-            feedback = feedback
+            feedback = feedback,
+            overspendAmount = totalOverspend,
+            mandatoryOverspend = mandOverspend,
+            optionalOverspend = optOverspend,
+            isPetHungry = isPetHungry && !hasRecoveredPet,
+            withdrawnSavings = actual.withdrawnSavings,
+            borrowedFromOptional = actual.borrowedFromOptional
         )
     }
 
@@ -242,15 +359,26 @@ object PetEconomyCalculator {
         plan: BudgetPlan,
         actual: ActualExpenses,
         nextDayIndex: Int = 1,
-        yearMonth: java.time.YearMonth? = null
+        yearMonth: java.time.YearMonth? = null,
+        isPetRunaway: Boolean = false,
+        hasRecoveredPet: Boolean = false,
+        isPeriodSkip: Boolean = false
     ): PeriodResolution {
         val satiety = calculateSatiety(actual, currentStats.satiety)
         val health = calculateHealth(satiety, plan, actual, currentStats.health)
         val rawMood = calculateMood(satiety, plan, actual, currentStats.mood)
         val effectiveMood = calculateEffectiveMood(rawMood, satiety, health)
-        val mood = if (effectiveMood <= 0) 0 else rawMood
+        val mood = if (effectiveMood <= 0 || (isPetRunaway && !hasRecoveredPet)) 0 else rawMood
         val emotion = resolveEmotion(satiety, health, mood)
-        val compliance = calculateCompliance(plan, actual)
+        val compliance = calculateCompliance(
+            plan = plan,
+            actual = actual,
+            isPetRunaway = isPetRunaway,
+            hasRecoveredPet = hasRecoveredPet,
+            petMood = mood,
+            petSatiety = satiety,
+            petHealth = health
+        )
 
         val carePointsEarned = calculateCarePoints(satiety, health, plan, actual, compliance)
         val newTotalCarePoints = currentStats.carePoints + carePointsEarned
@@ -272,7 +400,7 @@ object PetEconomyCalculator {
             feedback = feedback
         )
 
-        val periodIncome = calculateDayIncome(nextDayIndex, yearMonth)
+        val periodIncome = calculateDayIncome(nextDayIndex, yearMonth, isPeriodSkip)
 
         val summaryFeedback = buildString {
             append("Итоги дня: получено +$carePointsEarned очков заботы. ")

@@ -23,6 +23,7 @@ import ru.finpet.kids.core.data.repository.ContentRepository
 import ru.finpet.kids.core.data.repository.PurchaseItem
 import ru.finpet.kids.core.data.repository.QuestItem
 import ru.finpet.kids.core.data.repository.SettingsRepository
+import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
 import ru.finpet.kids.core.domain.model.BudgetPlan
 import ru.finpet.kids.core.domain.model.GrowthStage
 import ru.finpet.kids.core.domain.model.PeriodResolution
@@ -201,7 +202,7 @@ class MainViewModel @Inject constructor(
                     moodBonus = item.moodBonus,
                     healthBonus = item.healthBonus
                 )
-                val currentDay = prof.currentPeriodIndex
+                val currentDay = _virtualDate.value.dayOfMonth
                 if (item.id == "food_basic" || (item.category == "MANDATORY" && item.id.contains("food"))) {
                     calendarDao.completeChecklistTaskByCategory(currentDay, "PET_FOOD")
                 }
@@ -324,12 +325,6 @@ class MainViewModel @Inject constructor(
         if (oldMonth != null && oldMonth != resolvedVirtual.month) {
             seedCalendarNotesForMonth(YearMonth.from(resolvedVirtual))
         }
-
-        // Синхронизируем текущий день в профиле с днем виртуальной даты
-        val profile = repository.getProfileSync()
-        if (profile != null && profile.currentPeriodIndex != resolvedVirtual.dayOfMonth) {
-            repository.saveProfile(profile.copy(currentPeriodIndex = resolvedVirtual.dayOfMonth))
-        }
     }
 
     private suspend fun ensureCalendarDataInitialized() {
@@ -371,7 +366,8 @@ class MainViewModel @Inject constructor(
         if (prof != null) {
             val period = repository.getPeriodSync(prof.currentPeriodIndex)
             if (period?.isBudgetConfirmed == true) {
-                calendarDao.completeChecklistTaskByCategory(prof.currentPeriodIndex, "BUDGET_PLAN")
+                val currentDay = _virtualDate.value.dayOfMonth
+                calendarDao.completeBudgetPlanTasksUpToDay(currentDay)
             }
         }
     }
@@ -385,16 +381,20 @@ class MainViewModel @Inject constructor(
             val date = yearMonth.atDay(day)
             val isWeekend = date.dayOfWeek in listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
 
-            // 0. распределение бюджета на день
-            allNotes.add(
-                CalendarNoteEntity(
-                    dayIndex = day,
-                    title = "Распределить бюджет на день",
-                    cost = 0,
-                    category = "BUDGET_PLAN",
-                    isCompleted = false
+            val isPeriodStart = (day == 1 || date.dayOfWeek == DayOfWeek.MONDAY)
+
+            // 0. распределение бюджета на период (только в начале периода)
+            if (isPeriodStart) {
+                allNotes.add(
+                    CalendarNoteEntity(
+                        dayIndex = day,
+                        title = "Распределить бюджет на период",
+                        cost = 0,
+                        category = "BUDGET_PLAN",
+                        isCompleted = false
+                    )
                 )
-            )
+            }
 
             // 1. ежедневный сытный корм для питомца
             allNotes.add(
@@ -454,7 +454,8 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             val prof = repository.getProfileSync() ?: return@launch
             confirmBudgetUseCase(prof.currentPeriodIndex, plan)
-            calendarDao.completeChecklistTaskByCategory(prof.currentPeriodIndex, "BUDGET_PLAN")
+            val currentDay = _virtualDate.value.dayOfMonth
+            calendarDao.completeBudgetPlanTasksUpToDay(currentDay)
             loadCurrentPeriod()
         }
     }
@@ -463,7 +464,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             val prof = repository.getProfileSync() ?: return@launch
             if (prof.isPetRunaway) return@launch
-            val currentDay = prof.currentPeriodIndex
+            val currentDay = _virtualDate.value.dayOfMonth
 
             if (item.id == "groceries_parents") {
                 // проверка повторного выполнения задания родителей
@@ -479,19 +480,15 @@ class MainViewModel @Inject constructor(
                     val change = listOf(5, 10, 15).random()
                     repository.saveProfile(prof.copy(balance = prof.balance + change))
                     calendarDao.updateChecklistNoteByCategory(currentDay, "GROCERIES", isCompleted = true, cost = change)
+                    showMoneyEvent(
+                        amount = change,
+                        source = "Сдача от покупки продуктов",
+                        icon = "🛒"
+                    )
                     loadCurrentPeriod()
                 } finally {
                     isProcessingGroceries = false
                 }
-                val change = listOf(5, 10, 15).random()
-                repository.saveProfile(prof.copy(balance = prof.balance + change))
-                calendarDao.updateChecklistNoteByCategory(currentDay, "GROCERIES", isCompleted = true, cost = change)
-                showMoneyEvent(
-                    amount = change,
-                    source = "Сдача от покупки продуктов",
-                    icon = "🛒"
-                )
-                loadCurrentPeriod()
                 return@launch
             }
 
@@ -517,8 +514,7 @@ class MainViewModel @Inject constructor(
     fun answerQuest(questId: String, optionId: String) {
         viewModelScope.launch {
             questEngineUseCase.executeOption(questId, optionId)
-            val prof = repository.getProfileSync() ?: return@launch
-            val currentDay = prof.currentPeriodIndex
+            val currentDay = _virtualDate.value.dayOfMonth
             val completedToday = repository.getQuestProgress().first().count {
                 it.completedInPeriod == currentDay && it.isCompleted
             }
@@ -530,8 +526,8 @@ class MainViewModel @Inject constructor(
 
     fun onPetAskedQuestion() {
         viewModelScope.launch {
-            val prof = repository.getProfileSync() ?: return@launch
-            calendarDao.completeChecklistTaskByCategory(prof.currentPeriodIndex, "PET_QUESTION")
+            val currentDay = _virtualDate.value.dayOfMonth
+            calendarDao.completeChecklistTaskByCategory(currentDay, "PET_QUESTION")
         }
     }
 
@@ -548,7 +544,8 @@ class MainViewModel @Inject constructor(
                     balance = prof.balance - bowlPrice,
                     isPetRunaway = true,
                     bowlPlacedToday = true,
-                    runawayDaysLeft = daysLeft
+                    runawayDaysLeft = daysLeft,
+                    mood = 0
                 )
             )
 
@@ -561,10 +558,11 @@ class MainViewModel @Inject constructor(
             )
 
             // отметка задачи дня о корме как выполненной с обновлением цены (60) и названия
-            val existingPetFoodNote = calendarDao.getNoteByDayAndCategory(prof.currentPeriodIndex, "PET_FOOD")
+            val currentDay = _virtualDate.value.dayOfMonth
+            val existingPetFoodNote = calendarDao.getNoteByDayAndCategory(currentDay, "PET_FOOD")
             if (existingPetFoodNote != null) {
                 calendarDao.completeChecklistTaskWithDetails(
-                    dayIndex = prof.currentPeriodIndex,
+                    dayIndex = currentDay,
                     category = "PET_FOOD",
                     cost = bowlPrice,
                     title = "Купить корм для возвращения"
@@ -572,7 +570,7 @@ class MainViewModel @Inject constructor(
             } else {
                 calendarDao.insertNote(
                     CalendarNoteEntity(
-                        dayIndex = prof.currentPeriodIndex,
+                        dayIndex = currentDay,
                         title = "Купить корм для возвращения",
                         cost = bowlPrice,
                         category = "PET_FOOD",
@@ -609,7 +607,7 @@ class MainViewModel @Inject constructor(
     fun completeHomeChore(choreId: String, rewardCoins: Int) {
         viewModelScope.launch {
             val prof = repository.getProfileSync() ?: return@launch
-            val currentDay = prof.currentPeriodIndex
+            val currentDay = _virtualDate.value.dayOfMonth
             val existing = questProgress.value.find { it.questId == choreId }
             val isAlreadyDone = if (existing != null && existing.isCompleted) {
                 when (choreId) {
@@ -640,10 +638,120 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun completePeriod() {
+    fun advanceOneDay() {
         viewModelScope.launch {
             val curDate = _virtualDate.value
             val nextDate = curDate.plusDays(1)
+            _virtualDate.value = nextDate
+            settingsRepository.setVirtualDate(nextDate)
+
+            val monthChanged = nextDate.month != curDate.month
+            val nextDayIndex = nextDate.dayOfMonth
+            val nextYM = YearMonth.from(nextDate)
+            val curYM = YearMonth.from(curDate)
+
+            if (monthChanged) {
+                seedCalendarNotesForMonth(nextYM)
+            }
+
+            val isPeriodTransition = nextDate.dayOfWeek == DayOfWeek.MONDAY
+
+            val profBefore = repository.getProfileSync()
+            val stageBefore = profBefore?.growthStage ?: "BABY"
+            val petName = profBefore?.petName ?: "Котик"
+
+            // 1. Применяем результаты прошедшего дня (curDate) к питомцу (включая переход в воскресенье)
+            if (profBefore != null) {
+                val fedYesterday = calendarDao.getNoteByDayAndCategory(curDate.dayOfMonth, "PET_FOOD")?.isCompleted == true
+                var newSatiety = profBefore.satiety
+                var newHealth = profBefore.health
+                var newMood = profBefore.mood
+                var newRunaway = profBefore.isPetRunaway
+                var newRunawayDays = profBefore.runawayDaysLeft
+
+                if (profBefore.isPetRunaway) {
+                    if (profBefore.bowlPlacedToday) {
+                        val daysRemaining = profBefore.runawayDaysLeft - 1
+                        if (daysRemaining <= 0) {
+                            newRunaway = false
+                            newRunawayDays = 0
+                            newMood = 60
+                            newSatiety = 80
+                            newHealth = maxOf(profBefore.health, 70)
+                        } else {
+                            newRunawayDays = daysRemaining
+                            newMood = 0
+                        }
+                    } else {
+                        newMood = 0
+                    }
+                } else {
+                    if (!fedYesterday) {
+                        newSatiety = maxOf(0, profBefore.satiety - 25)
+                        if (newSatiety < 20) {
+                            newHealth = maxOf(0, profBefore.health - 10)
+                        }
+                        newMood = maxOf(0, profBefore.mood - 15)
+                    }
+                    val effectiveMood = PetEconomyCalculator.calculateEffectiveMood(newMood, newSatiety, newHealth)
+                    if (newMood <= 0 || effectiveMood <= 0) {
+                        newRunaway = true
+                        newRunawayDays = if (newRunawayDays <= 0) (1..3).random() else newRunawayDays
+                        newMood = 0
+                    }
+                }
+
+                repository.saveProfile(
+                    profBefore.copy(
+                        satiety = newSatiety,
+                        health = newHealth,
+                        mood = if (newRunaway) 0 else newMood,
+                        isPetRunaway = newRunaway,
+                        runawayDaysLeft = newRunawayDays,
+                        bowlPlacedToday = false
+                    )
+                )
+            }
+
+            // 2. Если наступил понедельник — закрываем завершившийся период (неделю)
+            if (isPeriodTransition) {
+                val result = completePeriodUseCase(nextDayIndex = nextDayIndex, yearMonth = nextYM, isPeriodSkip = false)
+                if (result != null) {
+                    val stageAfter = result.newStats.stage.name
+                    if (stageAfter != stageBefore && result.newStats.stage == GrowthStage.ADULT) {
+                        _petGrowthEvent.value = petName
+                    }
+                    if (result.newStats.stage == GrowthStage.ADULT) {
+                        val currentStart = settingsRepository.adultStageStartDay.first()
+                        if (currentStart == 0) {
+                            settingsRepository.setAdultStageStartDay(nextDayIndex)
+                        }
+                    }
+                    val isIncome = result.periodIncome > 0
+                    val enrichedResult = result.copy(
+                        isMonthTransition = monthChanged,
+                        closedMonthName = CalendarMonthInfo.of(curYM).monthName,
+                        newMonthName = CalendarMonthInfo.of(nextYM).monthName,
+                        isIncomeDay = isIncome
+                    )
+                    // диалог анализа периода
+                    _periodAnalysisEvent.value = enrichedResult
+                    if (isIncome) {
+                        showMoneyEvent(
+                            amount = result.periodIncome,
+                            source = "Карманные деньги на неделю (понедельник)"
+                        )
+                    }
+                }
+            }
+            loadCurrentPeriod()
+        }
+    }
+
+    fun advanceOnePeriod() {
+        viewModelScope.launch {
+            val curDate = _virtualDate.value
+            val nextDate = curDate.plusDays(7)
             _virtualDate.value = nextDate
             settingsRepository.setVirtualDate(nextDate)
 
@@ -660,7 +768,7 @@ class MainViewModel @Inject constructor(
             val stageBefore = profBefore?.growthStage ?: "BABY"
             val petName = profBefore?.petName ?: "Котик"
 
-            val result = completePeriodUseCase(nextDayIndex = nextDayIndex, yearMonth = nextYM)
+            val result = completePeriodUseCase(nextDayIndex = nextDayIndex, yearMonth = nextYM, isPeriodSkip = true)
             if (result != null) {
                 val stageAfter = result.newStats.stage.name
                 if (stageAfter != stageBefore && result.newStats.stage == GrowthStage.ADULT) {
@@ -684,12 +792,16 @@ class MainViewModel @Inject constructor(
                 if (isIncome) {
                     showMoneyEvent(
                         amount = result.periodIncome,
-                        source = "Карманные деньги на неделю (понедельник)"
+                        source = "Карманные деньги на неделю (+200)"
                     )
                 }
             }
             loadCurrentPeriod()
         }
+    }
+
+    fun completePeriod() {
+        advanceOneDay()
     }
 
     fun grantParentBonus(coins: Int, reason: String) {

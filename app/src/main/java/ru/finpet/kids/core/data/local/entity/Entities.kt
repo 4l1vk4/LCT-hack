@@ -23,7 +23,9 @@ data class ProfileEntity(
     val isDemoMode: Boolean = false,
     val isPetRunaway: Boolean = false,
     val runawayDaysLeft: Int = 0,
-    val bowlPlacedToday: Boolean = false
+    val bowlPlacedToday: Boolean = false,
+    val consecutivePeriodSkips: Int = 0,
+    val lastSkipMood: Int = 70
 )
 
 @Entity(tableName = "periods")
@@ -35,6 +37,8 @@ data class PeriodEntity(
     val actualMandatory: Int = 0,
     val actualOptional: Int = 0,
     val actualSavings: Int = 0,
+    val withdrawnSavings: Int = 0,
+    val borrowedFromOptional: Int = 0,
     val isBudgetConfirmed: Boolean = false,
     val isPeriodClosed: Boolean = false,
     val compliancePercent: Int = 0,

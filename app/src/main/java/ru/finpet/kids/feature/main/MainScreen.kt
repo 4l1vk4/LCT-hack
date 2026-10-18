@@ -236,7 +236,8 @@ fun MainScreen(
                             imageAspectRatio = 1073f / 145f,
                             balance = balance,
                             moodPercent = profile?.let { p ->
-                                PetEconomyCalculator.calculateEffectiveMood(p.mood, p.satiety, p.health)
+                                val m = if (p.isPetRunaway) 0 else p.mood
+                                PetEconomyCalculator.calculateEffectiveMood(m, p.satiety, p.health)
                             } ?: 70,
                             onOpenInstructions = { showTutorialFromMenu = true },
                             onOpenSettings = openSettings,
@@ -265,7 +266,7 @@ fun MainScreen(
                         .fillMaxSize()
                         .padding(top = contentTopPadding)
                 ) {
-                    val currentDayIndex = profile?.currentPeriodIndex ?: 1
+                    val currentDayIndex = virtualDate.dayOfMonth
                     val todayNotes = remember(calendarNotes, currentDayIndex) {
                         calendarNotes.filter { it.dayIndex == currentDayIndex }
                     }
@@ -325,8 +326,10 @@ fun MainScreen(
                             calendarNotes = calendarNotes,
                             recurringExpenses = recurringExpenses,
                             monthInfo = calendarMonthInfo,
+                            currentDayIndex = currentDayIndex,
                             onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
-                            onCompletePeriod = { viewModel.completePeriod() },
+                            onCompletePeriod = { viewModel.advanceOneDay() },
+                            onAdvancePeriod = { viewModel.advanceOnePeriod() },
                             onAddNote = { day, title, cost, cat ->
                                 viewModel.addCalendarNote(
                                     day,

@@ -110,7 +110,7 @@ private val SAFE_SPOT_POSITIONS = listOf(
  */
 @Composable
 fun FloorCleaningGameDialog(
-    rewardCoins: Int = 50,
+    rewardCoins: Int = 10,
     onCompleteGame: () -> Unit,
     onDismiss: () -> Unit
 ) {

@@ -224,16 +224,53 @@ class EconomyUseCasesTest {
     }
 
     @Test
-    fun `WithdrawFromGoalUseCase returns funds to balance and reduces savings`() = runTest {
+    fun `WithdrawFromGoalUseCase returns funds to balance, reduces current period actualSavings and records past savings in fact`() = runTest {
         repository.goals["goal_house"] = GoalEntity("goal_house", "Уютный домик", targetCost = 150, savedAmount = 50)
+        // В текущем периоде было накоплено 20 монет
+        repository.savePeriod(PeriodEntity(periodIndex = 1, actualSavings = 20))
         val withdrawUseCase = WithdrawFromGoalUseCase(repository)
 
+        // Снимаем 30 монет: 20 с текущего периода, 10 из прошлых накоплений
         val result = withdrawUseCase("goal_house", 30)
         assertTrue(result is GoalWithdrawResult.Success)
         val success = result as GoalWithdrawResult.Success
         assertEquals(330, success.newBalance)
         assertEquals(20, success.newSaved)
         assertEquals(20, repository.getGoalByIdSync("goal_house")?.savedAmount)
+
+        val updatedPeriod = repository.getPeriodSync(1)
+        assertEquals(0, updatedPeriod?.actualSavings) // Текущая банка копилки опустела до 0 (не ушла в минус)
+        assertEquals(10, updatedPeriod?.withdrawnSavings) // 10 монет зафиксировано в факте как снятие прошлых накоплений
+    }
+
+    @Test
+    fun `MakePurchaseUseCase borrows from optional jar when mandatory budget shortage occurs`() = runTest {
+        repository.savePeriod(
+            PeriodEntity(
+                periodIndex = 1,
+                plannedMandatory = 30,
+                plannedOptional = 50,
+                actualMandatory = 10,
+                actualOptional = 0,
+                isBudgetConfirmed = true
+            )
+        )
+
+        // Покупка еды за 30 монет. В банке "Обязательное" осталось 20 (30 - 10). Не хватает 10 монет.
+        // Недостающие 10 монет должны быть взяты из банки "Желаемое".
+        val result = makePurchaseUseCase(
+            itemId = "food_premium",
+            itemName = "Вкусный обед",
+            category = "MANDATORY",
+            price = 30,
+            satietyBonus = 50
+        )
+        assertTrue(result is PurchaseResult.Success)
+
+        val updatedPeriod = repository.getPeriodSync(1)
+        assertEquals(30, updatedPeriod?.actualMandatory) // 10 + 20 (закрыли лимит обязательного)
+        assertEquals(10, updatedPeriod?.actualOptional) // 10 монет взято из банки желаемого!
+        assertEquals(10, updatedPeriod?.borrowedFromOptional) // зафиксировано взятие из желаемого
     }
 
     @Test
@@ -291,6 +328,27 @@ class EconomyUseCasesTest {
     }
 
     @Test
+    fun `Pet mood drops to 0 after runaway and stays 0 while runaway`() = runTest {
+        repository.saveProfile(
+            ProfileEntity(
+                satiety = 50,
+                health = 60,
+                mood = 40,
+                isPetRunaway = true,
+                runawayDaysLeft = 2,
+                balance = 200,
+                currentPeriodIndex = 1
+            )
+        )
+
+        val resolution = completePeriodUseCase()
+        val updatedProfile = repository.getProfileSync()
+
+        assertEquals("Настроение кота в побеге должно падать в 0", 0, updatedProfile?.mood)
+        assertEquals("Настроение в резолюции периода должно быть 0", 0, resolution?.newStats?.mood)
+    }
+
+    @Test
     fun `Pet stats restore only when runaway days end with food bowl placed`() = runTest {
         repository.saveProfile(
             ProfileEntity(
@@ -315,5 +373,114 @@ class EconomyUseCasesTest {
         assertEquals(80, resolution?.newStats?.satiety)
         assertEquals(70, resolution?.newStats?.health)
         assertEquals(60, resolution?.newStats?.mood)
+    }
+
+    @Test
+    fun `First period skip protects pet from runaway even if mood drops to 0`() = runTest {
+        repository.saveProfile(
+            ProfileEntity(
+                satiety = 100,
+                health = 100,
+                mood = 10,
+                balance = 200,
+                currentPeriodIndex = 1,
+                consecutivePeriodSkips = 0
+            )
+        )
+
+        // Первый скип периода (isPeriodSkip = true)
+        val resolution = completePeriodUseCase(isPeriodSkip = true)
+        val updatedProfile = repository.getProfileSync()
+
+        assertFalse("При первом скипе периода кот НЕ должен сбежать", updatedProfile?.isPetRunaway == true)
+        assertEquals(1, updatedProfile?.consecutivePeriodSkips)
+        assertEquals("При скипе без еды настроение падает до 0, но кот не сбегает с первого раза", 0, updatedProfile?.mood)
+    }
+
+    @Test
+    fun `Consecutive period skip triggers runaway if mood was not raised by at least 1 percent`() = runTest {
+        repository.saveProfile(
+            ProfileEntity(
+                satiety = 100,
+                health = 100,
+                mood = 20,
+                balance = 200,
+                currentPeriodIndex = 1,
+                consecutivePeriodSkips = 0
+            )
+        )
+
+        // Скип 1
+        completePeriodUseCase(isPeriodSkip = true)
+        val profAfterSkip1 = repository.getProfileSync()
+        assertFalse(profAfterSkip1?.isPetRunaway == true)
+        assertEquals(1, profAfterSkip1?.consecutivePeriodSkips)
+
+        // Игрок НЕ поднимает настроение коту. Скип 2 (повторный):
+        completePeriodUseCase(isPeriodSkip = true)
+        val profAfterSkip2 = repository.getProfileSync()
+
+        assertTrue("При повторном скипе без заботы кот должен сбежать", profAfterSkip2?.isPetRunaway == true)
+        assertEquals(0, profAfterSkip2?.mood)
+    }
+
+    @Test
+    fun `Consecutive period skip keeps pet safe if mood was raised by at least 1 percent`() = runTest {
+        repository.saveProfile(
+            ProfileEntity(
+                satiety = 100,
+                health = 100,
+                mood = 20,
+                balance = 200,
+                currentPeriodIndex = 1,
+                consecutivePeriodSkips = 0
+            )
+        )
+
+        // Скип 1
+        completePeriodUseCase(isPeriodSkip = true)
+        val profAfterSkip1 = repository.getProfileSync()
+        assertFalse(profAfterSkip1?.isPetRunaway == true)
+
+        // Игрок гладит кота или кормит его — настроение поднимается на 5%
+        repository.saveProfile(profAfterSkip1!!.copy(mood = profAfterSkip1.mood + 5))
+
+        // Скип 2 (повторный, но забота была проявлена)
+        completePeriodUseCase(isPeriodSkip = true)
+        val profAfterSkip2 = repository.getProfileSync()
+
+        assertFalse("Кот не должен сбежать, так как о нем позаботились и подняли настроение", profAfterSkip2?.isPetRunaway == true)
+    }
+
+    @Test
+    fun `CompletePeriodUseCase preserves pet stats on Monday transition without resetting to 100`() = runTest {
+        repository.saveProfile(
+            ProfileEntity(
+                satiety = 45,
+                health = 75,
+                mood = 55,
+                balance = 200,
+                currentPeriodIndex = 7
+            )
+        )
+        // В закрываемом периоде были траты на обязательное (30)
+        repository.savePeriod(
+            PeriodEntity(
+                periodIndex = 7,
+                plannedMandatory = 30,
+                actualMandatory = 30,
+                isBudgetConfirmed = true
+            )
+        )
+
+        val resolution = completePeriodUseCase(nextDayIndex = 8, isPeriodSkip = false)
+        val updatedProfile = repository.getProfileSync()
+
+        assertEquals("Сытость не должна сбрасываться до 100 в понедельник", 45, updatedProfile?.satiety)
+        assertEquals("Здоровье не должно сбрасываться до 100 в понедельник", 75, updatedProfile?.health)
+        assertEquals("Настроение не должно сбрасываться в понедельник", 55, updatedProfile?.mood)
+        assertEquals(45, resolution?.newStats?.satiety)
+        assertEquals(75, resolution?.newStats?.health)
+        assertEquals(55, resolution?.newStats?.mood)
     }
 }

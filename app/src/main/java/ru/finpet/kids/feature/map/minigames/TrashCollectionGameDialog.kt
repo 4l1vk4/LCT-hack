@@ -89,7 +89,7 @@ private val TRASH_EMOJIS = listOf("🍌", "🥫", "📦", "🥤", "🧃", "📄"
  */
 @Composable
 fun TrashCollectionGameDialog(
-    rewardCoins: Int = 25,
+    rewardCoins: Int = 8,
     onCompleteGame: () -> Unit,
     onDismiss: () -> Unit
 ) {

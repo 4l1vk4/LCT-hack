@@ -50,6 +50,7 @@ import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.designsystem.AppleIcon
+import ru.finpet.kids.core.designsystem.LockIcon
 
 /**
  * Карточка товара в лавке (пища, игрушки, поручение родителей).
@@ -192,13 +193,17 @@ fun ShopItemCard(
                             .pixelButtonBackground(containerColor = Color(0xFFDED0B6))
                             .padding(horizontal = 10.dp, vertical = 6.dp)
                     ) {
-                        Text(
-                            text = "🔒 Закрыто",
-                            fontFamily = AppFontFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = TextSecondary
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            LockIcon(modifier = Modifier.size(15.dp))
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = "Закрыто",
+                                fontFamily = AppFontFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = TextSecondary
+                            )
+                        }
                     }
                 }
                 isGroceriesCompleted -> {
@@ -235,13 +240,17 @@ fun ShopItemCard(
                             .pixelButtonBackground(containerColor = Color(0xFFDED0B6))
                             .padding(horizontal = 10.dp, vertical = 6.dp)
                     ) {
-                        Text(
-                            text = "🔒 Нет задания",
-                            fontFamily = AppFontFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = TextSecondary
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            LockIcon(modifier = Modifier.size(15.dp))
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = "Нет задания",
+                                fontFamily = AppFontFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = TextSecondary
+                            )
+                        }
                     }
                 }
                 else -> {

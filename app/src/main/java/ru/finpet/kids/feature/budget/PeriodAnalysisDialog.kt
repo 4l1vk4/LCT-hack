@@ -42,7 +42,9 @@ import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
+import ru.finpet.kids.core.designsystem.RichFeedbackText
 import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.designsystem.TargetIcon
 import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
 import ru.finpet.kids.core.domain.model.PeriodResolution
@@ -69,9 +71,9 @@ fun PeriodAnalysisDialog(
     }
 
     val complianceBadgeTitle = when {
-        compliance.totalPercent >= 85 -> "Отличный баланс! (${compliance.totalPercent}%)"
-        compliance.totalPercent >= 60 -> "Хороший результат! (${compliance.totalPercent}%)"
-        else -> "План выполнен на ${compliance.totalPercent}%"
+        compliance.totalPercent >= 85 -> "Отличная точность бюджета! (${compliance.totalPercent}%)"
+        compliance.totalPercent >= 60 -> "Хорошая точность бюджета! (${compliance.totalPercent}%)"
+        else -> "Точность бюджета: ${compliance.totalPercent}%"
     }
 
     Dialog(
@@ -87,7 +89,7 @@ fun PeriodAnalysisDialog(
                 .clip(RoundedCornerShape(8.dp))
         ) {
             StardewBoard(
-                headerTitle = "ИТОГИ ДНЯ ${resolution.closedDayIndex}",
+                headerTitle = "ИТОГИ ПЕРИОДА (ДЕНЬ ${resolution.closedDayIndex})",
                 headerIcon = "📊"
             ) {
                 Column(
@@ -151,11 +153,12 @@ fun PeriodAnalysisDialog(
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Наступает новая неделя! Тебе начислено +${resolution.periodIncome} монет карманных денег.",
+                                RichFeedbackText(
+                                    text = "Наступает новая неделя! Тебе начислено +${resolution.periodIncome} 🪙 карманных денег.",
                                     fontSize = 16.sp,
                                     color = PixelTextDark,
-                                    lineHeight = 21.sp
+                                    lineHeight = 21.sp,
+                                    textAlign = TextAlign.Left
                                 )
                             }
                         }
@@ -228,9 +231,57 @@ fun PeriodAnalysisDialog(
                                         color = PixelTextDark
                                     )
                                 }
+                                val hasProblems = compliance.isPetHungry ||
+                                        compliance.mandatoryOverspend > 0 ||
+                                        compliance.optionalOverspend > 0 ||
+                                        (compliance.overspendAmount > 0 && compliance.mandatoryOverspend == 0 && compliance.optionalOverspend == 0) ||
+                                        actual.borrowedFromOptional > 0 ||
+                                        actual.withdrawnSavings > 0 ||
+                                        (plan.plannedSavings > 0 && actual.actualSavings < plan.plannedSavings)
+
+                                if (hasProblems) {
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(Color(0xFFFFEBEE))
+                                            .border(1.dp, Color(0xFFFFCDD2), RoundedCornerShape(6.dp))
+                                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        if (compliance.isPetHungry) {
+                                            BudgetProblemRow(text = "Питомец остался голодным (экономия на питании)")
+                                        }
+                                        if (compliance.mandatoryOverspend > 0) {
+                                            BudgetProblemRow(text = "Перерасход в «Обязательном»: +${compliance.mandatoryOverspend} 🪙")
+                                        }
+                                        if (compliance.optionalOverspend > 0) {
+                                            BudgetProblemRow(text = "Перерасход в «Желаемом»: +${compliance.optionalOverspend} 🪙")
+                                        }
+                                        if (compliance.overspendAmount > 0 && compliance.mandatoryOverspend == 0 && compliance.optionalOverspend == 0) {
+                                            BudgetProblemRow(text = "Перерасход на ${compliance.overspendAmount} 🪙")
+                                        }
+                                        if (actual.borrowedFromOptional > 0) {
+                                            BudgetProblemRow(text = "Взято из «Желаемого» в «Обязательное»: ${actual.borrowedFromOptional} 🪙")
+                                        }
+                                        if (actual.withdrawnSavings > 0) {
+                                            BudgetProblemRow(text = "Снято из прошлых накоплений: ${actual.withdrawnSavings} 🪙")
+                                        }
+                                        if (plan.plannedSavings > 0 && actual.actualSavings < plan.plannedSavings) {
+                                            val diff = plan.plannedSavings - actual.actualSavings
+                                            val savingsText = if (actual.actualSavings == 0) {
+                                                "Копилка мечты не пополнена (план: ${plan.plannedSavings} 🪙)"
+                                            } else {
+                                                "Недобор в копилку: недоложено $diff 🪙 (план: ${plan.plannedSavings} 🪙)"
+                                            }
+                                            BudgetProblemRow(text = savingsText)
+                                        }
+                                    }
+                                }
                                 if (compliance.feedback.isNotBlank()) {
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
+                                    RichFeedbackText(
                                         text = compliance.feedback,
                                         fontSize = 16.sp,
                                         color = PixelTextDark,
@@ -243,9 +294,9 @@ fun PeriodAnalysisDialog(
                         Spacer(modifier = Modifier.height(10.dp))
                     }
 
-                    // 5. Блок «Разбор трат за день» (остаётся всегда)
+                    // 5. Блок «Разбор трат за период»
                     Text(
-                        text = "РАЗБОР ТРАТ ЗА ДЕНЬ",
+                        text = "РАЗБОР ТРАТ ЗА ПЕРИОД",
                         fontFamily = AppFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
@@ -297,6 +348,41 @@ fun PeriodAnalysisDialog(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Подсказка: как поднять точность бюджета
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (compliance.overspendAmount > 0) Color(0xFFFFF3E0) else Color(0xFFE8F5E9))
+                            .border(1.dp, if (compliance.overspendAmount > 0) Color(0xFFFFB74D) else PixelGreenCrop, RoundedCornerShape(6.dp))
+                            .padding(8.dp)
+                    ) {
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                TargetIcon(modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Как поднять точность в следующем периоде:",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = PixelTextDark
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "• Забота о жизни на 1-м месте: обязательно накорми котика — экономить на еде ради копилки нельзя!\n" +
+                                        "• Баланс трат: не трать лишнего на хотелки («Сундучок радости») и не допускай перерасхода.\n" +
+                                        "• Честная копилка: откладывай запланированную сумму, когда обязательные нужды уже закрыты.\n" +
+                                        "• Экономить можно: неизрасходованные монеты остаются в кошельке и берегут точность!",
+                                fontSize = 15.sp,
+                                color = PixelTextDark,
+                                lineHeight = 17.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
                     // 3. Блок наград и состояния питомца
                     // Настроение питомца
                     Box(
@@ -314,11 +400,16 @@ fun PeriodAnalysisDialog(
                                 satiety = newStats.satiety,
                                 health = newStats.health
                             )
+                            val moodColor = when {
+                                effectiveMood >= 70 -> PixelGreenCrop
+                                effectiveMood >= 40 -> PixelGoldDark
+                                else -> PixelRedBerry
+                            }
                             Text(
                                 text = "$effectiveMood% 🐾",
                                 fontWeight = FontWeight.Black,
                                 fontSize = 17.sp,
-                                color = PixelGreenCrop
+                                color = moodColor
                             )
                             Text(
                                 text = "Настроение",
@@ -365,36 +456,43 @@ private fun PlanFactRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = icon, fontSize = 16.sp)
-            Spacer(modifier = Modifier.width(6.dp))
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (icon == "🎯") {
+                    TargetIcon(modifier = Modifier.size(16.dp))
+                } else {
+                    Text(text = icon, fontSize = 16.sp)
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                if (planVal != null) {
+                    Text(
+                        text = "$actualVal / $planVal",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelTextDark
+                    )
+                } else {
+                    Text(
+                        text = "$actualPrefix$actualVal",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelTextDark
+                    )
+                }
+                Spacer(modifier = Modifier.width(3.dp))
+                CoinIcon(modifier = Modifier.size(16.dp))
+            }
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = title,
+                text = title, // "Обязательное", "Желаемое", "В копилку" ПОД монетками
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
+                fontSize = 13.sp,
                 color = color
             )
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (planVal != null) {
-                Text(
-                    text = "План: $planVal",
-                    fontSize = 15.sp,
-                    color = PixelTextMuted
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-            Text(
-                text = "$actualPrefix$actualVal",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = PixelTextDark
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            CoinIcon(modifier = Modifier.size(16.dp))
             if (isOk != null) {
-                Spacer(modifier = Modifier.width(4.dp))
                 if (isOk) {
                     Text(text = "✅", fontSize = 14.sp)
                 } else {
@@ -404,3 +502,25 @@ private fun PlanFactRow(
         }
     }
 }
+
+@Composable
+private fun BudgetProblemRow(text: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        WarningIcon(modifier = Modifier.size(14.dp))
+        Spacer(modifier = Modifier.width(6.dp))
+        RichFeedbackText(
+            text = text,
+            fontWeight = FontWeight.Bold,
+            fontSize = 13.sp,
+            color = PixelRedBerry,
+            fontFamily = AppFontFamily,
+            textAlign = TextAlign.Start,
+            lineHeight = 17.sp,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+

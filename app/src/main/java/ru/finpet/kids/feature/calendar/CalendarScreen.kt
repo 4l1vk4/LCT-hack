@@ -35,6 +35,7 @@ import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
+import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
@@ -62,9 +63,11 @@ fun CalendarScreen(
     currentPeriod: PeriodEntity?,
     calendarNotes: List<CalendarNoteEntity>,
     recurringExpenses: List<RecurringExpenseEntity>,
-    monthInfo: CalendarMonthInfo = remember(profile?.currentPeriodIndex) { CalendarMonthInfo.current() },
+    currentDayIndex: Int = profile?.currentPeriodIndex ?: 1,
+    monthInfo: CalendarMonthInfo = remember(currentDayIndex) { CalendarMonthInfo.current() },
     onConfirmBudget: (BudgetPlan) -> Unit = {},
     onCompletePeriod: () -> Unit,
+    onAdvancePeriod: () -> Unit = onCompletePeriod,
     onAddNote: (dayIndex: Int, title: String, cost: Int, category: String) -> Unit,
     onDeleteNote: (CalendarNoteEntity) -> Unit,
     onToggleNote: (CalendarNoteEntity) -> Unit,
@@ -75,7 +78,6 @@ fun CalendarScreen(
     demoMode: Boolean = false
 ) {
     val balance = profile?.balance ?: 50
-    val currentDayIndex = profile?.currentPeriodIndex ?: 1
 
     // Единый стейт модальных окон
     var activeDialog by remember { mutableStateOf<CalendarDialog?>(null) }
@@ -120,13 +122,17 @@ fun CalendarScreen(
                 ActualExpenses(
                     actualMandatory = currentPeriod?.actualMandatory ?: 0,
                     actualOptional = currentPeriod?.actualOptional ?: 0,
-                    actualSavings = currentPeriod?.actualSavings ?: 0
+                    actualSavings = currentPeriod?.actualSavings ?: 0,
+                    withdrawnSavings = currentPeriod?.withdrawnSavings ?: 0,
+                    borrowedFromOptional = currentPeriod?.borrowedFromOptional ?: 0,
+                    hasPurchasedFood = (currentPeriod?.actualMandatory ?: 0) >= PetEconomyCalculator.MIN_FOOD_COST,
+                    hasPurchasedWater = (currentPeriod?.actualMandatory ?: 0) >= PetEconomyCalculator.MIN_WATER_COST
                 )
             }
 
             if (!isConfirmed) {
                 StardewBoard(
-                    headerTitle = "ПЛАН БЮДЖЕТА НА ДЕНЬ $currentDayIndex",
+                    headerTitle = "ПЛАН БЮДЖЕТА НА ПЕРИОД",
                     headerIcon = ""
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -138,13 +144,13 @@ fun CalendarScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Бюджет на сегодня не составлен!",
+                                    text = "Бюджет на период не составлен!",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp,
                                     color = PixelTextDark
                                 )
                                 Text(
-                                    text = "Распредели доступные монетки по 3 корзинам: на жизнь, радости и мечту до начала покупок.",
+                                    text = "Распредели монетки по 3 корзинам до начала покупок. План служит планкой трат: соблюдение плана и пополнение копилки обеспечат 100% точность бюджета!",
                                     fontSize = 16.sp,
                                     color = PixelTextMuted,
                                     lineHeight = 21.sp
@@ -165,11 +171,18 @@ fun CalendarScreen(
                     }
                 }
             } else {
-                val compliance = remember(plan, actual) {
-                    PetEconomyCalculator.calculateCompliance(plan, actual)
+                val compliance = remember(plan, actual, profile) {
+                    PetEconomyCalculator.calculateCompliance(
+                        plan = plan,
+                        actual = actual,
+                        isPetRunaway = profile?.isPetRunaway == true,
+                        petMood = if (profile?.isPetRunaway == true) 0 else (profile?.mood ?: 70),
+                        petSatiety = profile?.satiety ?: 100,
+                        petHealth = profile?.health ?: 100
+                    )
                 }
                 BudgetPlanVsFactCard(
-                    currentDay = currentDayIndex,
+                    currentDay = currentPeriod?.periodIndex ?: 1,
                     plan = plan,
                     actual = actual,
                     compliance = compliance,
@@ -192,31 +205,34 @@ fun CalendarScreen(
             )
         }
 
-        // 4. кнопка скипа периода (только в демо-моде)
+        // 4. кнопки скипа дня и периода (только в демо-моде)
         item(key = "next_day_action") {
             if (demoMode) {
                 Spacer(modifier = Modifier.height(14.dp))
-                val completeButtonText = when {
-                    nextDayNumber > monthInfo.daysInMonth -> {
-                        "🏆 Завершить месяц (${monthInfo.monthName} • День $currentDayIndex)"
-                    }
-                    isNextMonday -> {
-                        "🌅 Следующий день (День $nextDayNumber • +200 монет!)"
-                    }
-                    else -> {
-                        "🌅 Следующий день (День $nextDayNumber)"
-                    }
-                }
-
-                PixelButton(
-                    text = completeButtonText,
-                    onClick = onCompletePeriod,
-                    containerColor = PixelGreenCrop,
-                    textColor = Color.White,
-                    borderColor = Color(0xFF1B5E20),
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    fontSize = 16.sp
-                )
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PixelButton(
+                        text = "⏩ Пропустить день",
+                        onClick = onCompletePeriod,
+                        containerColor = PixelGreenCrop,
+                        textColor = Color.White,
+                        borderColor = Color(0xFF1B5E20),
+                        modifier = Modifier.weight(1f),
+                        fontSize = 15.sp
+                    )
+
+                    PixelButton(
+                        text = "🗓️ Пропустить период (+200)",
+                        onClick = onAdvancePeriod,
+                        containerColor = JoyOrange,
+                        textColor = Color.White,
+                        borderColor = Color(0xFFBF360C),
+                        modifier = Modifier.weight(1f),
+                        fontSize = 15.sp
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -254,6 +270,10 @@ fun CalendarScreen(
                 onCompletePeriod = {
                     activeDialog = null
                     onCompletePeriod()
+                },
+                onAdvancePeriod = {
+                    activeDialog = null
+                    onAdvancePeriod()
                 },
                 onNavigateToTask = onNavigateToTask,
                 onDismiss = { activeDialog = null },

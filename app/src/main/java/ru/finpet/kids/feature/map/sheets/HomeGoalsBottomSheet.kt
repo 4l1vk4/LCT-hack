@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -77,21 +78,21 @@ val DEFAULT_HOME_CHORES = listOf(
         title = "Мытье полов",
         description = "Помыть полы в комнатах для чистоты (раз в 3 суток)",
         icon = "🧹",
-        rewardCoins = 50
+        rewardCoins = 10
     ),
     HomeChoreItem(
         id = "chore_trash",
         title = "Вынос мусора",
         description = "Собрать мусорный пакет и вынести в уличный контейнер (раз в 2 суток)",
         icon = "🗑️",
-        rewardCoins = 25
+        rewardCoins = 8
     ),
     HomeChoreItem(
         id = "chore_dishes",
         title = "Мытье посуды",
         description = "Помыть за собой тарелку, ложку и кружку после еды (каждый день)",
         icon = "🍽️",
-        rewardCoins = 20
+        rewardCoins = 5
     )
 )
 
@@ -115,6 +116,7 @@ fun HomeGoalsBottomSheet(
     onDeposit: (goalId: String, amount: Int) -> Unit,
     onWithdraw: (goalId: String, amount: Int) -> Unit,
     initialPiggyBankExpanded: Boolean = false,
+    focusOnChores: Boolean = false,
     targetGoalId: String? = null
 ) {
     var withdrawWarningGoal by remember { mutableStateOf<GoalEntity?>(null) }
@@ -123,6 +125,7 @@ fun HomeGoalsBottomSheet(
     var isPiggyBankExpanded by remember(initialPiggyBankExpanded) { mutableStateOf(initialPiggyBankExpanded) }
     val listState = rememberLazyListState()
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val choresRequester = remember { BringIntoViewRequester() }
 
     LaunchedEffect(initialPiggyBankExpanded, targetGoalId) {
         if (initialPiggyBankExpanded) {
@@ -130,6 +133,18 @@ fun HomeGoalsBottomSheet(
             delay(200)
             try {
                 bringIntoViewRequester.bringIntoView()
+            } catch (_: Exception) {
+                listState.animateScrollToItem(1)
+            }
+        }
+    }
+
+    LaunchedEffect(focusOnChores) {
+        if (focusOnChores) {
+            isPiggyBankExpanded = false
+            delay(150)
+            try {
+                choresRequester.bringIntoView()
             } catch (_: Exception) {
                 listState.animateScrollToItem(1)
             }
@@ -251,8 +266,11 @@ fun HomeGoalsBottomSheet(
                 }
             }
 
-            // Блок домашних дел
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Блок домашних дел (заданий)
+            Column(
+                modifier = Modifier.bringIntoViewRequester(choresRequester),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -262,7 +280,7 @@ fun HomeGoalsBottomSheet(
                         Text(text = "🧹", fontSize = 20.sp)
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Домашние дела",
+                            text = "Задания и дела по дому",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = TextPrimary
@@ -278,7 +296,7 @@ fun HomeGoalsBottomSheet(
                 }
 
                 Text(
-                    text = "Помогай по дому и получай монеты в награду:",
+                    text = "Выполняй задания по дому и получай монеты в награду:",
                     fontSize = 16.sp,
                     color = TextSecondary
                 )

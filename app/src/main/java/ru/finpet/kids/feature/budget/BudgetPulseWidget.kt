@@ -26,7 +26,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.DiagramIcon
+import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.designsystem.PixelBlueWater
 import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
@@ -52,10 +54,21 @@ fun BudgetPulseWidget(
     plan: BudgetPlan,
     actual: ActualExpenses,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    petMood: Int = 70,
+    petSatiety: Int = 100,
+    petHealth: Int = 100,
+    isPetRunaway: Boolean = false
 ) {
-    val compliance = remember(plan, actual) {
-        PetEconomyCalculator.calculateCompliance(plan, actual)
+    val compliance = remember(plan, actual, petMood, petSatiety, petHealth, isPetRunaway) {
+        PetEconomyCalculator.calculateCompliance(
+            plan = plan,
+            actual = actual,
+            isPetRunaway = isPetRunaway,
+            petMood = petMood,
+            petSatiety = petSatiety,
+            petHealth = petHealth
+        )
     }
 
     Box(
@@ -86,16 +99,23 @@ fun BudgetPulseWidget(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     DiagramIcon(modifier = Modifier.size(26.dp))
                     Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = "ПУЛЬС БЮДЖЕТА",
-                        fontFamily = AppFontFamily,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 16.sp,
-                        color = PixelTextDark
-                    )
+                    Column {
+                        Text(
+                            text = "ПУЛЬС БЮДЖЕТА",
+                            fontFamily = AppFontFamily,
+                            fontWeight = FontWeight.Black,
+                            fontSize = 16.sp,
+                            color = PixelTextDark
+                        )
+                        Text(
+                            text = "Точность бюджета",
+                            fontSize = 11.sp,
+                            color = PixelTextMuted
+                        )
+                    }
                 }
 
-                // плашка процента дисциплины
+                // плашка процента дисциплины / точности
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(4.dp))
@@ -120,35 +140,115 @@ fun BudgetPulseWidget(
 
             Spacer(modifier = Modifier.height(5.dp))
 
-            // 3 мини-корзины: еда, радости, копилка
+            // 3 мини-корзины: Обязательное, Желаемое, В копилку (слова ПОД монетками)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "🍲 ${actual.actualMandatory}/${plan.plannedMandatory}",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = PixelGreenCrop,
-                    fontFamily = AppFontFamily
-                )
+                // 1. Обязательное
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${actual.actualMandatory}/${plan.plannedMandatory}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = if (actual.actualMandatory > plan.plannedMandatory && plan.plannedMandatory > 0) PixelRedBerry else PixelGreenCrop,
+                            fontFamily = AppFontFamily
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        CoinIcon(modifier = Modifier.size(13.dp))
+                    }
+                    Text(
+                        text = "Обязательное",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelTextMuted,
+                        fontFamily = AppFontFamily
+                    )
+                }
+
                 Text(text = "•", color = PixelParchmentBorder, fontWeight = FontWeight.Bold)
-                Text(
-                    text = "🎈 ${actual.actualOptional}/${plan.plannedOptional}",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = if (actual.actualOptional > plan.plannedOptional) PixelRedBerry else PixelGoldDark,
-                    fontFamily = AppFontFamily
-                )
+
+                // 2. Желаемое
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${actual.actualOptional}/${plan.plannedOptional}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = if (actual.actualOptional > plan.plannedOptional && plan.plannedOptional > 0) PixelRedBerry else PixelGoldDark,
+                            fontFamily = AppFontFamily
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        CoinIcon(modifier = Modifier.size(13.dp))
+                    }
+                    Text(
+                        text = "Желаемое",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelTextMuted,
+                        fontFamily = AppFontFamily
+                    )
+                }
+
                 Text(text = "•", color = PixelParchmentBorder, fontWeight = FontWeight.Bold)
-                Text(
-                    text = "🏦 ${actual.actualSavings}/${plan.plannedSavings}",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = PixelBlueWater,
-                    fontFamily = AppFontFamily
-                )
+
+                // 3. В копилку
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${actual.actualSavings}/${plan.plannedSavings}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = PixelBlueWater,
+                            fontFamily = AppFontFamily
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        CoinIcon(modifier = Modifier.size(13.dp))
+                    }
+                    Text(
+                        text = "В копилку",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelTextMuted,
+                        fontFamily = AppFontFamily
+                    )
+                }
+            }
+
+            if (compliance.overspendAmount > 0 || actual.borrowedFromOptional > 0 || actual.withdrawnSavings > 0) {
+                Spacer(modifier = Modifier.height(4.dp))
+                val overspendText = when {
+                    compliance.mandatoryOverspend > 0 && compliance.optionalOverspend > 0 ->
+                        "Перерасход: обяз. +${compliance.mandatoryOverspend}, жел. +${compliance.optionalOverspend} снизил точность"
+                    compliance.mandatoryOverspend > 0 ->
+                        "Перерасход в обязательном (+${compliance.mandatoryOverspend}) снизил точность"
+                    compliance.optionalOverspend > 0 ->
+                        "Перерасход в желаемом (+${compliance.optionalOverspend}) снизил точность"
+                    actual.borrowedFromOptional > 0 ->
+                        "Взято из «Желаемого» (+${actual.borrowedFromOptional}) на обязательное"
+                    actual.withdrawnSavings > 0 ->
+                        "Снято из прошлых накоплений (-${actual.withdrawnSavings})"
+                    else -> "Перерасход на ${compliance.overspendAmount} снизил точность"
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color(0xFFFFEBEE))
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    WarningIcon(modifier = Modifier.size(14.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = overspendText,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelRedBerry
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(4.dp))

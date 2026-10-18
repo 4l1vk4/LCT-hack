@@ -40,11 +40,13 @@ import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import ru.finpet.kids.core.data.repository.PurchaseItem
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.AppleIcon
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.HeartIcon
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.LightningIcon
+import ru.finpet.kids.core.designsystem.LockIcon
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.PixelBar
 import ru.finpet.kids.core.designsystem.PixelButton
@@ -52,6 +54,7 @@ import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
+import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
@@ -194,15 +197,22 @@ fun ShopBottomSheet(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(12.dp)
                 ) {
-                    Text(
-                        text = "🔒 Лавка закрыта: ${profile?.petName ?: "Кот"} убежал! Поставь миску корма у двери в комнате котика, чтобы вернуть его.",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFC62828),
-                        textAlign = TextAlign.Center,
-                        lineHeight = 21.sp,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        LockIcon(modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Лавка закрыта: ${profile?.petName ?: "Кот"} убежал! Поставь миску корма у двери в комнате котика, чтобы вернуть его.",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFC62828),
+                            textAlign = TextAlign.Center,
+                            lineHeight = 21.sp
+                        )
+                    }
                 }
             }
 
@@ -253,19 +263,55 @@ fun ShopBottomSheet(
         val curMood = profile?.mood ?: 50
         val curHealth = profile?.health ?: 50
 
+        val remainingMandatory = if (currentPeriod != null && currentPeriod.isBudgetConfirmed) {
+            maxOf(0, currentPeriod.plannedMandatory - currentPeriod.actualMandatory)
+        } else 0
+        val remainingOptional = if (currentPeriod != null && currentPeriod.isBudgetConfirmed) {
+            maxOf(0, currentPeriod.plannedOptional - currentPeriod.actualOptional)
+        } else 0
+
+        val isMandatoryShortage = item.category == "MANDATORY" && currentPeriod != null &&
+                currentPeriod.isBudgetConfirmed && currentPeriod.plannedMandatory > 0 &&
+                (item.price > remainingMandatory)
+        val missingMandatory = if (isMandatoryShortage) item.price - remainingMandatory else 0
+        val canTakeFromOptional = isMandatoryShortage && (remainingOptional >= missingMandatory)
+        val isBothJarsExhausted = isMandatoryShortage && !canTakeFromOptional
+
+        val isOptionalShortage = item.category == "OPTIONAL" && currentPeriod != null &&
+                currentPeriod.isBudgetConfirmed && currentPeriod.plannedOptional > 0 &&
+                (item.price > remainingOptional)
+
+        val isEnoughCoins = balance >= item.price
+        val isAffordableInJars = when {
+            currentPeriod == null || !currentPeriod.isBudgetConfirmed -> true
+            item.id == "groceries_parents" -> true
+            item.category == "MANDATORY" -> (remainingMandatory + remainingOptional) >= item.price
+            item.category == "OPTIONAL" -> remainingOptional >= item.price
+            else -> true
+        }
+
+        val confirmButtonText = when {
+            item.id == "groceries_parents" -> "Выполнить 🛒"
+            !isEnoughCoins -> "Мало монет"
+            isBothJarsExhausted -> "В банках мало монет"
+            isMandatoryShortage && canTakeFromOptional -> "Взять из желаемого и купить 🛒"
+            isOptionalShortage -> "Лимит желаемого исчерпан"
+            else -> "Купить 🛒"
+        }
+
         PixelAlertDialog(
             onDismissRequest = { itemToConfirm = null },
             title = if (item.id == "groceries_parents") "Поручение родителей" else "Покупка",
             icon = "🛒",
             confirmButton = {
                 PixelButton(
-                    text = if (item.id == "groceries_parents") "Выполнить 🛒" else "Купить 🛒",
+                    text = confirmButtonText,
                     onClick = {
                         onBuy(item)
                         itemToConfirm = null
                     },
-                    enabled = !isRunaway,
-                    containerColor = FreshGreen,
+                    enabled = !isRunaway && isEnoughCoins && isAffordableInJars,
+                    containerColor = if (isMandatoryShortage && canTakeFromOptional) JoyOrange else FreshGreen,
                     textColor = Color.White,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -335,6 +381,137 @@ fun ShopBottomSheet(
                         CoinIcon(modifier = Modifier.size(18.dp))
                     }
 
+                    if (isMandatoryShortage && canTakeFromOptional) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFFFF3E0))
+                                .border(2.dp, Color(0xFFFF9800), RoundedCornerShape(8.dp))
+                                .padding(12.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.Top) {
+                                WarningIcon(modifier = Modifier.size(34.dp))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "Не хватает в банке «Обязательное»!",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 17.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color(0xFFD84315)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "В банке осталось $remainingMandatory из ${currentPeriod!!.plannedMandatory} монет (не хватает $missingMandatory монет).\n\n" +
+                                                "Предлагаем взять недостающие $missingMandatory монет из банки «Желаемое» (в ней есть $remainingOptional монет).",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 15.sp,
+                                        color = Color(0xFFE65100),
+                                        lineHeight = 20.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        WarningIcon(modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = "Это ухудшит точность бюджета («План vs Факт»), так как расходы на обязательное превысят план!",
+                                            fontFamily = AppFontFamily,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFBF360C),
+                                            lineHeight = 18.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    } else if (isBothJarsExhausted) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFFFEBEE))
+                                .border(2.dp, PixelRedBerry, RoundedCornerShape(8.dp))
+                                .padding(12.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.Top) {
+                                WarningIcon(modifier = Modifier.size(34.dp))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "Лимит банок исчерпан!",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 17.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = PixelRedBerry
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "В банке «Обязательное» не хватает $missingMandatory монет, а в банке «Желаемое» осталось всего $remainingOptional монет.",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 15.sp,
+                                        color = PixelRedBerry,
+                                        lineHeight = 20.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "Взять из желаемого больше нельзя — лимиты банок исчерпаны!",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PixelRedBerry,
+                                        lineHeight = 18.sp
+                                    )
+                                }
+                            }
+                        }
+                    } else if (isOptionalShortage) {
+                        val overspendDiff = item.price - remainingOptional
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFFFEBEE))
+                                .border(2.dp, PixelRedBerry, RoundedCornerShape(8.dp))
+                                .padding(12.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.Top) {
+                                WarningIcon(modifier = Modifier.size(34.dp))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "Лимит желаемого исчерпан!",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 17.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = PixelRedBerry
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "В банке «Желаемое» осталось $remainingOptional из ${currentPeriod!!.plannedOptional} монет (не хватает $overspendDiff монет для покупки за ${item.price}).",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 15.sp,
+                                        color = PixelRedBerry,
+                                        lineHeight = 20.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "Покупки сверх лимита желаемого заблокированы для защиты бюджета!",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PixelRedBerry,
+                                        lineHeight = 18.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     if (item.satietyBonus > 0 || item.moodBonus > 0 || item.healthBonus > 0) {
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
@@ -346,12 +523,16 @@ fun ShopBottomSheet(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         if (item.satietyBonus > 0) {
-                            Text(
-                                text = "🍎 Сытость: ${formatStatGain(curSatiety, item.satietyBonus)}",
-                                fontFamily = AppFontFamily,
-                                fontSize = 16.sp,
-                                color = TextSecondary
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                AppleIcon(modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Сытость: ${formatStatGain(curSatiety, item.satietyBonus)}",
+                                    fontFamily = AppFontFamily,
+                                    fontSize = 16.sp,
+                                    color = TextSecondary
+                                )
+                            }
                         }
                         if (item.moodBonus > 0) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
