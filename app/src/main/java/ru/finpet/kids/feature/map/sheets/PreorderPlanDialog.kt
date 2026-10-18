@@ -44,6 +44,7 @@ import ru.finpet.kids.core.designsystem.ExclamationIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.HeartIcon
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.LightningIcon
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
@@ -128,6 +129,7 @@ fun PreorderPlanDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
+        KeepScreenImmersive()
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
@@ -379,6 +381,7 @@ fun QuickBuyConfirmDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
+        KeepScreenImmersive()
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.95f)

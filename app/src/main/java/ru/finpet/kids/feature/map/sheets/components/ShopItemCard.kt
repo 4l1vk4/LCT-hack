@@ -49,6 +49,7 @@ import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
+import ru.finpet.kids.core.designsystem.AppleIcon
 
 /**
  * Карточка товара в лавке (пища, игрушки, поручение родителей).
@@ -144,7 +145,9 @@ fun ShopItemCard(
                                 ExclamationIcon(modifier = Modifier.size(15.dp))
                                 Spacer(modifier = Modifier.width(2.dp))
                             }
-                            Text("🍎 +${item.satietyBonus}", fontSize = 16.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
+                            AppleIcon(modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text("+${item.satietyBonus}", fontSize = 16.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
                         }
                     }
                     if (item.moodBonus > 0) {

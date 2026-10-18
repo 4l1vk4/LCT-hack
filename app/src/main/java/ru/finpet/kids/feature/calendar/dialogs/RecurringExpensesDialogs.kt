@@ -48,6 +48,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -78,6 +79,7 @@ fun RecurringExpensesDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
+        KeepScreenImmersive()
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.92f)

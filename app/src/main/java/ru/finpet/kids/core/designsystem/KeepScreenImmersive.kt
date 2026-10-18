@@ -41,6 +41,10 @@ fun KeepScreenImmersive() {
     DisposableEffect(view) {
         val window = findWindow(view)
         if (window != null) {
+            // Гарантируем, что окно модалки/диалога получает фокус ввода и тач-события
+            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
+            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
+
             val insetsController = WindowCompat.getInsetsController(window, window.decorView)
             insetsController.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE

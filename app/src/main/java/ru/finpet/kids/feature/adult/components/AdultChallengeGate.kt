@@ -36,9 +36,11 @@ import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.ShieldIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.domain.usecase.AdultChallenge
+import androidx.compose.foundation.layout.size
 
 /**
  * экран-барьер перед родительской аналитикой.
@@ -69,7 +71,7 @@ fun AdultChallengeGate(
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "🛡️", fontSize = 42.sp)
+                ShieldIcon(modifier = Modifier.size(64.dp))
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Вход только для родителей",
