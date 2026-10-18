@@ -77,6 +77,8 @@ fun MapScreen(
     onModalDismissed: () -> Unit = {},
     onBuyItem: (PurchaseItem) -> Unit,
     onAnswerQuest: (questId: String, optionId: String) -> Unit,
+    onAnswerQuestText: (questId: String, answer: String) -> Unit = { _, _ -> },
+    onAnswerQuestAllocation: (questId: String, amount: Int) -> Unit = { _, _ -> },
     onDepositGoal: (goalId: String, amount: Int) -> Unit,
     onWithdrawGoal: (goalId: String, amount: Int) -> Unit,
     onSelectActiveGoal: (goalId: String) -> Unit = {},
@@ -149,6 +151,8 @@ fun MapScreen(
             quests = quests,
             progressList = questProgress,
             petName = petName,
+            growthStage = profile?.growthStage ?: "BABY",
+            demoMode = demoMode,
             targetQuestId = targetQuestId,
             onDismiss = {
                 activeModal = null
@@ -159,6 +163,31 @@ fun MapScreen(
                 val opt = quest?.options?.find { it.id == optionId }
                 onAnswerQuest(questId, optionId)
                 questFeedback = opt?.feedback ?: "Молодец!"
+            },
+            onAnswerText = { questId, answerText ->
+                val quest = quests.find { it.id == questId }
+                onAnswerQuestText(questId, answerText)
+                val clean = answerText.trim().lowercase()
+                val isCorrect = quest?.expectedAnswers?.any {
+                    val exp = it.trim().lowercase()
+                    clean == exp || clean.contains(exp) || exp.contains(clean)
+                } ?: true
+                questFeedback = if (isCorrect) {
+                    quest?.feedbackSuccess?.ifEmpty { "Правильно! Ты отлично разбираешься в финансовых терминах!" }
+                } else {
+                    val exp = quest?.expectedAnswers?.firstOrNull() ?: ""
+                    quest?.feedbackFailure?.ifEmpty { "Хорошая попытка! Верный ответ: $exp." }
+                } ?: "Отличный ответ!"
+            },
+            onAnswerAllocation = { questId, amount ->
+                val quest = quests.find { it.id == questId }
+                onAnswerQuestAllocation(questId, amount)
+                val isBalanced = quest?.let { amount in it.recommendedMin..it.recommendedMax } ?: true
+                questFeedback = if (isBalanced) {
+                    quest?.allocationSuccessFeedback?.ifEmpty { "Прекрасное распределение бюджета! Мудрый и взвешенный выбор." }
+                } else {
+                    quest?.allocationWarningFeedback?.ifEmpty { "Ты сделал выбор! Стремись к балансу между текущими радостями и будущей целью." }
+                } ?: "Бюджет распределен!"
             }
         )
     }

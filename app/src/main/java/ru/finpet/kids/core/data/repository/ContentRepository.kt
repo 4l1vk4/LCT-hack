@@ -56,7 +56,26 @@ data class QuestItem(
     val topicTitle: String,
     val title: String,
     val situation: String,
-    val options: List<QuestOption>
+    val stage: String = "BABY", // BABY, TEEN, ADULT
+    val type: String = "CHOICE", // CHOICE, TEXT_INPUT, MONEY_ALLOCATION, CALCULATION
+    val options: List<QuestOption> = emptyList(),
+    val expectedAnswers: List<String> = emptyList(),
+    val hint: String = "",
+    val inputPlaceholder: String = "",
+    val feedbackSuccess: String = "",
+    val feedbackFailure: String = "",
+    val rewardCoins: Int = 40,
+    val totalBudget: Int = 100,
+    val sliderLabel: String = "",
+    val allocationTarget: String = "",
+    val recommendedMin: Int = 30,
+    val recommendedMax: Int = 70,
+    val allocationSuccessFeedback: String = "",
+    val allocationWarningFeedback: String = "",
+    val dynamicVariants: List<String> = emptyList(),
+    val calculationBasePrice: Int = 30,
+    val calculationDiscount: Int = 10,
+    val calculationGivenMoney: Int = 50
 )
 
 @Singleton

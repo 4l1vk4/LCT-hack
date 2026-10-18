@@ -298,6 +298,8 @@ fun MainScreen(
                             },
                             onBuyItem = { viewModel.buyItem(it) },
                             onAnswerQuest = { qId, optId -> viewModel.answerQuest(qId, optId) },
+                            onAnswerQuestText = { qId, text -> viewModel.answerQuestText(qId, text) },
+                            onAnswerQuestAllocation = { qId, amt -> viewModel.answerQuestAllocation(qId, amt) },
                             onDepositGoal = { gId, amt -> viewModel.depositGoal(gId, amt) },
                             onWithdrawGoal = { gId, amt -> viewModel.withdrawGoal(gId, amt) },
                             onSelectActiveGoal = { gId -> viewModel.selectActiveGoal(gId) },

@@ -516,7 +516,10 @@ class MainViewModel @Inject constructor(
 
     fun answerQuest(questId: String, optionId: String) {
         viewModelScope.launch {
-            questEngineUseCase.executeOption(questId, optionId)
+            val result = questEngineUseCase.executeOption(questId, optionId)
+            if (result != null && result.coinsAwarded > 0) {
+                showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
+            }
             val prof = repository.getProfileSync() ?: return@launch
             val currentDay = prof.currentPeriodIndex
             val completedToday = repository.getQuestProgress().first().count {
@@ -525,6 +528,43 @@ class MainViewModel @Inject constructor(
             if (completedToday >= 2) {
                 calendarDao.completeChecklistTaskByCategory(currentDay, "SCHOOL")
             }
+            loadCurrentPeriod()
+        }
+    }
+
+    fun answerQuestText(questId: String, answer: String) {
+        viewModelScope.launch {
+            val result = questEngineUseCase.executeTextAnswer(questId, answer)
+            if (result != null && result.coinsAwarded > 0) {
+                showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
+            }
+            val prof = repository.getProfileSync() ?: return@launch
+            val currentDay = prof.currentPeriodIndex
+            val completedToday = repository.getQuestProgress().first().count {
+                it.completedInPeriod == currentDay && it.isCompleted
+            }
+            if (completedToday >= 2) {
+                calendarDao.completeChecklistTaskByCategory(currentDay, "SCHOOL")
+            }
+            loadCurrentPeriod()
+        }
+    }
+
+    fun answerQuestAllocation(questId: String, amount: Int) {
+        viewModelScope.launch {
+            val result = questEngineUseCase.executeAllocation(questId, amount)
+            if (result != null && result.coinsAwarded > 0) {
+                showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
+            }
+            val prof = repository.getProfileSync() ?: return@launch
+            val currentDay = prof.currentPeriodIndex
+            val completedToday = repository.getQuestProgress().first().count {
+                it.completedInPeriod == currentDay && it.isCompleted
+            }
+            if (completedToday >= 2) {
+                calendarDao.completeChecklistTaskByCategory(currentDay, "SCHOOL")
+            }
+            loadCurrentPeriod()
         }
     }
 
