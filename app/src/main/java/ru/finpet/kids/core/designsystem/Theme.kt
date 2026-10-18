@@ -23,8 +23,8 @@ val FreshGreen = Color(0xFF4CAF50)
 val SkyBlue = Color(0xFF42A5F5)
 val SoftBackground = Color(0xFFE8DAC2)
 val CardSurface = Color(0xFFE8DAC2)
-val TextPrimary = Color(0xFF2E384D)
-val TextSecondary = Color(0xFF8798AD)
+val TextPrimary = Color(0xFF26150B)
+val TextSecondary = Color(0xFF4A3423)
 val ErrorRed = Color(0xFFE53935)
 
 val AppFontFamily = FontFamily(
