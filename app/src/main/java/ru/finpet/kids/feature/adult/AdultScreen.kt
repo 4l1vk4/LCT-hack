@@ -14,15 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,10 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.DiagramIcon
-import ru.finpet.kids.core.designsystem.FinButton
-import ru.finpet.kids.core.designsystem.FinCard
-import ru.finpet.kids.core.designsystem.FreshGreen
-import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.PixelButton

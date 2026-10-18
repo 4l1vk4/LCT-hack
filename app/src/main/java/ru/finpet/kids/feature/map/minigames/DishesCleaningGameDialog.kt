@@ -1,6 +1,7 @@
 package ru.finpet.kids.feature.map.minigames
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -9,15 +10,17 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -27,80 +30,62 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import ru.finpet.kids.R
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
-import ru.finpet.kids.core.designsystem.PixelParchmentBorder
+import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
+import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelWoodDark
+import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
+import kotlin.math.roundToInt
 
-private data class DishItem(
-    val id: Int,
-    val percentX: Float, // 0f .. 1f безопасного пространства
-    val percentY: Float, // 0f .. 1f безопасного пространства
-    val dirtyEmoji: String,
-    val cleanEmoji: String,
-    val name: String,
-    val isCleaned: Boolean = false,
-    val isCleaning: Boolean = false
-)
-
-private val DISH_VARIANTS = listOf(
-    Triple("🍽️", "✨🍽️", "Тарелка"),
-    Triple("🥣", "✨🥣", "Миска"),
-    Triple("☕", "✨☕", "Чашка"),
-    Triple("🍴", "✨🍴", "Вилка"),
-    Triple("🥛", "✨🥛", "Стакан")
-)
-
-// Безопасные координаты посуды в раковине
-private val SAFE_DISH_POSITIONS = listOf(
-    0.16f to 0.14f,
-    0.74f to 0.16f,
-    0.45f to 0.46f,
-    0.18f to 0.78f,
-    0.74f to 0.78f
-)
+private const val TOTAL_PLATES = 5
 
 /**
- * Миниигра 3: «Мытье посуды»
- * В раковине лежит грязная посуда (тарелки, кружки, приборы).
- * Ребенок кликает на грязный предмет — появляется губка с мыльной пеной,
- * проигрывается быстрая анимация мытья, и предмет начинает сверкать чистотой!
- * Когда вся посуда вымыта — гарантированная победа и начисление монет!
+ * Мини-игра «Мытье посуды»:
+ * Фон стола растянут на всю панельку.
+ * На раковине лежат 5 грязных тарелок.
+ * Ребенок кликает по тарелке в раковине — она приближается и увеличивается по центру.
+ * Появляется анимированная губка с подсказкой «Води пальцем по тарелке или нажимай на неё, чтобы смыть грязь!».
+ * Ребенок очищает тарелку как свайпами/поглаживанием, так и простыми кликами.
+ * При каждом касании губка следует за пальцем, смывая грязь (100% -> 67% -> 30% -> чистая).
+ * Как только тарелка полностью вымыта, она плавно перемещается на стол наверх в стопку чистых тарелок.
+ * В конце раковина пустая, все 5 чистых тарелок на столе и открывается оверлей победы!
  */
 @Composable
 fun DishesCleaningGameDialog(
@@ -110,58 +95,27 @@ fun DishesCleaningGameDialog(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    val dishes = remember {
-        val list = mutableStateListOf<DishItem>()
-        for (i in 0 until 5) {
-            val variant = DISH_VARIANTS[i % DISH_VARIANTS.size]
-            val pos = SAFE_DISH_POSITIONS[i % SAFE_DISH_POSITIONS.size]
-            list.add(
-                DishItem(
-                    id = i,
-                    percentX = pos.first,
-                    percentY = pos.second,
-                    dirtyEmoji = variant.first,
-                    cleanEmoji = variant.second,
-                    name = variant.third
-                )
-            )
-        }
-        list
-    }
-
     var cleanedCount by remember { mutableIntStateOf(0) }
+
+    var isPlateZoomed by remember { mutableStateOf(false) }
+    var currentDirtyPercent by remember { mutableFloatStateOf(100f) }
+
+    // Позиция губки
+    var spongePosition by remember { mutableStateOf<Offset?>(null) }
+    var isTouching by remember { mutableStateOf(false) }
+
+    // Анимация перемещения тарелки наверх после мытья
+    val movingPlateOffsetY = remember { Animatable(0f) }
+    val movingPlateScale = remember { Animatable(1f) }
+    var isFlyingToTable by remember { mutableStateOf(false) }
+
     var isWon by remember { mutableStateOf(false) }
 
-    // Автоматическое получение монет через 3.5 секунды после победы
+    // Автоматическое завершение через 3.5 секунды после победы
     LaunchedEffect(isWon) {
         if (isWon) {
             delay(3500)
             onCompleteGame()
-        }
-    }
-
-    fun cleanDish(dishId: Int) {
-        val index = dishes.indexOfFirst { it.id == dishId }
-        if (index == -1) return
-        val current = dishes[index]
-        if (current.isCleaned || current.isCleaning) return
-
-        // Мгновенный отклик на нажатие
-        dishes[index] = current.copy(isCleaning = true)
-
-        coroutineScope.launch {
-            // Быстрая анимация мытья губкой
-            delay(320)
-            val updatedIndex = dishes.indexOfFirst { it.id == dishId }
-            if (updatedIndex != -1) {
-                dishes[updatedIndex] = dishes[updatedIndex].copy(isCleaned = true, isCleaning = false)
-            }
-            cleanedCount = dishes.count { it.isCleaned }
-
-            if (cleanedCount >= dishes.size && !isWon) {
-                delay(200)
-                isWon = true
-            }
         }
     }
 
@@ -176,6 +130,61 @@ fun DishesCleaningGameDialog(
         ),
         label = "pulseScaleDishes"
     )
+
+    // Анимация покачивания подсказки губки
+    val spongeBobbing by infiniteTransition.animateFloat(
+        initialValue = -6f,
+        targetValue = 6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(700, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "spongeBobbing"
+    )
+
+    fun finishCleaningCurrentPlate() {
+        if (isFlyingToTable) return
+        isFlyingToTable = true
+        spongePosition = null
+        isTouching = false
+        coroutineScope.launch {
+            delay(160)
+            launch {
+                movingPlateOffsetY.animateTo(
+                    targetValue = -1f,
+                    animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing)
+                )
+            }
+            launch {
+                movingPlateScale.animateTo(
+                    targetValue = 0.58f,
+                    animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing)
+                )
+            }
+            delay(430)
+
+            cleanedCount++
+            isPlateZoomed = false
+            isFlyingToTable = false
+            currentDirtyPercent = 100f
+            movingPlateOffsetY.snapTo(0f)
+            movingPlateScale.snapTo(1f)
+
+            if (cleanedCount >= TOTAL_PLATES && !isWon) {
+                delay(200)
+                isWon = true
+            }
+        }
+    }
+
+    fun cleanByAmount(amount: Float) {
+        if (currentDirtyPercent > 0f) {
+            currentDirtyPercent = (currentDirtyPercent - amount).coerceAtLeast(0f)
+            if (currentDirtyPercent <= 0f) {
+                finishCleaningCurrentPlate()
+            }
+        }
+    }
 
     Dialog(
         onDismissRequest = {
@@ -198,147 +207,227 @@ fun DishesCleaningGameDialog(
         ) {
             StardewBoard(
                 modifier = Modifier
-                    .fillMaxWidth(0.95f)
-                    .fillMaxHeight(0.85f),
-                headerTitle = "МЫТЬЕ ПОСУДЫ 🍽️",
+                    .fillMaxWidth(0.96f)
+                    .fillMaxHeight(0.92f),
+                headerTitle = "МЫТЬЕ ПОСУДЫ",
                 headerIcon = "🍽️"
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                            .padding(horizontal = 4.dp, vertical = 4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Информационная плашка
+                        // Верхняя информационная панель с понятной подсказкой и счетчиком
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(PixelParchmentLight)
-                                .border(1.5.dp, PixelParchmentBorder, RoundedCornerShape(8.dp))
+                                .pixelButtonBackground(containerColor = PixelParchmentLight)
                                 .padding(horizontal = 10.dp, vertical = 6.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Нажимай на посуду в раковине!",
+                                    text = if (!isPlateZoomed) "Нажми на тарелку в раковине" else "Три тарелку пальцем 🧽",
+                                    fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 17.sp,
+                                    fontSize = 16.sp,
                                     color = PixelWoodDark
                                 )
                                 Text(
-                                    text = "Отмой все тарелочки губкой до блеска",
-                                    fontSize = 15.sp,
+                                    text = if (!isPlateZoomed) "Она приблизится для мытья" else "Води пальцем или нажимай, смывая грязь",
+                                    fontFamily = AppFontFamily,
+                                    fontSize = 13.sp,
                                     color = Color(0xFF6B4423)
                                 )
                             }
 
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = if (cleanedCount == dishes.size) FreshGreen else JoyOrange
+                            Box(
+                                modifier = Modifier
+                                    .pixelButtonBackground(containerColor = if (cleanedCount == TOTAL_PLATES) FreshGreen else JoyOrange)
+                                    .padding(horizontal = 10.dp, vertical = 5.dp)
                             ) {
                                 Text(
-                                    text = "$cleanedCount / ${dishes.size}",
+                                    text = "$cleanedCount / $TOTAL_PLATES",
+                                    fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.ExtraBold,
                                     fontSize = 15.sp,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    color = Color.White
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
 
-                        // Игровая зона: раковина с водой и мыльными пузырями
+                        // Главная игровая зона: растянутый на ВСЮ панельку стол с раковиной
                         BoxWithConstraints(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(
-                                            Color(0xFFE0F2F1), // светлая вода
-                                            Color(0xFFB2DFDB),
-                                            Color(0xFF80CBC4)
-                                        )
-                                    )
-                                )
-                                .border(2.5.dp, Color(0xFF00796B), RoundedCornerShape(14.dp))
+                                .clipToBounds(),
+                            contentAlignment = Alignment.Center
                         ) {
-                            // Фоновые мыльные пузыри в воде
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                drawCircle(
-                                    color = Color(0x33FFFFFF),
-                                    radius = size.width * 0.15f,
-                                    center = Offset(size.width * 0.2f, size.height * 0.3f)
-                                )
-                                drawCircle(
-                                    color = Color(0x33FFFFFF),
-                                    radius = size.width * 0.22f,
-                                    center = Offset(size.width * 0.8f, size.height * 0.7f)
-                                )
+                            val containerWidth = maxWidth
+                            val containerHeight = maxHeight
+
+                            // Фоновое изображение: растянуто на всю область панельки
+                            Image(
+                                painter = painterResource(id = R.drawable.washing_dishes),
+                                contentDescription = "Стол с раковиной",
+                                contentScale = ContentScale.FillBounds,
+                                modifier = Modifier.fillMaxSize()
+                            )
+
+                            // Размеры тарелок
+                            val tablePlateSize = containerWidth * 0.32f
+                            val sinkPlateSize = containerWidth * 0.44f
+                            val zoomedPlateSize = containerWidth * 0.68f
+
+                            // СТОПКА ЧИСТЫХ ТАРЕЛОК НА СТОЛЕ НАВЕРХУ
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .padding(top = containerHeight * 0.08f)
+                                    .size(tablePlateSize + 24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                for (i in 0 until cleanedCount) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.tarelka_clear),
+                                        contentDescription = "Чистая тарелка",
+                                        modifier = Modifier
+                                            .size(tablePlateSize)
+                                            .offset(y = (-i * 6).dp)
+                                    )
+                                }
                             }
 
-                            // Безопасные размеры: все элементы строго внутри раковины
-                            val dishSize = 68.dp
-                            val availW = (maxWidth - dishSize - 16.dp).coerceAtLeast(0.dp)
-                            val availH = (maxHeight - dishSize - 16.dp).coerceAtLeast(0.dp)
+                            // ТАРЕЛКИ В РАКОВИНЕ
+                            val remainingInSink = TOTAL_PLATES - cleanedCount
+                            if (remainingInSink > 0) {
+                                val currentPlateInSink = remainingInSink - 1
 
-                            // Посуда в раковине
-                            dishes.forEach { dish ->
-                                val dishX = 8.dp + availW * dish.percentX
-                                val dishY = 8.dp + availH * dish.percentY
-
-                                Box(
-                                    modifier = Modifier
-                                        .offset(x = dishX, y = dishY)
-                                        .size(dishSize)
-                                        .clip(CircleShape)
-                                        .clickable(
-                                            enabled = !dish.isCleaned && !dish.isCleaning && !isWon
+                                if (!isPlateZoomed && !isFlyingToTable) {
+                                    // Обычное состояние: стопка тарелок лежит в раковине
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .size(sinkPlateSize + 25.dp)
+                                            .clickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null
+                                            ) {
+                                                isPlateZoomed = true
+                                                currentDirtyPercent = 100f
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        for (i in 0 until remainingInSink) {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.tarelka_dirty),
+                                                contentDescription = "Грязная тарелка",
+                                                modifier = Modifier
+                                                    .size(sinkPlateSize)
+                                                    .offset(y = (-i * 5).dp)
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    // Под активной тарелкой отображаем оставшиеся в стопке тарелки (если есть)
+                                    if (currentPlateInSink > 0) {
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.Center)
+                                                .size(sinkPlateSize + 25.dp),
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            cleanDish(dish.id)
-                                        },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    when {
-                                        dish.isCleaning -> {
-                                            // Анимация губки с мыльной пеной прямо на посуде
-                                            Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                modifier = Modifier.scale(1.15f)
-                                            ) {
-                                                Text(text = "🧽", fontSize = 34.sp)
-                                                Text(text = "🫧🫧", fontSize = 14.sp)
+                                            for (i in 0 until currentPlateInSink) {
+                                                Image(
+                                                    painter = painterResource(id = R.drawable.tarelka_dirty),
+                                                    contentDescription = "Грязная тарелка в раковине",
+                                                    modifier = Modifier
+                                                        .size(sinkPlateSize)
+                                                        .offset(y = (-i * 5).dp)
+                                                )
                                             }
                                         }
-                                        dish.isCleaned -> {
-                                            // Чистая сияющая посуда
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(56.dp)
-                                                    .clip(CircleShape)
-                                                    .background(Color(0x88FFFFFF))
-                                                    .border(2.dp, FreshGreen, CircleShape),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(text = dish.cleanEmoji, fontSize = 24.sp)
+                                    }
+
+                                    // ВЫБРАННАЯ ТАРЕЛКА: ПРИБЛИЖЕНА, ОЧИЩАЕТСЯ
+                                    val plateRes = when {
+                                        currentDirtyPercent <= 5f -> R.drawable.tarelka_clear
+                                        currentDirtyPercent <= 48f -> R.drawable.tarelka_30
+                                        currentDirtyPercent <= 83f -> R.drawable.tarelka_67
+                                        else -> R.drawable.tarelka_dirty
+                                    }
+
+                                    val flyOffsetPx = movingPlateOffsetY.value * (containerHeight.value * 0.32f)
+
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .offset { IntOffset(0, flyOffsetPx.roundToInt()) }
+                                            .scale(if (isFlyingToTable) movingPlateScale.value else 1f)
+                                            .size(zoomedPlateSize)
+                                            .pointerInput(isFlyingToTable) {
+                                                if (isFlyingToTable) return@pointerInput
+                                                detectTapGestures(
+                                                    onPress = { offset ->
+                                                        spongePosition = offset
+                                                        isTouching = true
+                                                        tryAwaitRelease()
+                                                        isTouching = false
+                                                    },
+                                                    onTap = {
+                                                        // Клик по тарелке тоже очищает её (для максимальной простоты и доступности)
+                                                        cleanByAmount(18f)
+                                                    }
+                                                )
                                             }
-                                        }
-                                        else -> {
-                                            // Грязная посуда
+                                            .pointerInput(isFlyingToTable) {
+                                                if (isFlyingToTable) return@pointerInput
+                                                detectDragGestures(
+                                                    onDragStart = { offset ->
+                                                        spongePosition = offset
+                                                        isTouching = true
+                                                    },
+                                                    onDragEnd = { isTouching = false },
+                                                    onDragCancel = { isTouching = false }
+                                                ) { change, dragAmount ->
+                                                    change.consume()
+                                                    spongePosition = change.position
+                                                    val dist = dragAmount.getDistance()
+                                                    cleanByAmount(dist * 0.16f)
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = plateRes),
+                                            contentDescription = "Тарелка на чистке",
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+
+                                        // Визуальная губка и подсказка вождения
+                                        if (!isFlyingToTable) {
+                                            // Индикатор чистоты под тарелкой
+                                            val cleanPercent = (100f - currentDirtyPercent).roundToInt()
                                             Box(
                                                 modifier = Modifier
-                                                    .size(56.dp)
-                                                    .clip(CircleShape)
-                                                    .background(Color(0x66BCAAA4))
-                                                    .border(2.dp, Color(0xFF8D6E63), CircleShape),
-                                                contentAlignment = Alignment.Center
+                                                    .align(Alignment.BottomCenter)
+                                                    .offset(y = 22.dp)
+                                                    .pixelButtonBackground(containerColor = if (cleanPercent >= 100) FreshGreen else PixelParchmentLight)
+                                                    .padding(horizontal = 10.dp, vertical = 3.dp)
                                             ) {
-                                                Text(text = dish.dirtyEmoji, fontSize = 28.sp)
+                                                Text(
+                                                    text = if (cleanPercent >= 100) "Чисто! ✨" else "Чистота: $cleanPercent%",
+                                                    fontFamily = AppFontFamily,
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = if (cleanPercent >= 100) Color.White else PixelWoodDark
+                                                )
                                             }
                                         }
                                     }
@@ -346,90 +435,82 @@ fun DishesCleaningGameDialog(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
 
-                        // Нижняя кнопка во время игры
+                        // Нижняя кнопка выхода во время игры
                         if (!isWon) {
-                            Button(
+                            PixelButton(
+                                text = "Закончить позже",
                                 onClick = onDismiss,
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9E9E9E)),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(text = "Закончить позже", color = Color.White, fontSize = 15.sp)
-                            }
+                                containerColor = PixelWoodMedium,
+                                textColor = PixelParchmentLight,
+                                fontSize = 15.sp,
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                            )
                         }
                     }
 
-                    // ВСЕГДА ВИДИМЫЙ ОВЕРЛЕЙ ПОБЕДЫ ПОВЕРХ РАКОВИНЫ
+                    // ПОБЕДНЫЙ ОВЕРЛЕЙ
                     AnimatedVisibility(
                         visible = isWon,
                         enter = fadeIn() + scaleIn(),
                         modifier = Modifier.align(Alignment.Center)
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = Color(0xFFE8F5E9),
-                            border = androidx.compose.foundation.BorderStroke(2.5.dp, FreshGreen),
-                            shadowElevation = 8.dp,
+                        PixelPanel(
                             modifier = Modifier
                                 .fillMaxWidth(0.92f)
                                 .clickable { onCompleteGame() }
                         ) {
                             Column(
-                                modifier = Modifier.padding(16.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
                                     text = "🎉 ВСЯ ПОСУДА ВЫМЫТА! 🎉",
+                                    fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.Black,
-                                    fontSize = 22.sp,
-                                    color = FreshGreen
+                                    fontSize = 20.sp,
+                                    color = FreshGreen,
+                                    textAlign = TextAlign.Center
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(6.dp))
                                 Text(
-                                    text = "Тарелки и чашки сверкают до скрипа!",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = Color(0xFF2E7D32),
+                                    text = "Раковина пустая, а тарелочки аккуратно сложены на столе и сияют чистотой!",
+                                    fontFamily = AppFontFamily,
+                                    fontSize = 15.sp,
+                                    color = PixelTextDark,
                                     textAlign = TextAlign.Center
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color.White)
-                                        .border(1.5.dp, FreshGreen.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                        .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
                                         .padding(horizontal = 14.dp, vertical = 6.dp)
                                 ) {
                                     Text(
                                         text = "Награда: +$rewardCoins ",
+                                        fontFamily = AppFontFamily,
                                         fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 17.sp,
-                                        color = FreshGreen
+                                        fontSize = 16.sp,
+                                        color = PixelTextDark
                                     )
-                                    CoinIcon(modifier = Modifier.size(20.dp))
+                                    CoinIcon(modifier = Modifier.size(18.dp))
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Button(
+                                PixelButton(
+                                    text = "Забрать $rewardCoins монет ➔",
                                     onClick = onCompleteGame,
-                                    colors = ButtonDefaults.buttonColors(containerColor = FreshGreen),
-                                    shape = RoundedCornerShape(10.dp),
+                                    containerColor = FreshGreen,
+                                    textColor = Color.White,
+                                    fontSize = 16.sp,
+                                    trailingIcon = { CoinIcon(modifier = Modifier.size(18.dp)) },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .scale(pulseScale)
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "Забрать $rewardCoins монет ➔",
-                                            fontWeight = FontWeight.ExtraBold,
-                                            fontSize = 16.sp,
-                                            color = Color.White
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        CoinIcon(modifier = Modifier.size(18.dp))
-                                    }
-                                }
+                                )
                             }
                         }
                     }

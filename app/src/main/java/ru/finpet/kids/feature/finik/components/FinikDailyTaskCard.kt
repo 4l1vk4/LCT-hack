@@ -44,7 +44,8 @@ fun FinikDailyTaskCard(
     onNavigateToTask: ((CalendarNoteEntity) -> Unit)?,
     onNavigateToMap: (() -> Unit)?,
     onOpenQuestions: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isPetRunaway: Boolean = false
 ) {
     if (todayNotes.isEmpty()) return
 
@@ -123,8 +124,15 @@ fun FinikDailyTaskCard(
                 val taskBadge = when {
                     pendingTask.category == "GROCERIES" -> "Лавка • Сдача"
                     pendingTask.category == "SCHOOL" -> "Школа • 2 урока"
+                    pendingTask.category == "PET_FOOD" && isPetRunaway -> "Домой • 60"
                     pendingTask.category == "PET_FOOD" -> "Лавка • 30"
                     else -> category.defaultBadge
+                }
+
+                val displayTitle = if (pendingTask.category == "PET_FOOD" && isPetRunaway) {
+                    "Купить корм для возвращения"
+                } else {
+                    pendingTask.title
                 }
 
                 Row(
@@ -145,7 +153,7 @@ fun FinikDailyTaskCard(
                         Text(text = taskIcon, fontSize = 18.sp)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = pendingTask.title,
+                            text = displayTitle,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = TextPrimary,
@@ -165,8 +173,9 @@ fun FinikDailyTaskCard(
                         ) { handleTaskClick() }
                     ) {
                         if (pendingTask.category == "PET_FOOD") {
+                            val badgeText = if (isPetRunaway) "Домой • 60" else "Лавка • 30"
                             Text(
-                                text = "Лавка • 30",
+                                text = badgeText,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = JoyOrange

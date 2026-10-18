@@ -78,7 +78,8 @@ fun DayDetailsDialog(
     onDeleteNote: (CalendarNoteEntity) -> Unit,
     onCompletePeriod: () -> Unit,
     onNavigateToTask: ((CalendarNoteEntity) -> Unit)? = null,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    isPetRunaway: Boolean = false
 ) {
     val completedCount = notes.count { it.isCompleted }
     val totalCount = notes.size
@@ -226,8 +227,13 @@ fun DayDetailsDialog(
                                     }
                                     Spacer(modifier = Modifier.width(8.dp))
 
+                                    val displayTitle = if (note.category == "PET_FOOD" && isPetRunaway) {
+                                        "Купить корм для возвращения"
+                                    } else {
+                                        note.title
+                                    }
                                     Text(
-                                        text = note.title,
+                                        text = displayTitle,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (note.isCompleted) PixelTextMuted else PixelTextDark,
@@ -288,8 +294,9 @@ fun DayDetailsDialog(
                                                 Spacer(modifier = Modifier.width(3.dp))
                                                 CoinIcon(modifier = Modifier.size(14.dp))
                                             } else if (note.category == "PET_FOOD") {
+                                                val badgeText = if (isPetRunaway) "Домой • 60" else "Лавка • 30"
                                                 Text(
-                                                    text = "Лавка • 30",
+                                                    text = badgeText,
                                                     fontFamily = AppFontFamily,
                                                     fontSize = 14.sp,
                                                     fontWeight = FontWeight.Bold,

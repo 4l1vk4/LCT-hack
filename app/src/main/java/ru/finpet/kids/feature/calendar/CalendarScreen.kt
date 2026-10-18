@@ -256,7 +256,8 @@ fun CalendarScreen(
                     onCompletePeriod()
                 },
                 onNavigateToTask = onNavigateToTask,
-                onDismiss = { activeDialog = null }
+                onDismiss = { activeDialog = null },
+                isPetRunaway = profile?.isPetRunaway == true
             )
         }
 

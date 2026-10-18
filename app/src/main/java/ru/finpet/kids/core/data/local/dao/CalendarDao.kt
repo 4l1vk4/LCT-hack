@@ -45,6 +45,9 @@ interface CalendarDao {
     @Query("UPDATE calendar_notes SET isCompleted = 1 WHERE dayIndex = :dayIndex AND category = :category")
     suspend fun completeChecklistTaskByCategory(dayIndex: Int, category: String)
 
+    @Query("UPDATE calendar_notes SET isCompleted = 1, cost = :cost, title = :title WHERE dayIndex = :dayIndex AND category = :category")
+    suspend fun completeChecklistTaskWithDetails(dayIndex: Int, category: String, cost: Int, title: String)
+
     @Query("UPDATE calendar_notes SET isCompleted = :isCompleted, cost = :cost WHERE dayIndex = :dayIndex AND category = :category")
     suspend fun updateChecklistNoteByCategory(dayIndex: Int, category: String, isCompleted: Boolean, cost: Int)
 

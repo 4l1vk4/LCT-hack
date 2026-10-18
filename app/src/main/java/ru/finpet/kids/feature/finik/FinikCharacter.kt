@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -61,7 +62,7 @@ fun FinikInArmchair(
 
     BoxWithConstraints(
         modifier = modifier
-            .size(240.dp),                // ← ФИКСИРУЕМ РАЗМЕР, важно!
+            .defaultMinSize(minWidth = 100.dp, minHeight = 100.dp),
         contentAlignment = Alignment.Center
     ) {
         val w = maxWidth

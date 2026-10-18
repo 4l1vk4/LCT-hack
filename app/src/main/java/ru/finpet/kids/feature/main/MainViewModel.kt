@@ -560,16 +560,26 @@ class MainViewModel @Inject constructor(
                 )
             )
 
-            // запись в календарь дня
-            calendarDao.insertNote(
-                CalendarNoteEntity(
+            // отметка задачи дня о корме как выполненной с обновлением цены (60) и названия
+            val existingPetFoodNote = calendarDao.getNoteByDayAndCategory(prof.currentPeriodIndex, "PET_FOOD")
+            if (existingPetFoodNote != null) {
+                calendarDao.completeChecklistTaskWithDetails(
                     dayIndex = prof.currentPeriodIndex,
-                    title = "Миска корма для возвращения ${prof.petName}",
-                    cost = bowlPrice,
                     category = "PET_FOOD",
-                    isCompleted = true
+                    cost = bowlPrice,
+                    title = "Купить корм для возвращения"
                 )
-            )
+            } else {
+                calendarDao.insertNote(
+                    CalendarNoteEntity(
+                        dayIndex = prof.currentPeriodIndex,
+                        title = "Купить корм для возвращения",
+                        cost = bowlPrice,
+                        category = "PET_FOOD",
+                        isCompleted = true
+                    )
+                )
+            }
 
             loadCurrentPeriod()
         }

@@ -47,27 +47,27 @@ val ACCESSORIES: List<Accessory> = listOf(
         id = "glasses",
         title = "Очки",
         drawableRes = R.drawable.glasses,
-        baby  = AccessoryPlacement(cx = 0.465f, cy = 0.443f, widthRatio = 0.5f),
-        teen  = AccessoryPlacement(cx = 0.483f, cy = 0.440f, widthRatio = 0.42f),
-        adult  = AccessoryPlacement(cx = 0.482f, cy = 0.440f, widthRatio = 0.41f),
+        baby  = AccessoryPlacement(cx = 0.437f, cy = 0.446f, widthRatio = 0.9f),
+        teen  = AccessoryPlacement(cx = 0.461f, cy = 0.440f, widthRatio = 0.8f),
+        adult = AccessoryPlacement(cx = 0.461f, cy = 0.440f, widthRatio = 0.8f),
         zOrder = 3
     ),
     Accessory(
         id = "tie",
         title = "Галстук",
         drawableRes = R.drawable.tie,
-        baby  = AccessoryPlacement(cx = 0.481f, cy = 0.670f, widthRatio = 0.13f),
-        teen  = AccessoryPlacement(cx = 0.475f, cy = 0.660f, widthRatio = 0.14f),
-        adult = AccessoryPlacement(cx = 0.475f, cy = 0.660f, widthRatio = 0.14f),
+        baby  = AccessoryPlacement(cx = 0.468f, cy = 0.635f, widthRatio = 0.17f),
+        teen  = AccessoryPlacement(cx = 0.455f, cy = 0.635f, widthRatio = 0.17f),
+        adult = AccessoryPlacement(cx = 0.455f, cy = 0.635f, widthRatio = 0.17f),
         zOrder = 2
     ),
     Accessory(
         id = "clown_nose",
         title = "Клоунский нос",
         drawableRes = R.drawable.clown_nose,
-        baby  = AccessoryPlacement(cx = 0.483f, cy = 0.483f, widthRatio = 0.05f),
-        teen  = AccessoryPlacement(cx = 0.487f, cy = 0.480f, widthRatio = 0.05f),
-        adult = AccessoryPlacement(cx = 0.487f, cy = 0.480f, widthRatio = 0.05f),
+        baby  = AccessoryPlacement(cx = 0.466f, cy = 0.490f, widthRatio = 0.125f),
+        teen  = AccessoryPlacement(cx = 0.465f, cy = 0.505f, widthRatio = 0.110f),
+        adult = AccessoryPlacement(cx = 0.465f, cy = 0.505f, widthRatio = 0.110f),
         zOrder = 5
     ),
 )

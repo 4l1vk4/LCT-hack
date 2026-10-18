@@ -111,7 +111,7 @@ fun SchoolBottomSheet(
                     Box(
                         modifier = Modifier
                             .size(42.dp)
-                            .background(Color(0xFFFFE082)),
+                            .pixelButtonBackground(containerColor = PixelGoldBright.copy(alpha = 0.35f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(text = "📖", fontSize = 22.sp)
@@ -120,15 +120,17 @@ fun SchoolBottomSheet(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Словарик $petName",
+                            fontFamily = AppFontFamily,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = PixelTextDark
                         )
                         Text(
                             text = "Что значит «бюджет», «накопления», «сдача» и другие слова",
-                            fontSize = 16.sp,
+                            fontFamily = AppFontFamily,
+                            fontSize = 15.sp,
                             color = TextSecondary,
-                            lineHeight = 21.sp
+                            lineHeight = 20.sp
                         )
                     }
                     Text(text = "👉", fontSize = 20.sp)

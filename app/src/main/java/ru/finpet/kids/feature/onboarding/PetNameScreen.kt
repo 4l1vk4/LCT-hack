@@ -18,10 +18,16 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.finpet.kids.core.designsystem.FinButton
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.JoyOrange
-import ru.finpet.kids.core.designsystem.TextPrimary
-import ru.finpet.kids.core.designsystem.TextSecondary
+import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelGoldDark
+import ru.finpet.kids.core.designsystem.PixelGreenCrop
+import ru.finpet.kids.core.designsystem.PixelParchmentLight
+import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.PixelTextMuted
+import ru.finpet.kids.core.designsystem.PixelWoodDark
+import ru.finpet.kids.core.designsystem.StardewBoard
 
 @Composable
 fun PetNameScreen(
@@ -34,63 +40,81 @@ fun PetNameScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFFDF7))
-            .padding(24.dp),
+            .background(Color(0xFFE8DAC2))
+            .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        StardewBoard(
+            headerTitle = "ИМЯ ПИТОМЦА",
+            headerIcon = "🐾",
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "✏️", fontSize = 64.sp)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Как зовут питомца?",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = TextPrimary,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Придумай имя от 2 до 16 букв",
-                fontSize = 14.sp,
-                color = TextSecondary,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            OutlinedTextField(
-                value = name,
-                onValueChange = { if (it.length <= 16) name = it },
-                label = { Text("Имя питомца") },
-                placeholder = { Text("Например: Финни") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    imeAction = ImeAction.Done
-                ),
-                shape = RoundedCornerShape(16.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = JoyOrange,
-                    focusedLabelColor = JoyOrange,
-                    cursorColor = JoyOrange
-                ),
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-            )
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
+            ) {
+                Text(text = "✏️", fontSize = 54.sp)
+                Spacer(modifier = Modifier.height(10.dp))
 
-            Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    text = "Как назовём питомца?",
+                    fontFamily = AppFontFamily,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black,
+                    color = PixelTextDark,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "Придумай имя от 2 до 16 букв.\nОно появится на табличке в комнате!",
+                    fontFamily = AppFontFamily,
+                    fontSize = 15.sp,
+                    color = PixelTextMuted,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
 
-            FinButton(
-                text = "Сохранить имя",
-                enabled = isValid,
-                onClick = { onNameConfirmed(trimmed) },
-                modifier = Modifier.fillMaxWidth()
-            )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { if (it.length <= 16) name = it },
+                    label = { Text("Имя питомца", fontFamily = AppFontFamily) },
+                    placeholder = { Text("Например: Финни", fontFamily = AppFontFamily) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        imeAction = ImeAction.Done
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = PixelTextDark,
+                        unfocusedTextColor = PixelTextDark,
+                        focusedBorderColor = PixelWoodDark,
+                        unfocusedBorderColor = PixelGoldDark,
+                        focusedLabelColor = PixelWoodDark,
+                        unfocusedLabelColor = PixelTextMuted,
+                        cursorColor = PixelWoodDark,
+                        focusedContainerColor = PixelParchmentLight,
+                        unfocusedContainerColor = PixelParchmentLight
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                PixelButton(
+                    text = "Сохранить имя",
+                    enabled = isValid,
+                    onClick = { onNameConfirmed(trimmed) },
+                    containerColor = if (isValid) PixelGreenCrop else Color(0xFFC0B098),
+                    textColor = if (isValid) Color.White else Color(0xFF7A6855),
+                    fontSize = 17.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }

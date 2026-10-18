@@ -14,10 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.finpet.kids.core.designsystem.FinButton
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.PixelButton
@@ -39,6 +36,7 @@ import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.ShieldIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.core.domain.usecase.AdultChallenge
 import androidx.compose.foundation.layout.size
 
@@ -93,15 +91,15 @@ fun AdultChallengeGate(
                 // плашка с категорией вопроса (налоги, право, математика)
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFFFF3E0))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                        .pixelButtonBackground(containerColor = JoyOrange.copy(alpha = 0.25f))
+                        .padding(horizontal = 12.dp, vertical = 5.dp)
                 ) {
                     Text(
                         text = challenge.title,
+                        fontFamily = AppFontFamily,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFE65100)
+                        color = PixelTextDark
                     )
                 }
 

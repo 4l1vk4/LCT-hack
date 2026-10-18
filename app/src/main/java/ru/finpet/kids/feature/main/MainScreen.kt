@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
-import ru.finpet.kids.core.designsystem.CoinBadge
 import ru.finpet.kids.core.designsystem.SoftBackground
 import ru.finpet.kids.feature.adult.AdultScreen
 import ru.finpet.kids.feature.calendar.CalendarScreen
@@ -162,9 +161,13 @@ fun MainScreen(
                 showBudgetPlanningDialog = true
             }
             "PET_FOOD" -> {
-                mapInitialModal = "SHOP"
-                mapTargetShopItemId = "food_basic"
-                selectedTab = 0
+                if (profile?.isPetRunaway == true) {
+                    selectedTab = 2
+                } else {
+                    mapInitialModal = "SHOP"
+                    mapTargetShopItemId = "food_basic"
+                    selectedTab = 0
+                }
             }
             "GROCERIES" -> {
                 mapInitialModal = "SHOP"
@@ -384,7 +387,8 @@ fun MainScreen(
                             onNavigateToTask = onNavigateToTask,
                             onAskQuestion = { viewModel.onPetAskedQuestion() },
                             onPlaceFoodBowl = { viewModel.placeFoodBowl() },
-                            onToggleNote = { note -> viewModel.toggleCalendarNote(note) }
+                            onToggleNote = { note -> viewModel.toggleCalendarNote(note) },
+                            isNight = isNightMode
                         )
                     }
                     KeepAliveTab(

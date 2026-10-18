@@ -3,6 +3,7 @@ package ru.finpet.kids.feature.finik.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,11 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +46,9 @@ import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.TextSecondary
 
+import ru.finpet.kids.core.designsystem.PixelPanel
+import ru.finpet.kids.core.designsystem.PixelRedBerry
+
 // блок, когда котик убежал из дома (настроение упало до 0%)
 // ребенку нужно поставить миску у двери (цена 60 монет), чтобы котик вернулся
 @Composable
@@ -65,51 +65,63 @@ fun FinikRunawaySection(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp)
+            .padding(vertical = 4.dp)
     ) {
-        // изображение сбежавшего котика (облачко пыли после побега)
-        Image(
-            painter = painterResource(id = R.drawable.cat_runaway),
-            contentDescription = "$petName убежал",
-            contentScale = ContentScale.Fit,
+        // Плашка с информацией о побеге в стиле 9-slice PixelPanel
+        PixelPanel(
             modifier = Modifier
-                .size(190.dp)
-                .padding(vertical = 4.dp)
-        )
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 4.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    ExclamationIcon(modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "$petName убежал!",
+                        fontFamily = AppFontFamily,
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.Black,
+                        color = PixelRedBerry
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    ExclamationIcon(modifier = Modifier.size(20.dp))
+                }
 
-        Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-        Text(
-            text = "$petName убежал!",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color(0xFFC62828)
-        )
+                Text(
+                    text = "Настроение упало до 0%. Поставь миску корма у двери (цена x2 от обычного корма: 60 монет). Питомец вернётся через 1–3 дня, если ставить миску каждый день!",
+                    fontFamily = AppFontFamily,
+                    fontSize = 14.sp,
+                    color = PixelTextDark,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 19.sp
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        Text(
-            text = "Настроение упало до 0%. Поставь миску корма у двери (цена x2 от обычного корма: 60 монет). Питомец вернётся через 1–3 дня, если ставить миску каждый день!",
-            fontSize = 16.sp,
-            color = TextSecondary,
-            textAlign = TextAlign.Center,
-            lineHeight = 21.sp,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         if (bowlPlacedToday) {
-            // миска уже поставлена сегодня
-            FinCard(
+            // миска уже поставлена сегодня — 9-slice PixelPanel
+            PixelPanel(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                backgroundColor = Color(0xFFE8F5E9),
-                borderColor = Color(0xFFAED581)
+                    .padding(horizontal = 4.dp, vertical = 4.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(14.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = "🥣", fontSize = 28.sp)
@@ -117,74 +129,80 @@ fun FinikRunawaySection(
                     Column {
                         Text(
                             text = "Миска с кормом стоит у двери!",
+                            fontFamily = AppFontFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
                             color = FreshGreen
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "Кот чувствует заботу. Проверь завтра, вернулся ли он!",
-                            fontSize = 15.sp,
-                            lineHeight = 20.sp,
-                            color = TextSecondary
+                            fontFamily = AppFontFamily,
+                            fontSize = 14.sp,
+                            lineHeight = 19.sp,
+                            color = PixelTextDark
                         )
                     }
                 }
             }
         } else {
-            // кнопка купить корм для питомца с восклицательным знаком над ней
+            // кнопка купить корм для питомца в стиле 9-slice PixelButton
             val canAffordBowl = balance >= 60
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = 4.dp, vertical = 4.dp)
             ) {
-                Button(
+                PixelButton(
+                    text = "Купить корм для питомца",
                     onClick = { showConfirmDialog = true },
                     enabled = canAffordBowl,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = JoyOrange,
-                        disabledContainerColor = Color(0xFFCCCCCC)
-                    ),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "🥣 Купить корм для питомца (60 ",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = Color.White
-                        )
-                        CoinIcon(modifier = Modifier.size(16.dp))
-                        Text(
-                            text = ")",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = Color.White
-                        )
+                    containerColor = JoyOrange,
+                    textColor = PixelTextDark,
+                    fontSize = 15.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Text("🥣", fontSize = 18.sp) },
+                    trailingIcon = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "(60 ",
+                                fontFamily = AppFontFamily,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 15.sp,
+                                color = if (canAffordBowl) PixelTextDark else Color(0xFF7A6855)
+                            )
+                            CoinIcon(modifier = Modifier.size(15.dp))
+                            Text(
+                                text = ")",
+                                fontFamily = AppFontFamily,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 15.sp,
+                                color = if (canAffordBowl) PixelTextDark else Color(0xFF7A6855)
+                            )
+                        }
                     }
-                }
+                )
 
                 // красный восклицательный знак над кнопкой справа сверху
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .offset(x = 6.dp, y = (-10).dp)
+                        .offset(x = 4.dp, y = (-8).dp)
                 ) {
                     ExclamationIcon(modifier = Modifier.size(24.dp))
                 }
             }
 
             if (!canAffordBowl) {
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Не хватает монет (нужно 60 монет). Загляни в Школу или выполни дела по дому!",
-                    fontSize = 15.sp,
-                    lineHeight = 20.sp,
-                    color = Color(0xFFD32F2F),
-                    textAlign = TextAlign.Center
+                    fontFamily = AppFontFamily,
+                    fontSize = 14.sp,
+                    lineHeight = 19.sp,
+                    color = PixelRedBerry,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
         }

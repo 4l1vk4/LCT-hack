@@ -19,13 +19,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -46,6 +43,7 @@ import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.feature.calendar.model.CalendarTaskCategory
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
@@ -64,7 +62,8 @@ fun FinikTasksSheet(
     onNavigateToMap: (() -> Unit)? = null,
     onNavigateToTask: ((CalendarNoteEntity) -> Unit)? = null,
     onOpenQuestions: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    isPetRunaway: Boolean = false
 ) {
     val completedCount = todayNotes.count { it.isCompleted }
     val totalCount = todayNotes.size
@@ -160,6 +159,7 @@ fun FinikTasksSheet(
 
                     val taskBadge = when {
                         note.category == "GROCERIES" -> "Лавка • Сдача"
+                        note.category == "PET_FOOD" && isPetRunaway -> "Домой • 60"
                         note.category == "PET_FOOD" -> "Лавка • 30"
                         note.category == "BUDGET_PLAN" -> "Баночки"
                         else -> category.defaultBadge
@@ -170,6 +170,8 @@ fun FinikTasksSheet(
                         onDismiss()
                         if (note.category == "PET_QUESTION") {
                             onOpenQuestions()
+                        } else if (note.category == "PET_FOOD" && isPetRunaway) {
+                            onNavigateToTask?.invoke(note)
                         } else if (onNavigateToTask != null) {
                             onNavigateToTask(note)
                         } else {
@@ -217,8 +219,13 @@ fun FinikTasksSheet(
                                     Text(text = taskIcon, fontSize = 20.sp)
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
+                                val displayTitle = if (note.category == "PET_FOOD" && isPetRunaway) {
+                                    "Купить корм для возвращения"
+                                } else {
+                                    note.title
+                                }
                                 Text(
-                                    text = note.title,
+                                    text = displayTitle,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = if (note.isCompleted) TextSecondary else TextPrimary,
@@ -229,13 +236,13 @@ fun FinikTasksSheet(
                             Spacer(modifier = Modifier.width(8.dp))
 
                             if (note.isCompleted) {
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = Color(0xFFE8F5E9)
+                                Box(
+                                    modifier = Modifier
+                                        .pixelButtonBackground(containerColor = Color(0xFFE8F5E9))
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         if (note.category == "GROCERIES" && note.cost > 0) {
                                              Text(
@@ -257,23 +264,26 @@ fun FinikTasksSheet(
                                     }
                                 }
                             } else {
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = Color(0xFFFFF3E0),
-                                    modifier = if (isNavigable) {
-                                        Modifier.clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null
-                                        ) { handleNavigate() }
-                                    } else Modifier
+                                Box(
+                                    modifier = Modifier
+                                        .pixelButtonBackground(containerColor = Color(0xFFFFF3E0))
+                                        .then(
+                                            if (isNavigable) {
+                                                Modifier.clickable(
+                                                    interactionSource = remember { MutableInteractionSource() },
+                                                    indication = null
+                                                ) { handleNavigate() }
+                                            } else Modifier
+                                        )
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         if (note.category == "PET_FOOD") {
+                                            val badgeText = if (isPetRunaway) "Домой • 60" else "Лавка • 30"
                                             Text(
-                                                text = "Лавка • 30",
+                                                text = badgeText,
                                                 fontSize = 14.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = JoyOrange

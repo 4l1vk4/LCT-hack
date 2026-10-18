@@ -41,8 +41,15 @@ import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.layout.PaddingValues
 import ru.finpet.kids.R
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelPanel
+import ru.finpet.kids.core.designsystem.PixelParchmentLight
+import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.TextPrimary
 
 // положение головы кота
@@ -131,28 +138,34 @@ fun TutorialScreen(
                 .size(catSize)
         )
 
-        // 3. Текст по центру экрана, БЕЗ белого фона
+        // 3. Текст по центру экрана в пиксельной плашке диалога
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
                 .offset(
                     y = h * (TEXT_CY - 0.5f)   // сдвиг от центра
                 )
-                .fillMaxWidth(TEXT_WIDTH_RATIO)
+                .fillMaxWidth(0.86f)
                 .graphicsLayer {
                     scaleX = pulseScale
                     scaleY = pulseScale
                 }
         ) {
-            Text(
-                text = steps[step],
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF381F0E),
-                textAlign = TextAlign.Center,
-                lineHeight = 23.sp,
-                modifier = Modifier.fillMaxWidth()
-            )
+            PixelPanel(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Text(
+                    text = steps[step],
+                    fontFamily = AppFontFamily,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PixelTextDark,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
         // 4. Точки-индикаторы
@@ -190,21 +203,15 @@ fun TutorialScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 40.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White.copy(alpha = 0.9f))
-                    .border(1.5.dp, Color(0xFFFFE082), RoundedCornerShape(16.dp))
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { onFinish() }
-                    .padding(horizontal = 24.dp, vertical = 12.dp)
+                    .padding(bottom = 36.dp)
             ) {
-                Text(
+                PixelButton(
                     text = "Пропустить →",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    onClick = onFinish,
+                    containerColor = PixelWoodMedium,
+                    textColor = PixelParchmentLight,
+                    fontSize = 15.sp,
+                    contentPadding = PaddingValues(horizontal = 22.dp, vertical = 8.dp)
                 )
             }
         }

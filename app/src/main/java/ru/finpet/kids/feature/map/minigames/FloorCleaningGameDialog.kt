@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -31,9 +32,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,14 +58,20 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
+import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
+import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelWoodDark
+import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
 
 private data class FloorSpot(
     val id: Int,
@@ -201,7 +205,7 @@ fun FloorCleaningGameDialog(
                 modifier = Modifier
                     .fillMaxWidth(0.95f)
                     .fillMaxHeight(0.85f),
-                headerTitle = "МЫТЬЕ ПОЛОВ 🧹",
+                headerTitle = "МЫТЬЕ ПОЛОВ",
                 headerIcon = "🧹"
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -237,16 +241,16 @@ fun FloorCleaningGameDialog(
                             }
 
                             // Прогресс
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = if (cleanedCount == spots.size) FreshGreen else JoyOrange
+                            Box(
+                                modifier = Modifier
+                                    .pixelButtonBackground(containerColor = if (cleanedCount == spots.size) FreshGreen else JoyOrange)
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
                                 Text(
                                     text = "$cleanedCount / ${spots.size}",
                                     fontWeight = FontWeight.ExtraBold,
                                     fontSize = 15.sp,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    color = Color.White
                                 )
                             }
                         }
@@ -351,13 +355,14 @@ fun FloorCleaningGameDialog(
 
                         // Нижняя кнопка во время игры
                         if (!isWon) {
-                            Button(
+                            PixelButton(
+                                text = "Закончить позже",
                                 onClick = onDismiss,
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9E9E9E)),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(text = "Закончить позже", color = Color.White, fontSize = 15.sp)
-                            }
+                                containerColor = PixelWoodMedium,
+                                textColor = PixelParchmentLight,
+                                fontSize = 15.sp,
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                            )
                         }
                     }
 
@@ -367,70 +372,61 @@ fun FloorCleaningGameDialog(
                         enter = fadeIn() + scaleIn(),
                         modifier = Modifier.align(Alignment.Center)
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = Color(0xFFE8F5E9),
-                            border = androidx.compose.foundation.BorderStroke(2.5.dp, FreshGreen),
-                            shadowElevation = 8.dp,
+                        PixelPanel(
                             modifier = Modifier
                                 .fillMaxWidth(0.92f)
                                 .clickable { onCompleteGame() }
                         ) {
                             Column(
-                                modifier = Modifier.padding(16.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
                                     text = "🎉 ВСЁ ЧИСТО! 🎉",
+                                    fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.Black,
-                                    fontSize = 22.sp,
-                                    color = FreshGreen
+                                    fontSize = 20.sp,
+                                    color = FreshGreen,
+                                    textAlign = TextAlign.Center
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(6.dp))
                                 Text(
                                     text = "Пол блестит и сияет чистотой!",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = Color(0xFF2E7D32),
+                                    fontFamily = AppFontFamily,
+                                    fontSize = 15.sp,
+                                    color = PixelTextDark,
                                     textAlign = TextAlign.Center
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color.White)
-                                        .border(1.5.dp, FreshGreen.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                        .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
                                         .padding(horizontal = 14.dp, vertical = 6.dp)
                                 ) {
                                     Text(
                                         text = "Награда: +$rewardCoins ",
+                                        fontFamily = AppFontFamily,
                                         fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 17.sp,
-                                        color = FreshGreen
+                                        fontSize = 16.sp,
+                                        color = PixelTextDark
                                     )
-                                    CoinIcon(modifier = Modifier.size(20.dp))
+                                    CoinIcon(modifier = Modifier.size(18.dp))
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Button(
+                                PixelButton(
+                                    text = "Забрать $rewardCoins монет ➔",
                                     onClick = onCompleteGame,
-                                    colors = ButtonDefaults.buttonColors(containerColor = FreshGreen),
-                                    shape = RoundedCornerShape(10.dp),
+                                    containerColor = FreshGreen,
+                                    textColor = Color.White,
+                                    fontSize = 16.sp,
+                                    trailingIcon = { CoinIcon(modifier = Modifier.size(18.dp)) },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .scale(pulseScale)
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "Забрать $rewardCoins монет ➔",
-                                            fontWeight = FontWeight.ExtraBold,
-                                            fontSize = 16.sp,
-                                            color = Color.White
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        CoinIcon(modifier = Modifier.size(18.dp))
-                                    }
-                                }
+                                )
                             }
                         }
                     }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,10 +22,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import ru.finpet.kids.core.designsystem.PixelPanel
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,6 +58,7 @@ import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelWoodDark
+import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.StardewBoard
 import kotlin.math.abs
 import kotlin.random.Random
@@ -238,7 +239,7 @@ fun TrashCollectionGameDialog(
                 modifier = Modifier
                     .fillMaxWidth(0.95f)
                     .fillMaxHeight(0.88f),
-                headerTitle = "СБОР МУСОРА 🗑️",
+                headerTitle = "СБОР МУСОРА",
                 headerIcon = "🗑️"
             ) {
                 Column(
@@ -283,16 +284,16 @@ fun TrashCollectionGameDialog(
                                 fontSize = 15.sp,
                                 color = PixelWoodDark
                             )
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = if (collectedCount >= 20) FreshGreen else JoyOrange
+                            Box(
+                                modifier = Modifier
+                                    .pixelButtonBackground(containerColor = if (collectedCount >= 20) FreshGreen else JoyOrange)
+                                    .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
                                 Text(
                                     text = "$collectedCount / 20",
                                     fontWeight = FontWeight.ExtraBold,
                                     fontSize = 15.sp,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                    color = Color.White
                                 )
                             }
                         }
@@ -382,17 +383,12 @@ fun TrashCollectionGameDialog(
                     // Завершение игры: результат
                     if (isGameOver) {
                         val isSuccess = collectedCount >= 20
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = if (isSuccess) Color(0xFFE8F5E9) else Color(0xFFFFEBEE),
-                            border = androidx.compose.foundation.BorderStroke(
-                                1.5.dp,
-                                if (isSuccess) FreshGreen else Color(0xFFE53935)
-                            ),
-                            modifier = Modifier.fillMaxWidth()
+                        PixelPanel(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(12.dp)
                         ) {
                             Column(
-                                modifier = Modifier.padding(12.dp),
+                                modifier = Modifier.fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 if (isSuccess) {
@@ -437,16 +433,20 @@ fun TrashCollectionGameDialog(
                                         textAlign = TextAlign.Center
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Button(
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        PixelButton(
+                                            text = "Выйти",
                                             onClick = onDismiss,
-                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9E9E9E)),
-                                            shape = RoundedCornerShape(10.dp),
+                                            containerColor = PixelWoodMedium,
+                                            textColor = PixelParchmentLight,
+                                            fontSize = 15.sp,
                                             modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text("Выйти", fontSize = 16.sp)
-                                        }
-                                        Button(
+                                        )
+                                        PixelButton(
+                                            text = "Попробовать снова",
                                             onClick = {
                                                 collectedCount = 0
                                                 livesLeft = 3
@@ -454,24 +454,24 @@ fun TrashCollectionGameDialog(
                                                 basketXPercent = 0.5f
                                                 isGameOver = false
                                             },
-                                            colors = ButtonDefaults.buttonColors(containerColor = JoyOrange),
-                                            shape = RoundedCornerShape(10.dp),
+                                            containerColor = JoyOrange,
+                                            textColor = Color.White,
+                                            fontSize = 15.sp,
                                             modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text("Попробовать снова", fontSize = 16.sp)
-                                        }
+                                        )
                                     }
                                 }
                             }
                         }
                     } else {
-                        Button(
+                        PixelButton(
+                            text = "Закончить позже",
                             onClick = onDismiss,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9E9E9E)),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Text(text = "Закончить позже", color = Color.White, fontSize = 16.sp)
-                        }
+                            containerColor = PixelWoodMedium,
+                            textColor = PixelParchmentLight,
+                            fontSize = 15.sp,
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                        )
                     }
                 }
             }

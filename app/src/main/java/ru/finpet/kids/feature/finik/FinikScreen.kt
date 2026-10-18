@@ -11,6 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,6 +29,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import ru.finpet.kids.R
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,8 +40,11 @@ import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.data.local.entity.GoalEntity
 import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
+import androidx.compose.ui.text.style.TextAlign
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.PixelPanel
+import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
 import ru.finpet.kids.core.domain.model.ActualExpenses
@@ -78,7 +89,8 @@ fun FinikScreen(
     onToggleNote: (CalendarNoteEntity) -> Unit = {},
     isBudgetConfirmed: Boolean = true,
     currentPeriod: PeriodEntity? = null,
-    onConfirmBudget: (BudgetPlan) -> Unit = {}
+    onConfirmBudget: (BudgetPlan) -> Unit = {},
+    isNight: Boolean = false
 ) {
     var panelOpen by remember { mutableStateOf(false) }
 
@@ -149,22 +161,103 @@ fun FinikScreen(
                 }
             }
 
-            // Котик в комнате либо секция возврата сбежавшего котика
+            // Котик в комнате либо пустая комната с сообщением о возврате питомца под ней
             item(key = "finik_character") {
-                if (isPetRunaway) {
-                    FinikRunawaySection(
-                        petName = displayName,
-                        bowlPlacedToday = profile?.bowlPlacedToday == true,
-                        balance = profile?.balance ?: 0,
-                        onPlaceFoodBowl = onPlaceFoodBowl
+                val bgRes = if (isNight) R.drawable.cats_background_night else R.drawable.cats_background
+
+                // Контейнер комнаты с соотношением сторон оригинального фона 1073:406.
+                // На экранах меньшей ширины картинка выравнивается по центру (обрезаясь симметрично слева и справа).
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1073f / 406f)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val containerWidth = maxWidth
+                    val containerHeight = maxHeight
+
+                    // 1. Фоновое изображение комнаты (день / ночь)
+                    Image(
+                        painter = painterResource(id = bgRes),
+                        contentDescription = "Комната питомца",
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
                     )
-                } else {
+
+                    // 2. Имя питомца на подвесной деревянной табличке на стене
+                    // Координаты таблички в исходном холсте 1073x406:
+                    // X: 395..666 (36.81%..62.07%), Y: 64..127 (15.76%..31.28%)
+                    val boardW = containerWidth * (272f / 1073f)
+                    val boardH = containerHeight * (65f / 405f)
+                    val boardLeft = containerWidth * (398f / 1073f)
+                    val boardTop = containerHeight * (58f / 406f)
+
                     Box(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .offset(x = boardLeft, y = boardTop)
+                            .size(width = boardW, height = boardH),
                         contentAlignment = Alignment.Center
                     ) {
+                        val nameFontSize = when {
+                            displayName.length > 12 -> 11.sp
+                            displayName.length > 8  -> 13.sp
+                            else                    -> 15.sp
+                        }
+                        Text(
+                            text = displayName.uppercase(),
+                            fontFamily = AppFontFamily,
+                            fontWeight = FontWeight.Black,
+                            fontSize = nameFontSize,
+                            color = PixelTextDark,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            letterSpacing = 1.sp
+                        )
+                    }
+
+                    // 3. Интерактивный хитбокс шкафа (открывает гардероб)
+                    // В исходном холсте 1073x406 шкаф расположен в координатах:
+                    // X: 830..1050 (77.35%..97.85%), Y: 64..354 (15.76%..87.19%)
+                    val wardrobeW = containerWidth * (220f / 1073f)
+                    val wardrobeH = containerHeight * (290f / 406f)
+                    val wardrobeLeft = containerWidth * (830f / 1073f)
+                    val wardrobeTop = containerHeight * (64f / 406f)
+
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .offset(x = wardrobeLeft, y = wardrobeTop)
+                            .size(width = wardrobeW, height = wardrobeH)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                showWardrobe = true
+                            }
+                    )
+
+                    // 4. Котик на подушке/лежанке (если кот сбежал — комната пустая!)
+                    if (!isPetRunaway) {
+                        val currentStage = profile?.growthStage ?: "BABY"
+                        val (catHMultiplier, catTopOffsetMultiplier) = when (currentStage) {
+                            "TEEN" -> Pair(330f / 406f, 61f / 406f)
+                            "ADULT" -> Pair(365f / 406f, 10f / 406f)
+                            else -> Pair(290f / 406f, 103f / 406f) // BABY
+                        }
+
+                        val catH = containerHeight * catHMultiplier
+                        val catW = catH * (224f / 448f)
+                        val catLeft = (containerWidth * 0.5f) - (catW / 2)
+                        val catTop = containerHeight * catTopOffsetMultiplier
+
                         FinikInArmchair(
-                            modifier = Modifier.padding(vertical = 4.dp),
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(x = catLeft, y = catTop)
+                                .size(width = catW, height = catH),
                             skinId = selectedSkin ?: "cat_black",
                             accessoryId = accessoryId,
                             mood = when {
@@ -172,31 +265,24 @@ fun FinikScreen(
                                 effectiveMood >= 70 -> "HAPPY"
                                 else -> "NEUTRAL"
                             },
-                            stage = profile?.growthStage ?: "BABY",
+                            stage = currentStage,
                             enabled = animationsEnabled,
                             onClick = {
                                 onPetTapped()
                                 panelOpen = true
                             }
                         )
-
-                        // Кнопка гардероба в правом нижнем углу
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(end = 8.dp, bottom = 8.dp)
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(JoyOrange)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null
-                                ) { showWardrobe = true },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = "👔", fontSize = 22.sp)
-                        }
                     }
+                }
+
+                // Если котик убежал — выводим карточку с сообщением и кнопкой вернуть миску прямо под комнатой
+                if (isPetRunaway) {
+                    FinikRunawaySection(
+                        petName = displayName,
+                        bowlPlacedToday = profile?.bowlPlacedToday == true,
+                        balance = profile?.balance ?: 0,
+                        onPlaceFoodBowl = onPlaceFoodBowl
+                    )
                 }
             }
 
@@ -229,7 +315,8 @@ fun FinikScreen(
                     onShowTasksMenu = { showTasksMenu = true },
                     onNavigateToTask = onNavigateToTask,
                     onNavigateToMap = onNavigateToMap,
-                    onOpenQuestions = { panelOpen = true }
+                    onOpenQuestions = { panelOpen = true },
+                    isPetRunaway = isPetRunaway
                 )
             }
         }
@@ -260,7 +347,8 @@ fun FinikScreen(
                 onNavigateToMap = onNavigateToMap,
                 onNavigateToTask = onNavigateToTask,
                 onOpenQuestions = { panelOpen = true },
-                onDismiss = { showTasksMenu = false }
+                onDismiss = { showTasksMenu = false },
+                isPetRunaway = isPetRunaway
             )
         }
 

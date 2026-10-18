@@ -56,7 +56,7 @@ private val MENU_HOTSPOT = TopBarHotspot(
 
 // отображение баланса
 private const val MONEY_CX = 0.11f
-private const val MONEY_CY = 0.38f
+private const val MONEY_CY = 0.40f
 private const val MONEY_FONT_SIZE = 15f
 
 // индикатор орбов настроения
@@ -73,7 +73,7 @@ private const val MOOD_FACE_WIDTH_RATIO = 0.07f
 // проценты настроения
 private const val PERCENT_FONT_SIZE = 13f
 private const val PERCENT_CX = 0.68f
-private const val PERCENT_CY = 0.38f
+private const val PERCENT_CY = 0.40f
 
 @Suppress("UnusedBoxWithConstraintsScope")
 @Composable
