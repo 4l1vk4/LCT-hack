@@ -77,7 +77,8 @@ fun AdultChallengeGate(
                     text = "Вход только для родителей",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextPrimary
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(

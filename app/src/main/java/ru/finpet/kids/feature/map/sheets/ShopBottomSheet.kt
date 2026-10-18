@@ -231,8 +231,8 @@ fun ShopBottomSheet(
             // Фильтры категорий
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 CategoryChip("Все", selectedCategory == "ALL") { selectedCategory = "ALL" }
-                CategoryChip("Обязательное 🥣", selectedCategory == "MANDATORY") { selectedCategory = "MANDATORY" }
-                CategoryChip("Желаемое 🎈", selectedCategory == "OPTIONAL") { selectedCategory = "OPTIONAL" }
+                CategoryChip("Обязательное", selectedCategory == "MANDATORY") { selectedCategory = "MANDATORY" }
+                CategoryChip("Желаемое", selectedCategory == "OPTIONAL") { selectedCategory = "OPTIONAL" }
             }
 
             // Список товаров лавки
