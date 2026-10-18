@@ -518,6 +518,14 @@ class MainViewModel @Inject constructor(
 
     fun answerQuest(questId: String, optionId: String) {
         viewModelScope.launch {
+            if (!demoMode.value) {
+                val currentDay = _virtualDate.value.dayOfMonth
+                val prof = repository.getProfileSync()
+                val completedToday = repository.getQuestProgress().first().count {
+                    (it.completedInPeriod == currentDay || (prof != null && it.completedInPeriod == prof.currentPeriodIndex)) && it.isCompleted
+                }
+                if (completedToday >= 2) return@launch
+            }
             val result = questEngineUseCase.executeOption(questId, optionId)
             if (result != null && result.coinsAwarded > 0) {
                 showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
@@ -536,6 +544,14 @@ class MainViewModel @Inject constructor(
 
     fun answerQuestText(questId: String, answer: String) {
         viewModelScope.launch {
+            if (!demoMode.value) {
+                val currentDay = _virtualDate.value.dayOfMonth
+                val prof = repository.getProfileSync()
+                val completedToday = repository.getQuestProgress().first().count {
+                    (it.completedInPeriod == currentDay || (prof != null && it.completedInPeriod == prof.currentPeriodIndex)) && it.isCompleted
+                }
+                if (completedToday >= 2) return@launch
+            }
             val result = questEngineUseCase.executeTextAnswer(questId, answer)
             if (result != null && result.coinsAwarded > 0) {
                 showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
@@ -554,6 +570,14 @@ class MainViewModel @Inject constructor(
 
     fun answerQuestAllocation(questId: String, amount: Int) {
         viewModelScope.launch {
+            if (!demoMode.value) {
+                val currentDay = _virtualDate.value.dayOfMonth
+                val prof = repository.getProfileSync()
+                val completedToday = repository.getQuestProgress().first().count {
+                    (it.completedInPeriod == currentDay || (prof != null && it.completedInPeriod == prof.currentPeriodIndex)) && it.isCompleted
+                }
+                if (completedToday >= 2) return@launch
+            }
             val result = questEngineUseCase.executeAllocation(questId, amount)
             if (result != null && result.coinsAwarded > 0) {
                 showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")

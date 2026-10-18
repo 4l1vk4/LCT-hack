@@ -40,7 +40,8 @@ fun DrawScope.drawPixelSlicedPanel(
     topBmp: ImageBitmap,
     midBmp: ImageBitmap,
     botBmp: ImageBitmap,
-    sliceHeightPx: Float
+    sliceHeightPx: Float,
+    colorFilter: ColorFilter? = null
 ) {
     val dstW = size.width.roundToInt()
     val dstH = size.height.roundToInt()
@@ -73,7 +74,8 @@ fun DrawScope.drawPixelSlicedPanel(
             srcSize = IntSize(srcCornerW, srcSliceH),
             dstOffset = IntOffset(0, 0),
             dstSize = IntSize(cornerW, sliceH),
-            filterQuality = FilterQuality.None
+            filterQuality = FilterQuality.None,
+            colorFilter = colorFilter
         )
     }
 
@@ -85,7 +87,8 @@ fun DrawScope.drawPixelSlicedPanel(
             srcSize = IntSize(topBmp.width - srcCornerW * 2, srcSliceH),
             dstOffset = IntOffset(cornerW, 0),
             dstSize = IntSize(centerW, sliceH),
-            filterQuality = FilterQuality.None
+            filterQuality = FilterQuality.None,
+            colorFilter = colorFilter
         )
     }
 
@@ -97,7 +100,8 @@ fun DrawScope.drawPixelSlicedPanel(
             srcSize = IntSize(srcCornerW, srcSliceH),
             dstOffset = IntOffset(dstW - cornerW, 0),
             dstSize = IntSize(cornerW, sliceH),
-            filterQuality = FilterQuality.None
+            filterQuality = FilterQuality.None,
+            colorFilter = colorFilter
         )
     }
 
@@ -111,7 +115,8 @@ fun DrawScope.drawPixelSlicedPanel(
                 srcSize = IntSize(srcMidBorderW, midBmp.height),
                 dstOffset = IntOffset(0, sliceH),
                 dstSize = IntSize(midBorderW, midH),
-                filterQuality = FilterQuality.None
+                filterQuality = FilterQuality.None,
+                colorFilter = colorFilter
             )
         }
 
@@ -123,7 +128,8 @@ fun DrawScope.drawPixelSlicedPanel(
                 srcSize = IntSize(midBmp.width - srcMidBorderW * 2, midBmp.height),
                 dstOffset = IntOffset(midBorderW, sliceH),
                 dstSize = IntSize(midCenterW, midH),
-                filterQuality = FilterQuality.None
+                filterQuality = FilterQuality.None,
+                colorFilter = colorFilter
             )
         }
 
@@ -135,7 +141,8 @@ fun DrawScope.drawPixelSlicedPanel(
                 srcSize = IntSize(srcMidBorderW, midBmp.height),
                 dstOffset = IntOffset(dstW - midBorderW, sliceH),
                 dstSize = IntSize(midBorderW, midH),
-                filterQuality = FilterQuality.None
+                filterQuality = FilterQuality.None,
+                colorFilter = colorFilter
             )
         }
     }
@@ -150,7 +157,8 @@ fun DrawScope.drawPixelSlicedPanel(
             srcSize = IntSize(srcCornerW, botBmp.height),
             dstOffset = IntOffset(0, botY),
             dstSize = IntSize(cornerW, sliceH),
-            filterQuality = FilterQuality.None
+            filterQuality = FilterQuality.None,
+            colorFilter = colorFilter
         )
     }
 
@@ -162,7 +170,8 @@ fun DrawScope.drawPixelSlicedPanel(
             srcSize = IntSize(botBmp.width - srcCornerW * 2, botBmp.height),
             dstOffset = IntOffset(cornerW, botY),
             dstSize = IntSize(centerW, sliceH),
-            filterQuality = FilterQuality.None
+            filterQuality = FilterQuality.None,
+            colorFilter = colorFilter
         )
     }
 
@@ -174,7 +183,8 @@ fun DrawScope.drawPixelSlicedPanel(
             srcSize = IntSize(srcCornerW, botBmp.height),
             dstOffset = IntOffset(dstW - cornerW, botY),
             dstSize = IntSize(cornerW, sliceH),
-            filterQuality = FilterQuality.None
+            filterQuality = FilterQuality.None,
+            colorFilter = colorFilter
         )
     }
 }
@@ -335,18 +345,26 @@ fun DrawScope.drawPixelHorizontalBar(
  */
 fun Modifier.pixelPanelBackground(
     cornerSizeDp: Dp = 18.dp,
-    sliceHeightDp: Dp = 18.dp
+    sliceHeightDp: Dp = 18.dp,
+    containerColor: Color? = null
 ): Modifier = composed {
     val topBmp = ImageBitmap.imageResource(id = R.drawable.top_part)
     val midBmp = ImageBitmap.imageResource(id = R.drawable.middle_part)
     val botBmp = ImageBitmap.imageResource(id = R.drawable.bottom_part)
+
+    val colorFilter = if (containerColor != null && containerColor != Color.Unspecified) {
+        ColorFilter.tint(containerColor, BlendMode.Modulate)
+    } else {
+        null
+    }
 
     this.drawBehind {
         drawPixelSlicedPanel(
             topBmp = topBmp,
             midBmp = midBmp,
             botBmp = botBmp,
-            sliceHeightPx = sliceHeightDp.toPx()
+            sliceHeightPx = sliceHeightDp.toPx(),
+            colorFilter = colorFilter
         )
     }
 }
@@ -401,12 +419,17 @@ fun PixelPanel(
     modifier: Modifier = Modifier,
     cornerSizeDp: Dp = 18.dp,
     sliceHeightDp: Dp = 18.dp,
+    containerColor: Color? = null,
     contentPadding: PaddingValues = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
         modifier = modifier
-            .pixelPanelBackground(cornerSizeDp = cornerSizeDp, sliceHeightDp = sliceHeightDp)
+            .pixelPanelBackground(
+                cornerSizeDp = cornerSizeDp,
+                sliceHeightDp = sliceHeightDp,
+                containerColor = containerColor
+            )
             .padding(contentPadding),
         contentAlignment = Alignment.TopStart
     ) {

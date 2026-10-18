@@ -42,13 +42,44 @@ import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.TargetIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import ru.finpet.kids.R
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.TextSecondary
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
+
+@Composable
+fun GoalStickerIcon(
+    goalId: String,
+    modifier: Modifier = Modifier.size(28.dp)
+) {
+    when (goalId) {
+        "goal_ball" -> Image(
+            painter = painterResource(id = R.drawable.ball),
+            contentDescription = "Футбольный мяч",
+            modifier = modifier
+        )
+        "goal_headphones" -> Image(
+            painter = painterResource(id = R.drawable.headphones),
+            contentDescription = "Беспроводные наушники",
+            modifier = modifier
+        )
+        "goal_scooter" -> Image(
+            painter = painterResource(id = R.drawable.samokat),
+            contentDescription = "Городской самокат",
+            modifier = modifier
+        )
+        else -> TargetIcon(modifier = modifier)
+    }
+}
 
 /**
  * Карточка финансовой цели в копилке мечты:
- * - Отображает название цели, иконку, целевую сумму и накопленный прогресс.
+ * - Отображает название цели, иконку-стикер, целевую сумму и накопленный прогресс.
  * - Прогресс-бар использует тёплый песочный трек Color(0xFFD7C4A5) вместо блеклого серого.
  * - Кнопки отложить и снять выполнены в пиксельном дизайне PixelButton.
+ * - При достижении 100% блокируется снятие денег и отображается золотая плашка успеха.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -62,16 +93,10 @@ fun GoalProgressCard(
     onDeposit: (String, Int) -> Unit,
     onWithdrawClick: (GoalEntity) -> Unit
 ) {
+    val isReached = goal.isReached || goal.savedAmount >= goal.targetCost
     val progress = (goal.savedAmount.toFloat() / goal.targetCost.toFloat()).coerceIn(0f, 1f)
     val percent = (progress * 100).toInt()
     val remaining = (goal.targetCost - goal.savedAmount).coerceAtLeast(0)
-
-    val goalEmoji = when (goal.id) {
-        "goal_ball" -> "⚽"
-        "goal_headphones" -> "🎧"
-        "goal_scooter" -> "🛴"
-        else -> "🎯"
-    }
 
     FinCard(
         modifier = Modifier
@@ -118,11 +143,7 @@ fun GoalProgressCard(
                     }
 
                     Spacer(modifier = Modifier.width(10.dp))
-                    if (goalEmoji == "🎯") {
-                        TargetIcon(modifier = Modifier.size(24.dp))
-                    } else {
-                        Text(text = goalEmoji, fontSize = 24.sp)
-                    }
+                    GoalStickerIcon(goalId = goal.id, modifier = Modifier.size(28.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
@@ -175,39 +196,60 @@ fun GoalProgressCard(
 
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = if (goal.isReached) "🎉 Мечта достигнута!" else "Осталось накопить: $remaining монет ($percent%)",
+                text = if (isReached) "🎉 Мечта достигнута! Предмет уже в домике!" else "Осталось накопить: $remaining монет ($percent%)",
                 fontSize = 16.sp,
                 lineHeight = 21.sp,
-                color = TextSecondary
+                color = if (isReached) FreshGreen else TextSecondary,
+                fontWeight = if (isReached) FontWeight.Bold else FontWeight.Normal
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             // Кнопки пополнения и снятия в пиксельном дизайне
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                PixelButton(
-                    text = "+10 в копилку",
-                    onClick = { onDeposit(goal.id, 10) },
-                    enabled = balance >= 10,
-                    containerColor = PixelGreenCrop,
-                    textColor = Color.White,
-                    borderColor = Color(0xFF1B5E20),
-                    fontSize = 16.sp,
-                    modifier = Modifier.weight(1f)
-                )
-
-                if (goal.savedAmount > 0) {
+            if (isReached) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pixelButtonBackground(containerColor = PixelGoldBright)
+                        .padding(vertical = 10.dp, horizontal = 14.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "🎉 Цель достигнута! Предмет украшает комнату котика!",
+                        fontFamily = AppFontFamily,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 15.sp,
+                        color = PixelTextDark,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     PixelButton(
-                        text = "Взять -10",
-                        onClick = { onWithdrawClick(goal) },
-                        containerColor = Color(0xFFFFF3E0),
-                        textColor = PixelRedBerry,
-                        borderColor = Color(0xFFE57373),
+                        text = "+10 в копилку",
+                        onClick = { onDeposit(goal.id, 10) },
+                        enabled = balance >= 10,
+                        containerColor = PixelGreenCrop,
+                        textColor = Color.White,
+                        borderColor = Color(0xFF1B5E20),
                         fontSize = 16.sp,
                         modifier = Modifier.weight(1f)
                     )
+
+                    if (goal.savedAmount > 0) {
+                        PixelButton(
+                            text = "Взять -10",
+                            onClick = { onWithdrawClick(goal) },
+                            containerColor = Color(0xFFFFF3E0),
+                            textColor = PixelRedBerry,
+                            borderColor = Color(0xFFE57373),
+                            fontSize = 16.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
+
         }
     }
 }

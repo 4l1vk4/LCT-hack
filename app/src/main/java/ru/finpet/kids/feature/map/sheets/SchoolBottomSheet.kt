@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,7 @@ import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import ru.finpet.kids.core.designsystem.PixelButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
@@ -90,6 +92,7 @@ fun SchoolBottomSheet(
     petName: String,
     growthStage: String = "BABY",
     demoMode: Boolean = false,
+    currentPeriodIndex: Int = 1,
     targetQuestId: String? = null,
     onDismiss: () -> Unit,
     onSelectOption: (questId: String, optionId: String) -> Unit,
@@ -99,6 +102,12 @@ fun SchoolBottomSheet(
     val completedCount = quests.count { q ->
         progressList.any { p -> p.questId == q.id && p.isCompleted }
     }
+    // Количество задач, решенных именно сегодня
+    val todaySolvedCount = progressList.count { p ->
+        p.isCompleted && p.completedInPeriod == currentPeriodIndex
+    }
+    // Ограничение: максимум 2 задачи в день, но в демо-режиме лимита нет
+    val isDailyLimitReached = !demoMode && todaySolvedCount >= 2
     var showGlossary by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
@@ -167,49 +176,43 @@ fun SchoolBottomSheet(
         title = "Школа финансовой грамотности",
         subtitle = "Интерактивные квесты • Растем и учимся вместе с $petName",
         headerDrawableRes = R.drawable.location_school_header,
-        badgeText = "$completedCount / ${quests.size} решено",
+        badgeText = if (demoMode) "$completedCount / ${quests.size} решено" else "Сегодня: $todaySolvedCount/2 • Всего: $completedCount/${quests.size}",
         onDismiss = onDismiss,
         listState = listState
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
 
-            // Демо-режим баннер (по ТЗ: все задания доступны сразу)
-            if (demoMode) {
+            // Оповещение об исчерпании дневного лимита (2 задачи в день)
+            if (isDailyLimitReached) {
                 FinCard(modifier = Modifier.fillMaxWidth()) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(32.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(PixelGreenCrop),
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFE8F5E9)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "XP",
-                                fontFamily = AppFontFamily,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                            Text(text = "🎓", fontSize = 22.sp)
                         }
-                        Spacer(modifier = Modifier.width(10.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "РЕЖИМ ДЕМО АКТИВЕН",
+                                text = "Дневная норма выполнена!",
                                 fontFamily = AppFontFamily,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
                                 color = PixelGreenCrop
                             )
                             Text(
-                                text = "Все стадии и интерактивные механики открыты для полной демонстрации экспертам.",
+                                text = "Ты решил 2 задачи за сегодня ($todaySolvedCount/2). Новые уроки откроются в следующий день!",
                                 fontFamily = AppFontFamily,
-                                fontSize = 13.sp,
+                                fontSize = 14.sp,
                                 color = PixelTextMuted,
-                                lineHeight = 17.sp
+                                lineHeight = 18.sp
                             )
                         }
                     }
@@ -261,66 +264,6 @@ fun SchoolBottomSheet(
                             lineHeight = 20.sp
                         )
                     }
-                }
-            }
-
-            // Быстрая кнопка: Решить случайный квест (Рандом)
-            FinCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        val availableQuests = quests.filter { isStageUnlocked(it.stage) }
-                        val unsolved = availableQuests.filter { q ->
-                            progressList.none { p -> p.questId == q.id && p.isCompleted }
-                        }
-                        val chosen = unsolved.randomOrNull() ?: availableQuests.randomOrNull()
-                        if (chosen != null) {
-                            selectedStageFilter = chosen.stage
-                            coroutineScope.launch {
-                                delay(100)
-                                listState.animateScrollToItem(1)
-                            }
-                        }
-                    }
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(26.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(JoyOrange),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "R",
-                            fontFamily = AppFontFamily,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PixelTextDark
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "Случайный урок для решения",
-                        fontFamily = AppFontFamily,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PixelTextDark,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = "Начать",
-                        fontFamily = AppFontFamily,
-                        fontSize = 13.sp,
-                        color = PixelGreenCrop,
-                        fontWeight = FontWeight.Bold
-                    )
                 }
             }
 
@@ -430,7 +373,7 @@ fun SchoolBottomSheet(
                         Text(
                             text = "Твой питомец $petName сейчас на стадии «$currentStageTitle».\nЗаботься о котике, планируй бюджет и переходи к следующим игровым дням, чтобы он вырос и открыл этот уровень!\n\n(В Настройках можно включить Демо-режим для доступа ко всем квестам сразу)",
                             fontFamily = AppFontFamily,
-                            fontSize = 14.sp,
+                            fontSize = 16.sp,
                             color = PixelTextMuted,
                             textAlign = TextAlign.Center,
                             lineHeight = 19.sp
@@ -515,49 +458,46 @@ fun SchoolBottomSheet(
                             )
 
                             // Кнопка вариативности рандома (если есть альтернативные тексты ситуации)
-                            if (quest.dynamicVariants.size > 1 && !isDone) {
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Row(
-                                    modifier = Modifier
-                                        .clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null
-                                        ) {
-                                            variantIndices[quest.id] = currentVariantIdx + 1
-                                        }
-                                        .padding(vertical = 2.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(20.dp)
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(Color(0xFFE0D7C6)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = "R",
-                                            fontFamily = AppFontFamily,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = PixelWoodMedium
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        text = "Другая ситуация",
-                                        fontFamily = AppFontFamily,
-                                        fontSize = 13.sp,
-                                        color = PixelWoodMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
+                            if (quest.dynamicVariants.size > 1 && !isDone && !isDailyLimitReached) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                PixelButton(
+                                    text = "🎲 Другая ситуация",
+                                    onClick = {
+                                        variantIndices[quest.id] = currentVariantIdx + 1
+                                    },
+                                    containerColor = Color(0xFF6D4C41),
+                                    textColor = PixelParchmentLight,
+                                    fontSize = 14.sp,
+                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
+                                )
                             }
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            // --- РЕНДЕРИНГ МЕХАНИКИ ПО ТИПУ ЗАДАНИЯ ---
-                            when (quest.type) {
+                            if (!isDone && isDailyLimitReached) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color(0xFFFFF3E0))
+                                        .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(8.dp))
+                                        .padding(12.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(text = "⏳", fontSize = 18.sp)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "На сегодня лимит задач исчерпан ($todaySolvedCount/2). Переходи к следующему дню, чтобы решать новые задания!",
+                                            fontFamily = AppFontFamily,
+                                            fontSize = 14.sp,
+                                            color = Color(0xFFE65100),
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+                            } else {
+                                // --- РЕНДЕРИНГ МЕХАНИКИ ПО ТИПУ ЗАДАНИЯ ---
+                                when (quest.type) {
                                 "TEXT_INPUT" -> {
                                     TextInputQuestSection(
                                         quest = quest,
@@ -610,6 +550,7 @@ fun SchoolBottomSheet(
                                         onSelectOption = { optId -> onSelectOption(quest.id, optId) }
                                     )
                                 }
+                            }
                             }
                         }
                     }
@@ -795,25 +736,16 @@ private fun TextInputQuestSection(
         }
     } else {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Подсказка, если ребенок хочет проверить себя
+            // Подсказка, если ребенок хочет проверить себя (в пиксельном стиле кнопок)
             if (quest.hint.isNotBlank()) {
-                Row(
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { onToggleHint() }
-                        .padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = if (isHintRevealed) "Скрыть подсказку" else "[?] Нужна подсказка",
-                        fontFamily = AppFontFamily,
-                        fontSize = 14.sp,
-                        color = if (isHintRevealed) PixelGoldDark else PixelWoodMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                PixelButton(
+                    text = if (isHintRevealed) "💡 Скрыть подсказку" else "💡 Нужна подсказка",
+                    onClick = onToggleHint,
+                    containerColor = if (isHintRevealed) PixelGoldBright else Color(0xFFFFD54F),
+                    textColor = PixelTextDark,
+                    fontSize = 14.sp,
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
+                )
 
                 if (isHintRevealed) {
                     Box(
@@ -1137,39 +1069,14 @@ private fun CalculationQuestSection(
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             // Кнопка рандомизации вариантов
-            Row(
-                modifier = Modifier
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { onRerollNumbers() }
-                    .padding(vertical = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(20.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Color(0xFFE0D7C6)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "R",
-                        fontFamily = AppFontFamily,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PixelWoodMedium
-                    )
-                }
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Перемешать варианты",
-                    fontFamily = AppFontFamily,
-                    fontSize = 13.sp,
-                    color = PixelWoodMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            PixelButton(
+                text = "🎲 Перемешать варианты",
+                onClick = onRerollNumbers,
+                containerColor = Color(0xFF6D4C41),
+                textColor = PixelParchmentLight,
+                fontSize = 14.sp,
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
+            )
 
             // Варианты ответов в аутентичном пиксельном стиле
             shuffledOptions.forEach { opt ->

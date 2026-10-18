@@ -274,6 +274,153 @@ class EconomyUseCasesTest {
     }
 
     @Test
+    fun `MakePurchaseUseCase uses free money when jars are exhausted without borrowing or increasing debt`() = runTest {
+        repository.savePeriod(
+            PeriodEntity(
+                periodIndex = 1,
+                plannedMandatory = 20,
+                plannedOptional = 0,
+                actualMandatory = 20, // Банка обязательного уже пуста
+                actualOptional = 0,   // Банка желаемого тоже пуста
+                isBudgetConfirmed = true
+            )
+        )
+        repository.updateBalance(100) // На балансе 100 свободных монет (заработаны в играх)
+
+        val result = makePurchaseUseCase(
+            itemId = "food_basic",
+            itemName = "Сытный обед",
+            category = "MANDATORY",
+            price = 30,
+            satietyBonus = 30
+        )
+        assertTrue(result is PurchaseResult.Success)
+
+        val updatedPeriod = repository.getPeriodSync(1)
+        assertEquals(20, updatedPeriod?.actualMandatory) // Банки не раздуваются
+        assertEquals(0, updatedPeriod?.actualOptional)
+        assertEquals(0, updatedPeriod?.borrowedFromOptional)
+        assertEquals(70, repository.getProfileSync()?.balance) // 100 - 30 = 70
+    }
+
+    @Test
+    fun `MakePurchaseUseCase optional purchase uses free money without penalty when optional jar is exhausted`() = runTest {
+        repository.savePeriod(
+            PeriodEntity(
+                periodIndex = 1,
+                plannedMandatory = 20,
+                plannedOptional = 10,
+                actualMandatory = 20,
+                actualOptional = 10, // Банка желаемого исчерпана
+                isBudgetConfirmed = true
+            )
+        )
+        repository.updateBalance(100)
+
+        val result = makePurchaseUseCase(
+            itemId = "toy_ball",
+            itemName = "Мячик",
+            category = "OPTIONAL",
+            price = 25,
+            moodBonus = 20
+        )
+        assertTrue(result is PurchaseResult.Success)
+
+        val updatedPeriod = repository.getPeriodSync(1)
+        assertEquals(10, updatedPeriod?.actualOptional) // Не превышает плановый лимит банки желаемого
+        assertEquals(75, repository.getProfileSync()?.balance) // Оплачено свободными деньгами
+    }
+
+    @Test
+    fun `MakePurchaseUseCase borrows from optional first when plannedMandatory is 0`() = runTest {
+        repository.savePeriod(
+            PeriodEntity(
+                periodIndex = 1,
+                plannedMandatory = 0,
+                plannedOptional = 50,
+                actualMandatory = 0,
+                actualOptional = 0,
+                isBudgetConfirmed = true
+            )
+        )
+        repository.updateBalance(100)
+
+        val result = makePurchaseUseCase(
+            itemId = "food_basic",
+            itemName = "Сытный обед",
+            category = "MANDATORY",
+            price = 30,
+            satietyBonus = 30
+        )
+        assertTrue(result is PurchaseResult.Success)
+
+        val updatedPeriod = repository.getPeriodSync(1)
+        assertEquals(0, updatedPeriod?.actualMandatory)
+        assertEquals(30, updatedPeriod?.actualOptional) // Взято из желаемого в первую очередь!
+        assertEquals(30, updatedPeriod?.borrowedFromOptional)
+        assertEquals(70, repository.getProfileSync()?.balance)
+    }
+
+    @Test
+    fun `MakePurchaseUseCase uses optional first then free money for mandatory purchase shortage`() = runTest {
+        repository.savePeriod(
+            PeriodEntity(
+                periodIndex = 1,
+                plannedMandatory = 20,
+                plannedOptional = 15,
+                actualMandatory = 20, // В обязательной 0 монет
+                actualOptional = 0,   // В желаемом 15 монет
+                isBudgetConfirmed = true
+            )
+        )
+        repository.updateBalance(100)
+
+        // Покупка за 25: 15 берется из желаемого (до дна), а 10 — из свободных денег
+        val result = makePurchaseUseCase(
+            itemId = "food_basic",
+            itemName = "Сытный обед",
+            category = "MANDATORY",
+            price = 25,
+            satietyBonus = 30
+        )
+        assertTrue(result is PurchaseResult.Success)
+
+        val updatedPeriod = repository.getPeriodSync(1)
+        assertEquals(20, updatedPeriod?.actualMandatory)
+        assertEquals(15, updatedPeriod?.actualOptional) // Вся банка желаемого использована
+        assertEquals(15, updatedPeriod?.borrowedFromOptional) // Долг только на 15 монет банки желаемого
+        assertEquals(75, repository.getProfileSync()?.balance) // 100 - 25 = 75
+    }
+
+    @Test
+    fun `MakePurchaseUseCase optional purchase uses free money when plannedOptional is 0 without penalty`() = runTest {
+        repository.savePeriod(
+            PeriodEntity(
+                periodIndex = 1,
+                plannedMandatory = 50,
+                plannedOptional = 0, // План на желаемое 0
+                actualMandatory = 0,
+                actualOptional = 0,
+                isBudgetConfirmed = true
+            )
+        )
+        repository.updateBalance(100)
+
+        val result = makePurchaseUseCase(
+            itemId = "toy_ball",
+            itemName = "Мячик",
+            category = "OPTIONAL",
+            price = 20,
+            moodBonus = 20
+        )
+        assertTrue(result is PurchaseResult.Success)
+
+        val updatedPeriod = repository.getPeriodSync(1)
+        assertEquals(0, updatedPeriod?.actualOptional) // Не создается перерасход
+        assertEquals(80, repository.getProfileSync()?.balance)
+    }
+
+    @Test
     fun `CompletePeriodUseCase triggers runaway when mood drops to 0 across consecutive missed feedings`() = runTest {
         repository.saveProfile(
             ProfileEntity(

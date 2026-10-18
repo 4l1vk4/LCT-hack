@@ -26,6 +26,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
@@ -62,13 +65,24 @@ fun HomeChoreCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(if (isDone) Color(0xFFDCEDC8) else Color(0xFFFFE082)),
+                    modifier = Modifier.size(38.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = chore.icon, fontSize = 22.sp)
+                    when (chore.id) {
+                        "chore_floor" -> Image(
+                            painter = painterResource(id = R.drawable.autumn_sheet),
+                            contentDescription = chore.title,
+                            modifier = Modifier.size(34.dp)
+                        )
+                        "chore_dishes" -> Image(
+                            painter = painterResource(id = R.drawable.tarelka_clear),
+                            contentDescription = chore.title,
+                            modifier = Modifier.size(34.dp)
+                        )
+                        else -> Text(text = chore.icon, fontSize = 26.sp)
+                    }
                 }
+
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(

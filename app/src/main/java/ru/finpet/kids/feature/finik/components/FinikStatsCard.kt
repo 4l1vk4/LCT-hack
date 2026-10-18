@@ -25,9 +25,15 @@ import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.PixelGoldDark
+import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.core.domain.model.GrowthStage
 
 /**
@@ -126,9 +132,8 @@ fun FinikStatsCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFF7F5F0))
-                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                    .pixelButtonBackground(containerColor = Color(0xFFFFF9EE))
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -137,34 +142,39 @@ fun FinikStatsCard(
                 ) {
                     Text(
                         text = "🌟 Стадия: $stageName",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                        fontFamily = AppFontFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = PixelTextDark,
+                        letterSpacing = 0.5.sp
                     )
                     Text(
                         text = if (stageEnum == GrowthStage.ADULT) "$carePoints ⭐" else "$carePoints / $targetPts ⭐",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFFD48806)
+                        fontFamily = AppFontFamily,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelGoldDark
                     )
                 }
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(Color(0xFFE2DDD5))
+                        .height(11.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color(0xFFD7C4A5))
+                        .border(1.dp, Color(0xFF8D6E63).copy(alpha = 0.45f), RoundedCornerShape(4.dp))
                 ) {
                     Box(
                         modifier = Modifier
+                            .fillMaxHeight()
                             .fillMaxWidth(progressFraction)
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(Color(0xFFFFB300))
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(JoyOrange)
                     )
                 }
             }
+
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(

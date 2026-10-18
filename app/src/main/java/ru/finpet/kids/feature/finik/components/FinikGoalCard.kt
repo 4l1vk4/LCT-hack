@@ -39,6 +39,7 @@ import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.TargetIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
+import ru.finpet.kids.feature.map.sheets.components.GoalStickerIcon
 
 /**
  * Карточка активной цели накопления на главном экране питомца:
@@ -53,12 +54,6 @@ fun FinikGoalCard(
 ) {
     val progress = (activeGoal.savedAmount.toFloat() / activeGoal.targetCost.toFloat()).coerceIn(0f, 1f)
     val percent = (progress * 100).toInt()
-    val goalEmoji = when (activeGoal.id) {
-        "goal_ball" -> "⚽"
-        "goal_headphones" -> "🎧"
-        "goal_scooter" -> "🛴"
-        else -> "🎯"
-    }
     val animatedGoalProgress by animateFloatAsState(
         targetValue = progress,
         animationSpec = tween(durationMillis = 500),
@@ -91,12 +86,9 @@ fun FinikGoalCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f, fill = false)
                 ) {
-                    if (goalEmoji == "🎯") {
-                        TargetIcon(modifier = Modifier.size(17.dp))
-                    } else {
-                        Text(text = goalEmoji, fontSize = 17.sp)
-                    }
+                    GoalStickerIcon(goalId = activeGoal.id, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(6.dp))
+
                     Text(
                         text = "Цель: ${activeGoal.title}",
                         fontSize = 16.sp,

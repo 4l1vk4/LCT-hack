@@ -2,8 +2,11 @@ package ru.finpet.kids.feature.map.sheets
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.res.painterResource
+import ru.finpet.kids.feature.map.sheets.components.GoalStickerIcon
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -122,6 +125,7 @@ fun HomeGoalsBottomSheet(
     var withdrawWarningGoal by remember { mutableStateOf<GoalEntity?>(null) }
     var completedChoreRewardInfo by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var activeMinigameChore by remember { mutableStateOf<HomeChoreItem?>(null) }
+    var completedGoalCelebration by remember { mutableStateOf<GoalEntity?>(null) }
     var isPiggyBankExpanded by remember(initialPiggyBankExpanded) { mutableStateOf(initialPiggyBankExpanded) }
     val listState = rememberLazyListState()
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
@@ -194,14 +198,11 @@ fun HomeGoalsBottomSheet(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(42.dp)
-                                .background(Color(0xFFFFE082)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = "🐷", fontSize = 22.sp)
-                        }
+                        Image(
+                            painter = painterResource(id = R.drawable.saving_jar),
+                            contentDescription = "Копилка на мечту",
+                            modifier = Modifier.size(42.dp)
+                        )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
@@ -259,12 +260,19 @@ fun HomeGoalsBottomSheet(
                             balance = balance,
                             bringIntoViewRequester = bringIntoViewRequester,
                             onSelectActiveGoal = onSelectActiveGoal,
-                            onDeposit = onDeposit,
+                            onDeposit = { goalId, amount ->
+                                val target = goals.find { it.id == goalId }
+                                if (target != null && (target.savedAmount + amount) >= target.targetCost) {
+                                    completedGoalCelebration = target.copy(savedAmount = target.targetCost, isReached = true)
+                                }
+                                onDeposit(goalId, amount)
+                            },
                             onWithdrawClick = { withdrawWarningGoal = it }
                         )
                     }
                 }
             }
+
 
             // Блок домашних дел (заданий)
             Column(
@@ -377,6 +385,61 @@ fun HomeGoalsBottomSheet(
                 color = PixelTextDark,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
+        }
+    }
+
+    // Поздравление с достижением цели накоплений
+    completedGoalCelebration?.let { goal ->
+        PixelAlertDialog(
+            onDismissRequest = { completedGoalCelebration = null },
+            title = "Мечта сбылась!",
+            icon = "🎉",
+            confirmButton = {
+                PixelButton(
+                    text = "В домик! 🏠",
+                    onClick = {
+                        completedGoalCelebration = null
+                        onDismiss()
+                    },
+                    containerColor = FreshGreen,
+                    textColor = Color.White,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            dismissButton = {
+                PixelButton(
+                    text = "Здорово!",
+                    onClick = { completedGoalCelebration = null },
+                    containerColor = PixelWoodMedium,
+                    textColor = PixelParchmentLight,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                GoalStickerIcon(goalId = goal.id, modifier = Modifier.size(56.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Поздравляем!\nТы накопил на «${goal.title}»!",
+                    fontFamily = AppFontFamily,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = PixelTextDark,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "Твоя цель полностью достигнута, и теперь этот предмет украшает комнату твоего котика!",
+                    fontFamily = AppFontFamily,
+                    fontSize = 15.sp,
+                    lineHeight = 20.sp,
+                    color = PixelTextDark,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
         }
     }
 

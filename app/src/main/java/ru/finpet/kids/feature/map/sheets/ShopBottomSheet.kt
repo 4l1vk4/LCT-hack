@@ -90,8 +90,11 @@ fun ShopBottomSheet(
     onTogglePreorderItem: (String) -> Unit = {},
     onQuickBuy: (List<PurchaseItem>) -> Unit = {},
     onBuy: (PurchaseItem) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onNavigateToHouse: () -> Unit = {},
+    onNavigateToSchool: () -> Unit = {}
 ) {
+
     var selectedCategory by remember { mutableStateOf("ALL") }
     var itemToConfirm by remember { mutableStateOf<PurchaseItem?>(null) }
     var showPreorderDialog by remember { mutableStateOf(false) }
@@ -269,62 +272,76 @@ fun ShopBottomSheet(
         val remainingOptional = if (currentPeriod != null && currentPeriod.isBudgetConfirmed) {
             maxOf(0, currentPeriod.plannedOptional - currentPeriod.actualOptional)
         } else 0
-
-        val isMandatoryShortage = item.category == "MANDATORY" && currentPeriod != null &&
-                currentPeriod.isBudgetConfirmed && currentPeriod.plannedMandatory > 0 &&
-                (item.price > remainingMandatory)
-        val missingMandatory = if (isMandatoryShortage) item.price - remainingMandatory else 0
-        val canTakeFromOptional = isMandatoryShortage && (remainingOptional >= missingMandatory)
-        val isBothJarsExhausted = isMandatoryShortage && !canTakeFromOptional
-
-        val isOptionalShortage = item.category == "OPTIONAL" && currentPeriod != null &&
-                currentPeriod.isBudgetConfirmed && currentPeriod.plannedOptional > 0 &&
-                (item.price > remainingOptional)
+        val totalJarsRemaining = remainingMandatory + remainingOptional
+        val freeCoins = maxOf(0, balance - totalJarsRemaining)
 
         val isEnoughCoins = balance >= item.price
-        val isAffordableInJars = when {
-            currentPeriod == null || !currentPeriod.isBudgetConfirmed -> true
-            item.id == "groceries_parents" -> true
-            item.category == "MANDATORY" -> (remainingMandatory + remainingOptional) >= item.price
-            item.category == "OPTIONAL" -> remainingOptional >= item.price
-            else -> true
-        }
+        val missingCoins = if (isEnoughCoins) 0 else (item.price - balance)
+
+        // Для обязательных товаров (MANDATORY):
+        // Сначала списываем из банки «Обязательное», если не хватает — в первую очередь берем из «Желаемое»,
+        // и только если и в «Желаемое» монет не хватило (или там 0) — остаток берем из свободных денег!
+        val isMandatoryShortage = item.category == "MANDATORY" && currentPeriod != null &&
+                currentPeriod.isBudgetConfirmed && (item.price > remainingMandatory)
+        val missingMandatory = if (isMandatoryShortage) item.price - remainingMandatory else 0
+        val takeFromOptional = if (isMandatoryShortage) minOf(missingMandatory, remainingOptional) else 0
+        val takeFromFreeMandatory = if (isMandatoryShortage) missingMandatory - takeFromOptional else 0
+
+        // Для желаемых товаров (OPTIONAL):
+        // Списываем из банки «Желаемое», а недостающее — из свободных денег!
+        val isOptionalShortage = item.category == "OPTIONAL" && currentPeriod != null &&
+                currentPeriod.isBudgetConfirmed && (item.price > remainingOptional)
+        val missingOptional = if (isOptionalShortage) item.price - remainingOptional else 0
+        val takeFromFreeOptional = missingOptional
 
         val confirmButtonText = when {
             item.id == "groceries_parents" -> "Выполнить 🛒"
-            !isEnoughCoins -> "Мало монет"
-            isBothJarsExhausted -> "В банках мало монет"
-            isMandatoryShortage && canTakeFromOptional -> "Взять из желаемого и купить 🛒"
-            isOptionalShortage -> "Лимит желаемого исчерпан"
+            isMandatoryShortage && takeFromOptional > 0 -> "Взять из желаемого и купить 🛒"
             else -> "Купить 🛒"
         }
 
         PixelAlertDialog(
             onDismissRequest = { itemToConfirm = null },
-            title = if (item.id == "groceries_parents") "Поручение родителей" else "Покупка",
-            icon = "🛒",
-            confirmButton = {
-                PixelButton(
-                    text = confirmButtonText,
-                    onClick = {
-                        onBuy(item)
-                        itemToConfirm = null
-                    },
-                    enabled = !isRunaway && isEnoughCoins && isAffordableInJars,
-                    containerColor = if (isMandatoryShortage && canTakeFromOptional) JoyOrange else FreshGreen,
-                    textColor = Color.White,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            title = when {
+                item.id == "groceries_parents" -> "Поручение родителей"
+                !isEnoughCoins -> "Не хватает монет"
+                else -> "Покупка"
             },
-            dismissButton = {
-                PixelButton(
-                    text = "Отмена",
-                    onClick = { itemToConfirm = null },
-                    containerColor = PixelWoodMedium,
-                    textColor = PixelParchmentLight,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            icon = if (!isEnoughCoins) "!" else "🛒",
+            confirmButton = {
+                if (isEnoughCoins) {
+                    PixelButton(
+                        text = confirmButtonText,
+                        onClick = {
+                            onBuy(item)
+                            itemToConfirm = null
+                        },
+                        enabled = !isRunaway,
+                        containerColor = if (isMandatoryShortage && takeFromOptional > 0) JoyOrange else FreshGreen,
+                        textColor = Color.White,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    PixelButton(
+                        text = "Закрыть",
+                        onClick = { itemToConfirm = null },
+                        containerColor = PixelWoodMedium,
+                        textColor = PixelParchmentLight,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            dismissButton = if (isEnoughCoins) {
+                {
+                    PixelButton(
+                        text = "Отмена",
+                        onClick = { itemToConfirm = null },
+                        containerColor = PixelWoodMedium,
+                        textColor = PixelParchmentLight,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            } else null
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 if (item.id == "groceries_parents") {
@@ -372,141 +389,203 @@ fun ShopBottomSheet(
                     val remaining = balance - item.price
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Останется: $remaining ",
+                            text = "В кошельке: $balance монет",
                             fontFamily = AppFontFamily,
                             fontSize = 16.sp,
-                            color = if (remaining >= 0) FreshGreen else Color(0xFFD32F2F),
-                            fontWeight = FontWeight.SemiBold
+                            color = TextSecondary
                         )
-                        CoinIcon(modifier = Modifier.size(18.dp))
                     }
 
-                    if (isMandatoryShortage && canTakeFromOptional) {
+                    if (!isEnoughCoins) {
+                        // Не хватает монет: выводим предупреждение и кнопки перехода в Домик и Школу
                         Spacer(modifier = Modifier.height(10.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFFFF3E0))
-                                .border(2.dp, Color(0xFFFF9800), RoundedCornerShape(8.dp))
-                                .padding(12.dp)
+                        PixelPanel(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(10.dp)
                         ) {
                             Row(verticalAlignment = Alignment.Top) {
                                 WarningIcon(modifier = Modifier.size(34.dp))
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column {
                                     Text(
-                                        text = "Не хватает в банке «Обязательное»!",
+                                        text = "Не хватает $missingCoins монет!",
                                         fontFamily = AppFontFamily,
                                         fontSize = 17.sp,
                                         fontWeight = FontWeight.ExtraBold,
-                                        color = Color(0xFFD84315)
+                                        color = PixelRedBerry
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "В банке осталось $remainingMandatory из ${currentPeriod!!.plannedMandatory} монет (не хватает $missingMandatory монет).\n\n" +
-                                                "Предлагаем взять недостающие $missingMandatory монет из банки «Желаемое» (в ней есть $remainingOptional монет).",
+                                        text = "Тебе не хватает $missingCoins монет для этой покупки. Заработай их за полезные дела в домике или за решение задачек в школе!",
                                         fontFamily = AppFontFamily,
                                         fontSize = 15.sp,
-                                        color = Color(0xFFE65100),
+                                        color = PixelRedBerry,
                                         lineHeight = 20.sp
                                     )
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        WarningIcon(modifier = Modifier.size(16.dp))
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text(
-                                            text = "Это ухудшит точность бюджета («План vs Факт»), так как расходы на обязательное превысят план!",
-                                            fontFamily = AppFontFamily,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFBF360C),
-                                            lineHeight = 18.sp
-                                        )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            PixelButton(
+                                text = "🏠 В Домик",
+                                onClick = {
+                                    itemToConfirm = null
+                                    onDismiss()
+                                    onNavigateToHouse()
+                                },
+                                containerColor = JoyOrange,
+                                textColor = PixelTextDark,
+                                fontSize = 15.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                            PixelButton(
+                                text = "🎓 В Школу",
+                                onClick = {
+                                    itemToConfirm = null
+                                    onDismiss()
+                                    onNavigateToSchool()
+                                },
+                                containerColor = FreshGreen,
+                                textColor = Color.White,
+                                fontSize = 15.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    } else {
+                        // Монет хватает (хватает в банках либо используются свободные деньги)
+                        if (isMandatoryShortage) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            if (takeFromOptional > 0 && takeFromFreeMandatory == 0) {
+                                // Все недостающие монеты берутся из банки «Желаемое»
+                                PixelPanel(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentPadding = PaddingValues(10.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.Top) {
+                                        WarningIcon(modifier = Modifier.size(34.dp))
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Column {
+                                            Text(
+                                                text = "Не хватает в банке «Обязательное»!",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = Color(0xFFD84315)
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            val jarInfo = if (remainingMandatory > 0) {
+                                                "В банке «Обязательное» осталось $remainingMandatory монет."
+                                            } else {
+                                                "В банке «Обязательное» нет монет."
+                                            }
+                                            Text(
+                                                text = "$jarInfo Недостающие $takeFromOptional монет будут взяты из банки «Желаемое», что создаст перерасход («План vs Факт»).",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = 14.sp,
+                                                color = Color(0xFFE65100),
+                                                lineHeight = 19.sp
+                                            )
+                                        }
+                                    }
+                                }
+                            } else if (takeFromOptional > 0 && takeFromFreeMandatory > 0) {
+                                // Часть берется из «Желаемое» (опустошая ее), а остаток — из свободных денег
+                                PixelPanel(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentPadding = PaddingValues(10.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.Top) {
+                                        WarningIcon(modifier = Modifier.size(34.dp))
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Column {
+                                            Text(
+                                                text = "Взятие из желаемого и свободных денег",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = Color(0xFFD84315)
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            val jarInfo = if (remainingMandatory > 0) "В обязательной банке осталось $remainingMandatory монет. " else "В обязательной банке нет монет. "
+                                            Text(
+                                                text = "${jarInfo}Из банки «Желаемое» будет взято $takeFromOptional монет (в ней больше нет монет), а остальные $takeFromFreeMandatory монет оплатятся свободными деньгами!",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = 14.sp,
+                                                color = Color(0xFFE65100),
+                                                lineHeight = 19.sp
+                                            )
+                                        }
+                                    }
+                                }
+                            } else {
+                                // takeFromOptional == 0: в банке «Желаемое» 0 монет, вся нехватка из свободных денег
+                                PixelPanel(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentPadding = PaddingValues(10.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.Top) {
+                                        CoinIcon(modifier = Modifier.size(28.dp))
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Column {
+                                            Text(
+                                                text = "Оплата свободными деньгами",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = Color(0xFFB26A00)
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            val mandInfo = if (remainingMandatory > 0) {
+                                                "В банке «Обязательное» осталось $remainingMandatory монет. "
+                                            } else {
+                                                "В банке «Обязательное» нет монет. "
+                                            }
+                                            Text(
+                                                text = "${mandInfo}В банке «Желаемое» монет тоже нет, поэтому недостающие $takeFromFreeMandatory монет полностью оплачиваются свободными деньгами (за дела и игры)!",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = 14.sp,
+                                                color = PixelTextDark,
+                                                lineHeight = 19.sp
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
-                    } else if (isBothJarsExhausted) {
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFFFEBEE))
-                                .border(2.dp, PixelRedBerry, RoundedCornerShape(8.dp))
-                                .padding(12.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.Top) {
-                                WarningIcon(modifier = Modifier.size(34.dp))
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column {
-                                    Text(
-                                        text = "Лимит банок исчерпан!",
-                                        fontFamily = AppFontFamily,
-                                        fontSize = 17.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = PixelRedBerry
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "В банке «Обязательное» не хватает $missingMandatory монет, а в банке «Желаемое» осталось всего $remainingOptional монет.",
-                                        fontFamily = AppFontFamily,
-                                        fontSize = 15.sp,
-                                        color = PixelRedBerry,
-                                        lineHeight = 20.sp
-                                    )
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = "Взять из желаемого больше нельзя — лимиты банок исчерпаны!",
-                                        fontFamily = AppFontFamily,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = PixelRedBerry,
-                                        lineHeight = 18.sp
-                                    )
-                                }
-                            }
-                        }
-                    } else if (isOptionalShortage) {
-                        val overspendDiff = item.price - remainingOptional
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFFFEBEE))
-                                .border(2.dp, PixelRedBerry, RoundedCornerShape(8.dp))
-                                .padding(12.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.Top) {
-                                WarningIcon(modifier = Modifier.size(34.dp))
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column {
-                                    Text(
-                                        text = "Лимит желаемого исчерпан!",
-                                        fontFamily = AppFontFamily,
-                                        fontSize = 17.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = PixelRedBerry
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "В банке «Желаемое» осталось $remainingOptional из ${currentPeriod!!.plannedOptional} монет (не хватает $overspendDiff монет для покупки за ${item.price}).",
-                                        fontFamily = AppFontFamily,
-                                        fontSize = 15.sp,
-                                        color = PixelRedBerry,
-                                        lineHeight = 20.sp
-                                    )
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = "Покупки сверх лимита желаемого заблокированы для защиты бюджета!",
-                                        fontFamily = AppFontFamily,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = PixelRedBerry,
-                                        lineHeight = 18.sp
-                                    )
+                        } else if (isOptionalShortage) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            PixelPanel(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(10.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.Top) {
+                                    CoinIcon(modifier = Modifier.size(28.dp))
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = "Оплата свободными деньгами",
+                                            fontFamily = AppFontFamily,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = Color(0xFFB26A00)
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        val jarText = if (remainingOptional > 0) {
+                                            "В банке «Желаемое» осталось $remainingOptional монет. Недостающие $takeFromFreeOptional монет будут оплачены свободными деньгами, заработанными за полезные дела и игры (без штрафа за перерасход)!"
+                                        } else {
+                                            "В банке «Желаемое» нет монет, но покупка полностью оплачивается свободными деньгами, заработанными за полезные дела и игры (без штрафа за перерасход)!"
+                                        }
+                                        Text(
+                                            text = jarText,
+                                            fontFamily = AppFontFamily,
+                                            fontSize = 14.sp,
+                                            color = PixelTextDark,
+                                            lineHeight = 19.sp
+                                        )
+                                    }
                                 }
                             }
                         }

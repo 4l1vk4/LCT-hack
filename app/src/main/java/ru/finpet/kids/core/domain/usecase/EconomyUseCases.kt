@@ -90,12 +90,16 @@ class MakePurchaseUseCase @Inject constructor(
 
         // Обновление статов периода
         val period = repository.getPeriodSync(profile.currentPeriodIndex) ?: PeriodEntity(profile.currentPeriodIndex)
+        val remainingMandatory = maxOf(0, period.plannedMandatory - period.actualMandatory)
+        val remainingOptional = maxOf(0, period.plannedOptional - period.actualOptional)
+
         val updatedPeriod = if (category == "MANDATORY") {
-            val remainingMandatory = maxOf(0, period.plannedMandatory - period.actualMandatory)
-            if (period.isBudgetConfirmed && period.plannedMandatory > 0 && price > remainingMandatory) {
-                // Если обязательного не хватает, недостающая часть берется из банки «Желаемое»!
+            if (period.isBudgetConfirmed && price > remainingMandatory) {
                 val fromMandatory = remainingMandatory
-                val fromOptional = price - remainingMandatory
+                val shortage = price - remainingMandatory
+                // Сначала берем из банки «Желаемое» столько, сколько в ней реально есть!
+                val fromOptional = minOf(shortage, remainingOptional)
+                // Если в банке «Желаемое» монет не хватило, остаток покрывается свободными деньгами (не раздувая долг)
                 period.copy(
                     actualMandatory = period.actualMandatory + fromMandatory,
                     actualOptional = period.actualOptional + fromOptional,
@@ -105,9 +109,17 @@ class MakePurchaseUseCase @Inject constructor(
                 period.copy(actualMandatory = period.actualMandatory + price)
             }
         } else {
-            period.copy(actualOptional = period.actualOptional + price)
+            if (period.isBudgetConfirmed && price > remainingOptional) {
+                // Если в банке «Желаемое» нет монет (или не хватает), берем из нее остаток,
+                // а остальное оплачивается свободными деньгами (без штрафа за перерасход)
+                val fromOptional = remainingOptional
+                period.copy(actualOptional = period.actualOptional + fromOptional)
+            } else {
+                period.copy(actualOptional = period.actualOptional + price)
+            }
         }
         repository.savePeriod(updatedPeriod)
+
 
         // Обновление статов питомца. Баланс пишется один раз здесь —
         // отдельный updateBalance ниже был бы второй перезаписью той же строки.

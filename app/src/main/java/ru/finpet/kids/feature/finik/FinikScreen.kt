@@ -238,6 +238,27 @@ fun FinikScreen(
                             }
                     )
 
+                    // Предметы накоплений, купленные пользователем при достижении цели
+                    val isBallPurchased = goals.any { it.id == "goal_ball" && (it.isReached || it.savedAmount >= it.targetCost) }
+                    val isHeadphonesPurchased = goals.any { it.id == "goal_headphones" && (it.isReached || it.savedAmount >= it.targetCost) }
+                    val isScooterPurchased = goals.any { it.id == "goal_scooter" && (it.isReached || it.savedAmount >= it.targetCost) }
+
+                    // Самокат рядом с окном
+                    if (isScooterPurchased) {
+                        val scooterH = containerHeight * (200f / 406f)
+                        val scooterW = scooterH * (34f / 32f)
+                        val scooterLeft = containerWidth * (200f / 1073f)
+                        val scooterTop = containerHeight * (120f / 406f)
+                        Image(
+                            painter = painterResource(id = R.drawable.samokat),
+                            contentDescription = "Городской самокат",
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(x = scooterLeft, y = scooterTop)
+                                .size(width = scooterW, height = scooterH)
+                        )
+                    }
+
                     // 4. Котик на подушке/лежанке (если кот сбежал — комната пустая!)
                     if (!isPetRunaway) {
                         val currentStage = profile?.growthStage ?: "BABY"
@@ -271,7 +292,38 @@ fun FinikScreen(
                             }
                         )
                     }
+
+                    // Наушники на подушке кота
+                    if (isHeadphonesPurchased) {
+                        val hpSize = containerHeight * (90f / 406f)
+                        val hpLeft = containerWidth * (545f / 1073f)
+                        val hpTop = containerHeight * (260f / 406f)
+                        Image(
+                            painter = painterResource(id = R.drawable.headphones),
+                            contentDescription = "Беспроводные наушники",
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(x = hpLeft, y = hpTop)
+                                .size(hpSize)
+                        )
+                    }
+
+                    // Футбольный мяч на полу слева от котика
+                    if (isBallPurchased) {
+                        val ballSize = containerHeight * (80f / 406f)
+                        val ballLeft = containerWidth * (375f / 1073f)
+                        val ballTop = containerHeight * (310f / 406f)
+                        Image(
+                            painter = painterResource(id = R.drawable.ball),
+                            contentDescription = "Футбольный мяч",
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(x = ballLeft, y = ballTop)
+                                .size(ballSize)
+                        )
+                    }
                 }
+
 
                 // Если котик убежал — выводим карточку с сообщением и кнопкой вернуть миску прямо под комнатой
                 if (isPetRunaway) {

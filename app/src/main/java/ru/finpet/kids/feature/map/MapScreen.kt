@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -84,7 +85,6 @@ fun MapScreen(
     // какая локация сейчас открыта: "SHOP", "QUESTS" или "GOALS"
     var activeModal by remember(initialModal) { mutableStateOf<String?>(initialModal) }
     var focusOnHomeChores by remember { mutableStateOf(false) }
-    var notEnoughMoneyInfo by remember { mutableStateOf<Pair<Int, Int>?>(null) } // сколько не хватает, цена
     var questFeedback by remember { mutableStateOf<String?>(null) }
     var showNoPetDialog by remember { mutableStateOf(false) }
 
@@ -150,6 +150,7 @@ fun MapScreen(
             petName = petName,
             growthStage = profile?.growthStage ?: "BABY",
             demoMode = demoMode,
+            currentPeriodIndex = profile?.currentPeriodIndex ?: 1,
             targetQuestId = targetQuestId,
             onDismiss = {
                 activeModal = null
@@ -207,12 +208,15 @@ fun MapScreen(
                 activeModal = null
                 onModalDismissed()
             },
+            onNavigateToHouse = {
+                focusOnHomeChores = true
+                activeModal = "GOALS"
+            },
+            onNavigateToSchool = {
+                activeModal = "QUESTS"
+            },
             onBuy = { item ->
-                if (balance < item.price) {
-                    notEnoughMoneyInfo = (item.price - balance) to item.price
-                } else {
-                    onBuyItem(item)
-                }
+                onBuyItem(item)
             }
         )
     }
@@ -246,45 +250,6 @@ fun MapScreen(
         )
     }
 
-    // диалог нехватки монет: подсказываем ребенку заглянуть в домик к заданиям
-    notEnoughMoneyInfo?.let { (missing, price) ->
-        PixelAlertDialog(
-            onDismissRequest = { notEnoughMoneyInfo = null },
-            title = "Не хватает монет!",
-            icon = "!",
-            confirmButton = {
-                PixelButton(
-                    text = "В Домик к заданиям",
-                    onClick = {
-                        notEnoughMoneyInfo = null
-                        focusOnHomeChores = true
-                        activeModal = "GOALS"
-                    },
-                    containerColor = JoyOrange,
-                    textColor = PixelTextDark,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            dismissButton = {
-                PixelButton(
-                    text = "Понятно",
-                    onClick = { notEnoughMoneyInfo = null },
-                    containerColor = PixelWoodMedium,
-                    textColor = PixelParchmentLight,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        ) {
-            Text(
-                text = "Тебе не хватает $missing монет для покупки за $price.\n\nЗагляни в домик и выполни задания по дому, чтобы заработать монет!",
-                fontFamily = AppFontFamily,
-                fontSize = 16.sp,
-                lineHeight = 22.sp,
-                color = PixelTextDark,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-        }
-    }
 
     // предупреждение: питомец убежал
     if (showNoPetDialog) {

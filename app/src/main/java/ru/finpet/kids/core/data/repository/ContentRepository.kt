@@ -64,7 +64,7 @@ data class QuestItem(
     val inputPlaceholder: String = "",
     val feedbackSuccess: String = "",
     val feedbackFailure: String = "",
-    val rewardCoins: Int = 40,
+    val rewardCoins: Int = 10,
     val totalBudget: Int = 100,
     val sliderLabel: String = "",
     val allocationTarget: String = "",
