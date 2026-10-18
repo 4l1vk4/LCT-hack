@@ -120,6 +120,7 @@ fun MapScreen(
             hotspots = DEFAULT_MAP_HOTSPOTS,
             hasShopWarning = anyStatLow && !isRunaway,
             debug = DEBUG_HOTSPOTS,
+            isNight = isNight,
             onClickHotspot = { spot ->
                 when (spot.id) {
                     "shop" -> {
