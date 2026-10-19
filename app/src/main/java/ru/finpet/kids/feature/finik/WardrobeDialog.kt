@@ -132,14 +132,14 @@ fun WardrobeDialog(
                         Text(
                             text = "ГАРДЕРОБ",
                             fontFamily = AppFontFamily,
-                            fontSize = 19.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = PixelTextDark
                         )
                         Text(
                             text = "Надень одежду на $petName или расставь вещи",
                             fontFamily = AppFontFamily,
-                            fontSize = 13.sp,
+                            fontSize = 15.sp,
                             color = PixelTextMuted
                         )
                     }
@@ -165,228 +165,217 @@ fun WardrobeDialog(
                         .fillMaxWidth()
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(PixelParchmentLight.copy(alpha = 0.92f))
+                        .background(PixelParchmentLight.copy(alpha = 0.6f))
                         .border(2.dp, PixelParchmentBorder, RoundedCornerShape(12.dp))
                         .padding(horizontal = 8.dp, vertical = 8.dp)
                 ) {
                     Column(modifier = Modifier.fillMaxSize()) {
 
-                    // Единая сетка аксессуаров и предметов комнаты
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(3),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(bottom = 8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        // Заголовок секции аксессуаров
-                        item(span = { GridItemSpan(3) }, key = "header_accessories") {
-                            Text(
-                                text = "Одежда для $petName",
-                                fontFamily = AppFontFamily,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PixelTextDark,
-                                modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
-                            )
-                        }
-
-                        // Аксессуары котика
-                        items(ACCESSORIES.filter { it.id != "none" }, key = { "acc_${it.id}" }) { acc ->
-                            val isOn = acc.id in currentAccessoryIds
-
-                            Box(
-                                modifier = Modifier
-                                    .pixelButtonBackground(containerColor = if (isOn) PixelGoldBright else PixelParchmentLight)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                        onClick = { onToggleAccessory(acc.id) }
-                                    )
-                                    .padding(horizontal = 6.dp, vertical = 6.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                // Галочка "надето"
-                                if (isOn) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.galochka),
-                                        contentDescription = "Надето",
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .size(22.dp)
-                                    )
-                                }
-
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Box(
-                                        modifier = Modifier.size(50.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Image(
-                                            painter = painterResource(acc.drawableRes),
-                                            contentDescription = acc.title,
-                                            modifier = Modifier.size(42.dp)
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = acc.title,
-                                        fontFamily = AppFontFamily,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = PixelTextDark,
-                                        textAlign = TextAlign.Center,
-                                        maxLines = 1
-                                    )
-                                    Text(
-                                        text = if (isOn) "надето" else "снято",
-                                        fontFamily = AppFontFamily,
-                                        fontSize = 14.sp,
-                                        color = if (isOn) Color(0xFF2E7D32) else PixelTextMuted,
-                                        textAlign = TextAlign.Center,
-                                        maxLines = 1
-                                    )
-                                }
+                        // Единая сетка аксессуаров и предметов комнаты
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(3),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(bottom = 8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        ) {
+                            // Заголовок секции аксессуаров
+                            item(span = { GridItemSpan(3) }, key = "header_accessories") {
+                                Text(
+                                    text = "Одежда для $petName",
+                                    fontFamily = AppFontFamily,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PixelTextDark,
+                                    modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
+                                )
                             }
-                        }
 
-                        // Заголовок секции предметов комнаты
-                        item(span = { GridItemSpan(3) }, key = "header_room") {
-                            Text(
-                                text = "Предметы в комнате",
-                                fontFamily = AppFontFamily,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PixelTextDark,
-                                modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
-                            )
-                        }
+                            // Аксессуары котика
+                            items(ACCESSORIES.filter { it.id != "none" }, key = { "acc_${it.id}" }) { acc ->
+                                val isOn = acc.id in currentAccessoryIds
 
-                        // Предметы комнаты (самокат, мяч, наушники)
-                        items(ROOM_DECORATIONS, key = { "room_${it.id}" }) { roomItem ->
-                            val isPurchased = isDemoMode || goals.any {
-                                it.id == roomItem.id && (it.isReached || it.savedAmount >= it.targetCost)
-                            }
-                            val isEquipped = isPurchased && (roomItem.id !in hiddenRoomItems)
-
-                            Box(
-                                modifier = Modifier
-                                    .pixelButtonBackground(
-                                        containerColor = if (isEquipped) PixelGoldBright else PixelParchmentLight
-                                    )
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                        enabled = isPurchased,
-                                        onClick = { onToggleRoomItem(roomItem.id) }
-                                    )
-                                    .padding(horizontal = 6.dp, vertical = 6.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (isEquipped) {
-                                    // Галочка "в комнате"
-                                    Image(
-                                        painter = painterResource(id = R.drawable.galochka),
-                                        contentDescription = "В комнате",
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .size(22.dp)
-                                    )
-                                } else if (!isPurchased) {
-                                    // Замочек "не накоплено"
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .size(20.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFF757575)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = "🔒",
-                                            fontSize = 11.sp
+                                Box(
+                                    modifier = Modifier
+                                        .pixelButtonBackground(containerColor = if (isOn) Color(0xFFFFC766) else PixelParchmentLight)
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
+                                            onClick = { onToggleAccessory(acc.id) }
                                         )
-                                    }
-                                }
-
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
+                                        .padding(horizontal = 6.dp, vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Box(
-                                        modifier = Modifier.size(50.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
+                                    // Галочка "надето"
+                                    if (isOn) {
                                         Image(
-                                            painter = painterResource(roomItem.drawableRes),
-                                            contentDescription = roomItem.title,
+                                            painter = painterResource(id = R.drawable.galochka),
+                                            contentDescription = "Надето",
                                             modifier = Modifier
-                                                .size(42.dp)
-                                                .graphicsLayer {
-                                                    alpha = if (isPurchased) 1f else 0.45f
-                                                }
+                                                .align(Alignment.TopEnd)
+                                                .size(22.dp)
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = roomItem.title,
-                                        fontFamily = AppFontFamily,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isPurchased) PixelTextDark else PixelTextMuted,
-                                        textAlign = TextAlign.Center,
-                                        maxLines = 1
-                                    )
-                                    Text(
-                                        text = when {
-                                            !isPurchased -> "в копилке"
-                                            isEquipped -> "в комнате"
-                                            else -> "убрано"
-                                        },
-                                        fontFamily = AppFontFamily,
-                                        fontSize = 14.sp,
-                                        color = if (isEquipped) Color(0xFF2E7D32) else PixelTextMuted,
-                                        textAlign = TextAlign.Center,
-                                        maxLines = 1
-                                    )
+
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.size(50.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Image(
+                                                painter = painterResource(acc.drawableRes),
+                                                contentDescription = acc.title,
+                                                modifier = Modifier.size(42.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = acc.title,
+                                            fontFamily = AppFontFamily,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = PixelTextDark,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 1
+                                        )
+                                        Text(
+                                            text = if (isOn) "надето" else "снято",
+                                            fontFamily = AppFontFamily,
+                                            fontSize = 14.sp,
+                                            color = if (isOn) Color(0xFF2E7D32) else PixelTextMuted,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 1
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Заголовок секции предметов комнаты
+                            item(span = { GridItemSpan(3) }, key = "header_room") {
+                                Text(
+                                    text = "Предметы в комнате",
+                                    fontFamily = AppFontFamily,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PixelTextDark,
+                                    modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
+                                )
+                            }
+
+                            // Предметы комнаты (самокат, мяч, наушники)
+                            items(ROOM_DECORATIONS, key = { "room_${it.id}" }) {
+                                roomItem -> val isPurchased = isDemoMode || goals.any {
+                                    it.id == roomItem.id && (it.isReached || it.savedAmount >= it.targetCost)
+                                }
+                                val isEquipped = isPurchased && (roomItem.id !in hiddenRoomItems)
+
+                                Box(
+                                    modifier = Modifier
+                                        .pixelButtonBackground(
+                                            containerColor = if (isEquipped) Color(0xFFFFC766) else PixelParchmentLight
+                                        )
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
+                                            enabled = isPurchased,
+                                            onClick = { onToggleRoomItem(roomItem.id) }
+                                        )
+                                        .padding(horizontal = 6.dp, vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isEquipped) {
+                                        // Галочка "в комнате"
+                                        Image(
+                                            painter = painterResource(id = R.drawable.galochka),
+                                            contentDescription = "В комнате",
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .size(22.dp)
+                                        )
+                                    } else if (!isPurchased) {
+                                        // Замочек "не накоплено"
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .size(20.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFF757575)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = "🔒",
+                                                fontSize = 11.sp
+                                            )
+                                        }
+                                    }
+
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.size(50.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Image(
+                                                painter = painterResource(roomItem.drawableRes),
+                                                contentDescription = roomItem.title,
+                                                modifier = Modifier
+                                                    .size(42.dp)
+                                                    .graphicsLayer {
+                                                        alpha = if (isPurchased) 1f else 0.45f
+                                                    }
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = roomItem.title,
+                                            fontFamily = AppFontFamily,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isPurchased) PixelTextDark else PixelTextMuted,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 1
+                                        )
+                                        Text(
+                                            text = when {
+                                                !isPurchased -> "в копилке"
+                                                isEquipped -> "в комнате"
+                                                else -> "убрано"
+                                            },
+                                            fontFamily = AppFontFamily,
+                                            fontSize = 14.sp,
+                                            color = if (isEquipped) Color(0xFF2E7D32) else PixelTextMuted,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 1
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
-                }
-            }
 
-            Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (currentAccessoryIds.isNotEmpty()) {
-                        PixelButton(
-                            text = "🚫 Снять одежду",
-                            onClick = { onToggleAccessory("none") },
-                            containerColor = Color(0xFFFFCDD2),
-                            textColor = PixelRedBerry,
-                            modifier = Modifier.weight(1f),
-                            fontSize = 14.sp,
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            PixelButton(
+                                text = "Готово",
+                                onClick = onDismiss,
+                                containerColor = Color(0xFFFFC766),
+                                modifier = Modifier.weight(1f),
+                                fontSize = 15.sp,
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+                            )
+                        }
                     }
-                    PixelButton(
-                        text = "Готово",
-                        onClick = onDismiss,
-                        containerColor = PixelGoldBright,
-                        modifier = Modifier.weight(1f),
-                        fontSize = 15.sp,
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
-                    )
                 }
             }
         }

@@ -376,7 +376,7 @@ fun BudgetPlanVsFactCard(
             ) {
                 if (onDismiss != null) {
                     PixelButton(
-                        text = "✕ Закрыть",
+                        text = "Закрыть",
                         onClick = onDismiss,
                         containerColor = PixelWoodMedium,
                         textColor = PixelParchmentLight,

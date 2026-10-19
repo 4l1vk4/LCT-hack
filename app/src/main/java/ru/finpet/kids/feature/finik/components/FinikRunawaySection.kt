@@ -39,6 +39,7 @@ import ru.finpet.kids.core.designsystem.ExclamationIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.MiskaIcon
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
@@ -160,7 +161,7 @@ fun FinikRunawaySection(
                     textColor = PixelTextDark,
                     fontSize = 15.sp,
                     modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = { Text("🥣", fontSize = 18.sp) },
+                    leadingIcon = { MiskaIcon(modifier = Modifier.size(18.dp)) },
                     trailingIcon = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(

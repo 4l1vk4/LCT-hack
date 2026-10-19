@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.DocsIcon
 import ru.finpet.kids.core.designsystem.PawsIcon
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
@@ -114,7 +115,7 @@ fun CalendarDayCell(
                     Spacer(modifier = Modifier.width(2.dp))
                 }
                 if (hasNotes) {
-                    Text(text = "📝", fontSize = 13.sp)
+                    DocsIcon(modifier = Modifier.size(13.dp))
                 }
             }
 

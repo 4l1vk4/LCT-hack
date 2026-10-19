@@ -63,9 +63,12 @@ import ru.finpet.kids.R
 import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.data.repository.QuestItem
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.BooksIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.KubikIcon
+import ru.finpet.kids.core.designsystem.LockIcon
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
@@ -217,7 +220,7 @@ fun SchoolBottomSheet(
                                 .background(Color(0xFFE8F5E9)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(text = "🎓", fontSize = 22.sp)
+                            BooksIcon(modifier = Modifier.size(22.dp))
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
@@ -260,14 +263,7 @@ fun SchoolBottomSheet(
                             .pixelButtonBackground(containerColor = PixelGoldBright.copy(alpha = 0.35f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "i",
-                            fontFamily = AppFontFamily,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PixelTextDark,
-                            textAlign = TextAlign.Center
-                        )
+                        BooksIcon(modifier = Modifier.size(24.dp))
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -483,10 +479,11 @@ fun SchoolBottomSheet(
                             if (quest.dynamicVariants.size > 1 && !isDone && !isDailyLimitReached) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 PixelButton(
-                                    text = "🎲 Другая ситуация",
+                                    text = "Другая ситуация",
                                     onClick = {
                                         variantIndices[quest.id] = currentVariantIdx + 1
                                     },
+                                    leadingIcon = { KubikIcon(modifier = Modifier.size(16.dp)) },
                                     containerColor = Color(0xFF6D4C41),
                                     textColor = PixelParchmentLight,
                                     fontSize = 14.sp,
@@ -617,10 +614,8 @@ private fun StageTabChip(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!isUnlocked) {
-                    Text(
-                        text = "🔒 ",
-                        fontSize = 11.sp
-                    )
+                    LockIcon(modifier = Modifier.size(12.dp))
+                    Spacer(modifier = Modifier.width(3.dp))
                 }
                 Text(
                     text = title,
@@ -1134,8 +1129,9 @@ private fun CalculationQuestSection(
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             // Кнопка рандомизации вариантов
             PixelButton(
-                text = "🎲 Перемешать варианты",
+                text = "Перемешать варианты",
                 onClick = onRerollNumbers,
+                leadingIcon = { KubikIcon(modifier = Modifier.size(16.dp)) },
                 containerColor = Color(0xFF6D4C41),
                 textColor = PixelParchmentLight,
                 fontSize = 14.sp,

@@ -58,6 +58,7 @@ import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelRedBerry
+import ru.finpet.kids.core.designsystem.TelezhkaIcon
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.PixelWoodDark
@@ -697,14 +698,15 @@ fun QuickBuyConfirmDialog(
                         )
 
                         PixelButton(
-                            text = if (isEnoughMoney) "Купить всё 🛒" else "Мало монет",
+                            text = if (isEnoughMoney) "Купить всё" else "Мало монет",
                             onClick = onConfirm,
                             modifier = Modifier.weight(1f),
                             enabled = isEnoughMoney,
                             containerColor = if (isEnoughMoney) PixelGreenCrop else Color(0xFFCCCCCC),
                             borderColor = if (isEnoughMoney) Color(0xFF2E7D32) else Color(0xFF999999),
                             textColor = if (isEnoughMoney) Color.White else Color(0xFF666666),
-                            fontSize = 17.sp
+                            fontSize = 17.sp,
+                            trailingIcon = if (isEnoughMoney) { { TelezhkaIcon(modifier = Modifier.size(18.dp)) } } else null
                         )
                     }
                 }

@@ -30,6 +30,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.graphicsLayer
@@ -146,11 +147,33 @@ fun HeartIcon(
     modifier: Modifier = Modifier.size(18.dp),
     tint: Color? = null
 ) {
+    val colorFilter = remember(tint) {
+        if (tint != null) {
+            val cm = ColorMatrix().apply {
+                setToSaturation(0f)
+                timesAssign(
+                    ColorMatrix(
+                        floatArrayOf(
+                            0.12f, 0f, 0f, 0f, 0f,
+                            0f, 0.12f, 0f, 0f, 0f,
+                            0f, 0f, 0.12f, 0f, 0f,
+                            0f, 0f, 0f, 1f, 0f
+                        )
+                    )
+                )
+            }
+            ColorFilter.colorMatrix(cm)
+        } else {
+            null
+        }
+    }
     Image(
         painter = painterResource(id = R.drawable.heart_emodji),
         contentDescription = "Здоровье",
-        colorFilter = tint?.let { ColorFilter.tint(it, BlendMode.SrcIn) },
-        modifier = modifier
+        colorFilter = colorFilter,
+        modifier = modifier.then(
+            if (tint != null) Modifier.graphicsLayer { alpha = 0.55f } else Modifier
+        )
     )
 }
 
@@ -345,6 +368,127 @@ fun EmptyJarIcon(
     Image(
         painter = painterResource(id = R.drawable.empty_jar),
         contentDescription = "Банка",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun SavingJarIcon(
+    modifier: Modifier = Modifier.size(24.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.saving_jar),
+        contentDescription = "Банка-копилка со свинкой",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun MiskaIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.miska),
+        contentDescription = "Миска",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun CloudIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.cloud_emodji),
+        contentDescription = "Мысли",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun KubikIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.kubik_emodji),
+        contentDescription = "Кубик",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun CatCryIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.cat_cry_emodji),
+        contentDescription = "Грустный котик",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun CatHappyIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.cat_happy_emodji),
+        contentDescription = "Веселый котик",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun TelezhkaIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.telezhka),
+        contentDescription = "Тележка",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun BooksIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.books_emodji),
+        contentDescription = "Книжки",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun MoneyBagIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.money_bag_emodji),
+        contentDescription = "Мешок монет",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun ToyIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.toy),
+        contentDescription = "Игрушка",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun HappyMood3vryadIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.happy_mood_3vryad),
+        contentDescription = "Скидки и акции",
         modifier = modifier
     )
 }

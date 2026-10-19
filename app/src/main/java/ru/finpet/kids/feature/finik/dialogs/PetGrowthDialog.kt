@@ -55,12 +55,6 @@ fun PetGrowthDialog(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = if (isAdult) "👑" else "✨",
-                        fontSize = 44.sp,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
                         text = if (isAdult) "$petName теперь взрослый!" else "$petName стал подростком!",
                         fontFamily = AppFontFamily,
                         fontSize = 20.sp,

@@ -39,6 +39,7 @@ data class PeriodEntity(
     val actualSavings: Int = 0,
     val withdrawnSavings: Int = 0,
     val borrowedFromOptional: Int = 0,
+    val usedFromFreeMoney: Int = 0,
     val isBudgetConfirmed: Boolean = false,
     val isPeriodClosed: Boolean = false,
     val compliancePercent: Int = 0,

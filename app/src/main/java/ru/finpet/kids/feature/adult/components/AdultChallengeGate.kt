@@ -86,22 +86,6 @@ fun AdultChallengeGate(
                     textAlign = TextAlign.Center,
                     lineHeight = 21.sp
                 )
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // плашка с категорией вопроса (налоги, право, математика)
-                Box(
-                    modifier = Modifier
-                        .pixelButtonBackground(containerColor = JoyOrange.copy(alpha = 0.25f))
-                        .padding(horizontal = 12.dp, vertical = 5.dp)
-                ) {
-                    Text(
-                        text = challenge.title,
-                        fontFamily = AppFontFamily,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PixelTextDark
-                    )
-                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 

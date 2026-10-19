@@ -259,7 +259,12 @@ object PetEconomyCalculator {
             minOf(15, (actual.borrowedFromOptional * 0.3f).roundToInt() + 3)
         } else 0
 
-        val totalPercent = (basePercent - overspendPenalty - lifeEconomyPenalty - pastSavingsPenalty - borrowedPenalty).coerceIn(0, 100)
+        // Штраф за использование нераспределенных денег из свободного кошелька на покупки:
+        val freeMoneyPenalty = if (actual.usedFromFreeMoney > 0) {
+            minOf(25, (actual.usedFromFreeMoney * 0.4f).roundToInt() + 5)
+        } else 0
+
+        val totalPercent = (basePercent - overspendPenalty - lifeEconomyPenalty - pastSavingsPenalty - borrowedPenalty - freeMoneyPenalty).coerceIn(0, 100)
         val isDisciplined = totalPercent >= 75 && !isPetHungry
 
         val overspendCause = when {
@@ -287,6 +292,8 @@ object PetEconomyCalculator {
                 "Снятие монет из прошлых накоплений (-${actual.withdrawnSavings} 🪙) снизило точность бюджета. Старайся не вскрывать копилку без необходимости!"
             actual.borrowedFromOptional > 0 ->
                 "В банке «Обязательное» не хватило монет, и ${actual.borrowedFromOptional} 🪙 было взято из «Желаемого». Это снизило точность бюджета."
+            actual.usedFromFreeMoney > 0 ->
+                "На покупки потрачено ${actual.usedFromFreeMoney} 🪙 из свободного кошелька вне баночек! Нераспределенные деньги трудно контролировать — планируй траты в баночках заранее."
             isExceededSavings && hasAdequateCare && totalOverspend == 0 ->
                 "Великолепно! Ты скопил даже больше, чем планировал, не допустил перерасхода и сохранил питомца сытым и довольным! Отличный баланс!"
             hasRecoveredPet || (isPetRunaway && actual.actualMandatory >= 60) ->
@@ -408,9 +415,9 @@ object PetEconomyCalculator {
                 append("Ура! Питомец вырос до стадии «${newStage.title}»! ")
             }
             if (periodIncome > 0) {
-                append("🌅 Новый понедельник! Выданы карманные деньги на неделю: +$periodIncome монет.")
+                append("Новый понедельник! Выданы карманные деньги на неделю: +$periodIncome монет.")
             } else {
-                append("🌅 Наступил новый день. Карманные деньги выдаются раз в неделю по понедельникам.")
+                append("Наступил новый день. Карманные деньги выдаются раз в неделю по понедельникам.")
             }
         }
 

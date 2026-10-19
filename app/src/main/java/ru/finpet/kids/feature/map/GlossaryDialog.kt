@@ -54,6 +54,7 @@ import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
+import ru.finpet.kids.core.designsystem.RenderBoardIcon
 import ru.finpet.kids.core.designsystem.StardewBoard
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
 
@@ -73,7 +74,7 @@ fun  financialGlossary(petName: String) = listOf(
     ),
     GlossaryTerm(
         term = "Доход",
-        icon = "💰",
+        icon = "money_bag",
         definition = "Это деньги, которые ты получаешь. Например, карманные или награда за дела.",
         example = "По понедельникам тебе выдают 200 монет карманных."
     ),
@@ -91,19 +92,19 @@ fun  financialGlossary(petName: String) = listOf(
     ),
     GlossaryTerm(
         term = "Желаемые траты",
-        icon = "🎈",
+        icon = "toy",
         definition = "Это то, что хочется, но можно отложить: игрушки, лакомства, украшения.",
         example = "Мячик или печенье — желаемые, но необязательные."
     ),
     GlossaryTerm(
         term = "Накопления",
-        icon = "🐷",
+        icon = "saving_jar",
         definition = "Это деньги, которые ты откладываешь и не тратишь. Они копятся на мечту.",
         example = "50 монет каждый день — через неделю уже 350!"
     ),
     GlossaryTerm(
         term = "Копилка",
-        icon = "🏦",
+        icon = "empty_jar",
         definition = "Место, где хранятся накопления. Их нельзя взять просто так — только с подтверждением.",
         example = "В копилке уже 100 монет на домик для $petName."
     ),
@@ -121,7 +122,7 @@ fun  financialGlossary(petName: String) = listOf(
     ),
     GlossaryTerm(
         term = "Скидка и акция",
-        icon = "🏷️",
+        icon = "happy_mood_3vryad",
         definition = "Когда товар продают дешевле. Но скидка выгодна, только если вещь нужна.",
         example = "3 расчески по акции — это НЕ выгодно, если нужна одна."
     ),
@@ -161,7 +162,7 @@ fun GlossaryDialog(
             StardewBoard(
                 modifier = Modifier.fillMaxSize(),
                 headerTitle = "СЛОВАРИК ${petName.uppercase()}",
-                headerIcon = ""
+                headerIcon = "📚"
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
 
@@ -223,11 +224,7 @@ fun GlossaryDialog(
                                                 ),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            if (term.icon == "⚡") {
-                                                LightningIcon(modifier = Modifier.size(22.dp))
-                                            } else {
-                                                Text(text = term.icon, fontSize = 20.sp)
-                                            }
+                                            RenderBoardIcon(term.icon, modifier = Modifier.size(22.dp))
                                         }
 
                                         Spacer(modifier = Modifier.width(12.dp))
@@ -290,7 +287,7 @@ fun GlossaryDialog(
                         item {
                             Spacer(modifier = Modifier.height(4.dp))
                             PixelButton(
-                                text = "✕ Закрыть словарик",
+                                text = "Закрыть словарик",
                                 onClick = onDismiss,
                                 containerColor = PixelWoodMedium,
                                 textColor = PixelParchmentLight,

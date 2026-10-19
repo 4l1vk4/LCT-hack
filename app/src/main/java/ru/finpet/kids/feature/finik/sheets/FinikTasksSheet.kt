@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.DiagramIcon
+import ru.finpet.kids.core.designsystem.RenderBoardIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
@@ -188,11 +189,7 @@ fun FinikTasksSheet(
                                     modifier = Modifier.size(26.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                if (taskIcon == "📊") {
-                                    DiagramIcon(modifier = Modifier.size(20.dp))
-                                } else {
-                                    Text(text = taskIcon, fontSize = 20.sp)
-                                }
+                                RenderBoardIcon(taskIcon, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 val displayTitle = if (note.category == "PET_FOOD" && isPetRunaway) {
                                     "Купить корм для возвращения"

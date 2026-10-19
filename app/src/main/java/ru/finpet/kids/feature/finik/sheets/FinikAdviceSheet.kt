@@ -36,9 +36,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.finpet.kids.core.designsystem.CloudIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.PixelBar
 import ru.finpet.kids.core.designsystem.PixelTextDark
+import ru.finpet.kids.core.designsystem.RenderBoardIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 
@@ -67,7 +69,7 @@ val DEFAULT_SCRIPTED_ADVICES = listOf(
     ),
     ScriptedAdvice(
         title = "Правило 3 корзин: 50 / 30 / 20",
-        icon = "🧺",
+        icon = "🍯",
         response = "Половину монет тратим на важное (еда и уход), часть — на радости и игрушки, а 20% сразу прячем в копилку на большую цель!"
     ),
     ScriptedAdvice(
@@ -107,7 +109,7 @@ fun FinikAdviceSheet(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
             ) {
-                Text(text = "💬", fontSize = 22.sp)
+                CloudIcon(modifier = Modifier.size(22.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Спроси у $displayName",
@@ -158,7 +160,7 @@ fun FinikAdviceSheet(
                                 .padding(horizontal = 14.dp, vertical = 14.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = advice.icon, fontSize = 22.sp)
+                            RenderBoardIcon(advice.icon, modifier = Modifier.size(22.dp))
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
                                 text = advice.title,

@@ -6,8 +6,18 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -131,12 +141,24 @@ fun RenderBoardIcon(icon: String, modifier: Modifier = Modifier.size(26.dp)) {
         "🎯" -> TargetIcon(modifier = modifier)
         "🪙" -> CoinIcon(modifier = modifier)
         "⭐", "🌟" -> StarIcon(modifier = modifier)
-        "📋", "📄" -> DocsIcon(modifier = modifier)
+        "📋", "📄", "📝" -> DocsIcon(modifier = modifier)
         "👛" -> KoshelekIcon(modifier = modifier)
         "🐾" -> PawsIcon(modifier = modifier)
         "⚖️", "⚖" -> VesiIcon(modifier = modifier)
         "💡" -> LampochkaIcon(modifier = modifier)
-        "🍯", "🫙", "empty_jar" -> EmptyJarIcon(modifier = modifier)
+        "🍯", "🫙", "empty_jar", "🏦" -> EmptyJarIcon(modifier = modifier)
+        "🐷", "saving_jar", "piggy" -> SavingJarIcon(modifier = modifier)
+        "🍲", "🥣", "miska" -> MiskaIcon(modifier = modifier)
+        "💬", "💭", "cloud" -> CloudIcon(modifier = modifier)
+        "🎲", "kubik" -> KubikIcon(modifier = modifier)
+        "😿", "cat_cry" -> CatCryIcon(modifier = modifier)
+        "🐱", "😺", "😸", "cat", "cat_happy" -> CatHappyIcon(modifier = modifier)
+        "🛒", "telezhka", "cart" -> TelezhkaIcon(modifier = modifier)
+        "📚", "books" -> BooksIcon(modifier = modifier)
+        "💰", "money_bag" -> MoneyBagIcon(modifier = modifier)
+        "🎈", "toy", "toys" -> ToyIcon(modifier = modifier)
+        "🏷️", "discount", "happy_mood_3vryad" -> HappyMood3vryadIcon(modifier = modifier)
+        "↺" -> Text(text = "↺", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PixelTextDark)
         else -> Text(text = icon, fontSize = 26.sp)
     }
 }
@@ -155,7 +177,10 @@ fun PixelButton(
     fontSize: TextUnit = 16.sp,
     contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 7.dp),
     leadingIcon: (@Composable () -> Unit)? = null,
-    trailingIcon: (@Composable () -> Unit)? = null
+    trailingIcon: (@Composable () -> Unit)? = null,
+    repeating: Boolean = false,
+    repeatInitialDelayMillis: Long = 350L,
+    repeatIntervalMillis: Long = 100L
 ) {
     val actualBg = if (enabled) containerColor else Color(0xFFC0B098)
     val actualText = if (enabled) textColor else Color(0xFF7A6855)
@@ -171,6 +196,46 @@ fun PixelButton(
         label = "btn_press_scale"
     )
 
+    val currentOnClick by rememberUpdatedState(onClick)
+    val currentEnabled by rememberUpdatedState(enabled)
+
+    val clickModifier = if (repeating) {
+        Modifier.pointerInput(enabled) {
+            if (!enabled) return@pointerInput
+            coroutineScope {
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    val press = PressInteraction.Press(down.position)
+                    launch { interactionSource.emit(press) }
+                    val job = launch {
+                        currentOnClick()
+                        delay(repeatInitialDelayMillis)
+                        while (isActive && currentEnabled) {
+                            currentOnClick()
+                            delay(repeatIntervalMillis)
+                        }
+                    }
+                    val up = waitForUpOrCancellation()
+                    job.cancel()
+                    launch {
+                        if (up != null) {
+                            interactionSource.emit(PressInteraction.Release(press))
+                        } else {
+                            interactionSource.emit(PressInteraction.Cancel(press))
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        Modifier.clickable(
+            enabled = enabled,
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick
+        )
+    }
+
     Box(
         modifier = modifier
             .graphicsLayer {
@@ -178,12 +243,7 @@ fun PixelButton(
                 scaleY = scale
             }
             .pixelButtonBackground(containerColor = actualBg)
-            .clickable(
-                enabled = enabled,
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            )
+            .then(clickModifier)
             .padding(contentPadding),
         contentAlignment = Alignment.Center
     ) {

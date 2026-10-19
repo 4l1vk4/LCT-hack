@@ -148,60 +148,7 @@ fun MapWithHotspots(
             label = "home_bob"
         )
 
-        // 2. кликабельные зоны: масштабируются и позиционируются строго относительно картинки карты
-        hotspots.forEach { spot ->
-            val spotWidth  = renderedWidth * (spot.right - spot.left)
-            val spotHeight = renderedHeight * (spot.bottom - spot.top)
-            val offsetX    = leftOffset + renderedWidth * spot.left
-            val offsetY    = topOffset + renderedHeight * spot.top
-
-            val interactionSource = remember { MutableInteractionSource() }
-            val isPressed by interactionSource.collectIsPressedAsState()
-            val scale by animateFloatAsState(
-                targetValue = if (isPressed) 0.95f else 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMediumLow
-                ),
-                label = "spot_scale"
-            )
-
-            Box(
-                modifier = Modifier
-                    .offset(x = offsetX, y = offsetY)
-                    .size(width = spotWidth, height = spotHeight)
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                    }
-                    .then(
-                        if (debug) {
-                            Modifier
-                                .background(Color.Red.copy(alpha = 0.25f))
-                                .border(2.dp, Color.Red)
-                        } else {
-                            Modifier
-                        }
-                    )
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null
-                    ) { onClickHotspot(spot) }
-            ) {
-                if (spot.id == "shop" && hasShopWarning) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = 2.dp, y = 0.dp)
-                    ) {
-                        ExclamationIcon(modifier = Modifier.size(22.dp))
-                    }
-                }
-            }
-        }
-
-        // 2.5. Анимированные парящие пиксельные вывески над зданиями (Школа, Лавка/Магазин, Домик)
+        // Анимированные парящие пиксельные вывески над зданиями (Школа, Лавка/Магазин, Домик)
         val schoolW = renderedWidth * (185f / 1073f)
         val schoolH = renderedHeight * (63f / 3248f)
         val schoolLeft = leftOffset + renderedWidth * (198f / 1073f)
@@ -267,6 +214,59 @@ fun MapWithHotspots(
                     indication = null
                 ) { homeSpot?.let(onClickHotspot) }
         )
+
+        // 2. кликабельные зоны: масштабируются и позиционируются строго относительно картинки карты
+        hotspots.forEach { spot ->
+            val spotWidth  = renderedWidth * (spot.right - spot.left)
+            val spotHeight = renderedHeight * (spot.bottom - spot.top)
+            val offsetX    = leftOffset + renderedWidth * spot.left
+            val offsetY    = topOffset + renderedHeight * spot.top
+
+            val interactionSource = remember { MutableInteractionSource() }
+            val isPressed by interactionSource.collectIsPressedAsState()
+            val scale by animateFloatAsState(
+                targetValue = if (isPressed) 0.95f else 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                ),
+                label = "spot_scale"
+            )
+
+            Box(
+                modifier = Modifier
+                    .offset(x = offsetX, y = offsetY)
+                    .size(width = spotWidth, height = spotHeight)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }
+                    .then(
+                        if (debug) {
+                            Modifier
+                                .background(Color.Red.copy(alpha = 0.25f))
+                                .border(2.dp, Color.Red)
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null
+                    ) { onClickHotspot(spot) }
+            ) {
+                if (spot.id == "shop" && hasShopWarning) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = 0.dp, y = 4.dp)
+                    ) {
+                        ExclamationIcon(modifier = Modifier.size(22.dp))
+                    }
+                }
+            }
+        }
 
         // 3. отладочный слой для проверки тапов и калибровки координат
         if (debug) {

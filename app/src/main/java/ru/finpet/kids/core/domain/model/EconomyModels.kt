@@ -47,6 +47,7 @@ data class ActualExpenses(
     val actualSavings: Int = 0,
     val withdrawnSavings: Int = 0,
     val borrowedFromOptional: Int = 0,
+    val usedFromFreeMoney: Int = 0,
     val hasPurchasedFood: Boolean = false,
     val hasPurchasedWater: Boolean = false,
     val hasPurchasedMedicine: Boolean = false

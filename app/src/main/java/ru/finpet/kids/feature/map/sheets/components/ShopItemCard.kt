@@ -142,10 +142,6 @@ fun ShopItemCard(
                 ) {
                     if (item.satietyBonus > 0) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (boostsLowSatiety && !isRunaway) {
-                                ExclamationIcon(modifier = Modifier.size(15.dp))
-                                Spacer(modifier = Modifier.width(2.dp))
-                            }
                             AppleIcon(modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(2.dp))
                             Text("+${item.satietyBonus}", fontSize = 16.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
@@ -153,10 +149,6 @@ fun ShopItemCard(
                     }
                     if (item.moodBonus > 0) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (boostsLowMood && !isRunaway) {
-                                ExclamationIcon(modifier = Modifier.size(15.dp))
-                                Spacer(modifier = Modifier.width(2.dp))
-                            }
                             LightningIcon(modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(2.dp))
                             Text("+${item.moodBonus}", fontSize = 16.sp, color = SkyBlue, fontWeight = FontWeight.Bold)
@@ -164,10 +156,6 @@ fun ShopItemCard(
                     }
                     if (item.healthBonus > 0) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (boostsLowHealth && !isRunaway) {
-                                ExclamationIcon(modifier = Modifier.size(15.dp))
-                                Spacer(modifier = Modifier.width(2.dp))
-                            }
                             HeartIcon(modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(2.dp))
                             Text("+${item.healthBonus}", fontSize = 16.sp, color = FreshGreen, fontWeight = FontWeight.Bold)

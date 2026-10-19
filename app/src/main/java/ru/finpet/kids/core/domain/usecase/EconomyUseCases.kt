@@ -99,11 +99,12 @@ class MakePurchaseUseCase @Inject constructor(
                 val shortage = price - remainingMandatory
                 // Сначала берем из банки «Желаемое» столько, сколько в ней реально есть!
                 val fromOptional = minOf(shortage, remainingOptional)
-                // Если в банке «Желаемое» монет не хватило, остаток покрывается свободными деньгами (не раздувая долг)
+                val fromFreeMoney = shortage - fromOptional
                 period.copy(
                     actualMandatory = period.actualMandatory + fromMandatory,
                     actualOptional = period.actualOptional + fromOptional,
-                    borrowedFromOptional = period.borrowedFromOptional + fromOptional
+                    borrowedFromOptional = period.borrowedFromOptional + fromOptional,
+                    usedFromFreeMoney = period.usedFromFreeMoney + fromFreeMoney
                 )
             } else {
                 period.copy(actualMandatory = period.actualMandatory + price)
@@ -111,9 +112,13 @@ class MakePurchaseUseCase @Inject constructor(
         } else {
             if (period.isBudgetConfirmed && price > remainingOptional) {
                 // Если в банке «Желаемое» нет монет (или не хватает), берем из нее остаток,
-                // а остальное оплачивается свободными деньгами (без штрафа за перерасход)
+                // а остальное оплачивается свободными деньгами (штрафует точность бюджета)
                 val fromOptional = remainingOptional
-                period.copy(actualOptional = period.actualOptional + fromOptional)
+                val fromFreeMoney = price - remainingOptional
+                period.copy(
+                    actualOptional = period.actualOptional + fromOptional,
+                    usedFromFreeMoney = period.usedFromFreeMoney + fromFreeMoney
+                )
             } else {
                 period.copy(actualOptional = period.actualOptional + price)
             }
@@ -207,6 +212,7 @@ class CompletePeriodUseCase @Inject constructor(
                 actualSavings = maxOf(period.actualSavings, maxOf(period.plannedSavings, 20)),
                 withdrawnSavings = 0,
                 borrowedFromOptional = 0,
+                usedFromFreeMoney = 0,
                 hasPurchasedFood = true,
                 hasPurchasedWater = true
             )
@@ -217,6 +223,7 @@ class CompletePeriodUseCase @Inject constructor(
                 actualSavings = period.actualSavings,
                 withdrawnSavings = period.withdrawnSavings,
                 borrowedFromOptional = period.borrowedFromOptional,
+                usedFromFreeMoney = period.usedFromFreeMoney,
                 hasPurchasedFood = period.actualMandatory >= PetEconomyCalculator.MIN_FOOD_COST,
                 hasPurchasedWater = period.actualMandatory >= PetEconomyCalculator.MIN_WATER_COST
             )

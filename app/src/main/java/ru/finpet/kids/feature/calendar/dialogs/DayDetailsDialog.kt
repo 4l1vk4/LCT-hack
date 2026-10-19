@@ -1,5 +1,6 @@
 package ru.finpet.kids.feature.calendar.dialogs
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import ru.finpet.kids.R
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
@@ -59,6 +62,7 @@ import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
+import ru.finpet.kids.core.designsystem.RenderBoardIcon
 import ru.finpet.kids.core.designsystem.StardewBoard
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.feature.calendar.model.CalendarTaskCategory
@@ -129,7 +133,7 @@ fun DayDetailsDialog(
                                             Spacer(modifier = Modifier.width(6.dp))
                                         }
                                         Text(
-                                            text = if (isToday) "Сегодняшние задачи" else "🗓️ Задачи на День $dayNumber",
+                                            text = if (isToday) "Сегодняшние задачи" else "Задачи на День $dayNumber",
                                             fontSize = 18.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = if (isToday) PixelGoldDark else PixelTextDark
@@ -196,11 +200,7 @@ fun DayDetailsDialog(
                                     )
 
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    if (taskIcon == "📊") {
-                                        DiagramIcon(modifier = Modifier.size(18.dp))
-                                    } else {
-                                        Text(text = taskIcon, fontSize = 18.sp)
-                                    }
+                                    RenderBoardIcon(taskIcon, modifier = Modifier.size(18.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
 
                                     val displayTitle = if (note.category == "PET_FOOD" && isPetRunaway) {
@@ -284,6 +284,7 @@ fun DayDetailsDialog(
                                                 val badgeLabel = when {
                                                     note.category == "GROCERIES" -> "Лавка • Сдача"
                                                     note.category == "BUDGET_PLAN" -> "Баночки"
+                                                    note.category == "NOTE" || note.category == "CHORE" -> "Дело"
                                                     else -> category.defaultBadge
                                                 }
                                                 Text(
@@ -321,7 +322,7 @@ fun DayDetailsDialog(
                     item {
                         Spacer(modifier = Modifier.height(4.dp))
                         PixelButton(
-                            text = "➕ Добавить свою заметку",
+                            text = "Добавить свою заметку",
                             onClick = onOpenAddNote,
                             containerColor = PixelGoldBright,
                             modifier = Modifier.fillMaxWidth(),
@@ -360,9 +361,9 @@ fun DayDetailsDialog(
 
                             if (growthStage != "ADULT") {
                                 val nextStageText = if (growthStage == "BABY") {
-                                    "🐾 Пропустить 7 периодов (до «Подростка»)"
+                                    "Пропустить 7 периодов (до «Подростка»)"
                                 } else {
-                                    "👑 Пропустить 11 периодов (до «Взрослого»)"
+                                    "Пропустить 11 периодов (до «Взрослого»)"
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
                                 PixelButton(
@@ -381,7 +382,7 @@ fun DayDetailsDialog(
                     // 6. Кнопка закрытия
                     item {
                         PixelButton(
-                            text = "✕ Закрыть",
+                            text = "Закрыть",
                             onClick = onDismiss,
                             containerColor = PixelWoodMedium,
                             textColor = PixelParchmentLight,

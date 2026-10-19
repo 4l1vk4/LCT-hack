@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.DocsIcon
+import ru.finpet.kids.core.designsystem.RenderBoardIcon
 import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
@@ -155,7 +156,7 @@ fun FinikDailyTaskCard(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = taskIcon, fontSize = 18.sp)
+                        RenderBoardIcon(taskIcon, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = displayTitle,
@@ -206,12 +207,6 @@ fun FinikDailyTaskCard(
                         }
                     }
                 }
-            } else {
-                Text(
-                    text = "Все дела и уроки сделаны, Финни счастлив! 🎉",
-                    fontSize = 15.sp,
-                    color = TextSecondary
-                )
             }
         }
     }

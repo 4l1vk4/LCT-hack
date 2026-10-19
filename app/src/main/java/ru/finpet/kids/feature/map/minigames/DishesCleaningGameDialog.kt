@@ -516,7 +516,7 @@ fun DishesCleaningGameDialog(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "🎉 ВСЯ ПОСУДА ВЫМЫТА! 🎉",
+                            text = "ВСЯ ПОСУДА ВЫМЫТА!",
                             fontFamily = AppFontFamily,
                             fontWeight = FontWeight.Black,
                             fontSize = 19.sp,

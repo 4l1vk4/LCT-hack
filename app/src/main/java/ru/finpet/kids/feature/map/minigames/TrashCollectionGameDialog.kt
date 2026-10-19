@@ -333,7 +333,7 @@ fun TrashCollectionGameDialog(
                             modifier = Modifier
                                 .padding(horizontal = 2.dp)
                                 .size(20.dp),
-                            tint = if (hasLife) null else Color(0xFF222222)
+                            tint = if (hasLife) null else Color.Black
                         )
                     }
                 }
@@ -409,7 +409,7 @@ fun TrashCollectionGameDialog(
                     ) {
                         if (isSuccess) {
                             Text(
-                                text = "🎉 Отличная работа!",
+                                text = "Отличная работа!",
                                 fontFamily = AppFontFamily,
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 20.sp,

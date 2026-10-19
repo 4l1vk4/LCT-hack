@@ -62,6 +62,9 @@ import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.core.designsystem.pixelPanelBackground
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
@@ -207,18 +210,30 @@ fun BudgetPlanningDialog(
                                             )
                                         }
                                     } else {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                        ) {
-                                            KoshelekIcon(modifier = Modifier.size(20.dp))
-                                            Text(
-                                                text = "Свободно в кошельке: $remainder монет останется на руках.",
-                                                fontFamily = AppFontFamily,
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = PixelGreenCrop
-                                            )
+                                        Column {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
+                                                KoshelekIcon(modifier = Modifier.size(20.dp))
+                                                Text(
+                                                    text = "Свободно в кошельке: $remainder монет останется на руках.",
+                                                    fontFamily = AppFontFamily,
+                                                    fontSize = 16.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = PixelGreenCrop
+                                                )
+                                            }
+                                            if (remainder > 0) {
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = "Нераспределённые деньги расходуются только если в банках закончатся монеты. Траты из свободного кошелька снижают точность бюджета, так как их трудно контролировать!",
+                                                    fontSize = 15.sp,
+                                                    color = PixelTextMuted,
+                                                    lineHeight = 17.sp,
+                                                    fontFamily = AppFontFamily
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -323,6 +338,7 @@ fun BudgetPlanningDialog(
                             amount = mandatory,
                             walletBalance = balance,
                             color = PixelGreenCrop,
+                            remainder = remainder,
                             isReadOnly = isConfirmed,
                             onMinus = {
                                 selectedPreset = null
@@ -335,6 +351,10 @@ fun BudgetPlanningDialog(
                             onPlus20 = {
                                 selectedPreset = null
                                 mandatory += 20
+                            },
+                            onSetAmount = { newAmt ->
+                                selectedPreset = null
+                                mandatory = newAmt
                             }
                         )
                     }
@@ -350,6 +370,7 @@ fun BudgetPlanningDialog(
                             amount = optional,
                             walletBalance = balance,
                             color = PixelGoldDark,
+                            remainder = remainder,
                             isReadOnly = isConfirmed,
                             onMinus = {
                                 selectedPreset = null
@@ -362,6 +383,10 @@ fun BudgetPlanningDialog(
                             onPlus20 = {
                                 selectedPreset = null
                                 optional += 20
+                            },
+                            onSetAmount = { newAmt ->
+                                selectedPreset = null
+                                optional = newAmt
                             }
                         )
                     }
@@ -377,6 +402,7 @@ fun BudgetPlanningDialog(
                             amount = savings,
                             walletBalance = balance,
                             color = PixelBlueWater,
+                            remainder = remainder,
                             isReadOnly = isConfirmed,
                             onMinus = {
                                 selectedPreset = null
@@ -389,6 +415,10 @@ fun BudgetPlanningDialog(
                             onPlus20 = {
                                 selectedPreset = null
                                 savings += 20
+                            },
+                            onSetAmount = { newAmt ->
+                                selectedPreset = null
+                                savings = newAmt
                             }
                         )
                     }
@@ -412,7 +442,7 @@ fun BudgetPlanningDialog(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 PixelButton(
-                                    text = "✕ Закрыть",
+                                    text = "Закрыть",
                                     onClick = onDismiss,
                                     containerColor = PixelWoodMedium,
                                     textColor = PixelParchmentLight,
@@ -526,11 +556,116 @@ private fun MagicJarCard(
     amount: Int,
     walletBalance: Int,
     color: Color,
+    remainder: Int,
     isReadOnly: Boolean = false,
     onMinus: () -> Unit,
     onPlus10: () -> Unit,
-    onPlus20: () -> Unit
+    onPlus20: () -> Unit,
+    onSetAmount: (Int) -> Unit
 ) {
+    var showCustomDialog by remember { mutableStateOf(false) }
+    var customInput by remember(amount) { mutableStateOf(amount.toString()) }
+
+    if (showCustomDialog) {
+        PixelAlertDialog(
+            onDismissRequest = { showCustomDialog = false },
+            title = "СВОЯ СУММА",
+            icon = "empty_jar",
+            confirmButton = {
+                PixelButton(
+                    text = "Сохранить",
+                    onClick = {
+                        val entered = customInput.toIntOrNull() ?: 0
+                        val maxPossible = amount + remainder
+                        onSetAmount(entered.coerceIn(0, maxPossible))
+                        showCustomDialog = false
+                    },
+                    containerColor = PixelGoldBright,
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 16.sp
+                )
+            },
+            dismissButton = {
+                PixelButton(
+                    text = "Отмена",
+                    onClick = { showCustomDialog = false },
+                    containerColor = PixelParchmentMedium,
+                    textColor = PixelTextDark,
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 16.sp
+                )
+            }
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Баночка: $title",
+                    fontFamily = AppFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = PixelTextDark
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Свободно в кошельке: $remainder 🪙 (максимум: ${amount + remainder} 🪙)",
+                    fontFamily = AppFontFamily,
+                    fontSize = 14.sp,
+                    color = PixelTextMuted
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = customInput,
+                    onValueChange = { customInput = it.filter { ch -> ch.isDigit() } },
+                    label = { Text("Монет в баночке", fontFamily = AppFontFamily, fontSize = 15.sp) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = PixelParchmentBorder,
+                        unfocusedBorderColor = PixelParchmentBorder,
+                        focusedContainerColor = PixelParchmentLight,
+                        unfocusedContainerColor = PixelParchmentLight,
+                        focusedTextColor = PixelTextDark,
+                        unfocusedTextColor = PixelTextDark
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    PixelButton(
+                        text = "0 🪙",
+                        onClick = { customInput = "0" },
+                        modifier = Modifier.weight(1f),
+                        fontSize = 13.sp,
+                        containerColor = PixelParchmentLight,
+                        contentPadding = PaddingValues(vertical = 4.dp, horizontal = 4.dp)
+                    )
+                    PixelButton(
+                        text = "+10 🪙",
+                        onClick = {
+                            val curr = customInput.toIntOrNull() ?: 0
+                            val next = (curr + 10).coerceAtMost(amount + remainder)
+                            customInput = next.toString()
+                        },
+                        modifier = Modifier.weight(1f),
+                        fontSize = 13.sp,
+                        containerColor = PixelParchmentLight,
+                        contentPadding = PaddingValues(vertical = 4.dp, horizontal = 4.dp)
+                    )
+                    PixelButton(
+                        text = "Все (${amount + remainder})",
+                        onClick = { customInput = (amount + remainder).toString() },
+                        modifier = Modifier.weight(1.5f),
+                        fontSize = 13.sp,
+                        containerColor = PixelParchmentLight,
+                        contentPadding = PaddingValues(vertical = 4.dp, horizontal = 4.dp)
+                    )
+                }
+            }
+        }
+    }
+
     val fillRatio = if (walletBalance > 0) {
         (amount.toFloat() / walletBalance.toFloat()).coerceIn(0f, 1f)
     } else {
@@ -582,10 +717,14 @@ private fun MagicJarCard(
                 )
             }
             Spacer(modifier = Modifier.width(6.dp))
-            // текущая сумма в баночке в пиксельном бейдже (слово категории ПОД монетками)
+            // текущая сумма в баночке в пиксельном бейдже (клик открывает ввод своей суммы)
             Box(
                 modifier = Modifier
                     .pixelButtonBackground(containerColor = PixelParchmentLight)
+                    .clickable(enabled = !isReadOnly) {
+                        customInput = amount.toString()
+                        showCustomDialog = true
+                    }
                     .padding(horizontal = 10.dp, vertical = 5.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -643,7 +782,7 @@ private fun MagicJarCard(
         if (!isReadOnly) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // бейдж категории и кнопки быстрого добавления (-10, +10, +20)
+            // бейдж категории и кнопки быстрого добавления (-10, +10, +20, Своя)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -652,11 +791,11 @@ private fun MagicJarCard(
                 Box(
                     modifier = Modifier
                         .pixelButtonBackground(containerColor = color.copy(alpha = 0.35f))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = categoryLabel,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontFamily = AppFontFamily,
                         fontWeight = FontWeight.Bold,
                         color = PixelTextDark
@@ -664,33 +803,49 @@ private fun MagicJarCard(
                 }
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     PixelButton(
                         text = "-10",
                         onClick = onMinus,
                         enabled = amount >= 10,
+                        repeating = true,
                         containerColor = PixelParchmentMedium,
                         textColor = PixelTextDark,
-                        fontSize = 14.sp,
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
+                        fontSize = 13.sp,
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp)
                     )
                     PixelButton(
                         text = "+10",
                         onClick = onPlus10,
+                        enabled = remainder >= 10,
+                        repeating = true,
                         containerColor = color,
                         textColor = Color.White,
-                        fontSize = 14.sp,
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
+                        fontSize = 13.sp,
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp)
                     )
                     PixelButton(
                         text = "+20",
                         onClick = onPlus20,
+                        enabled = remainder >= 20,
+                        repeating = true,
                         containerColor = color,
                         textColor = Color.White,
-                        fontSize = 14.sp,
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
+                        fontSize = 13.sp,
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp)
+                    )
+                    PixelButton(
+                        text = "Своя",
+                        onClick = {
+                            customInput = amount.toString()
+                            showCustomDialog = true
+                        },
+                        containerColor = PixelParchmentLight,
+                        textColor = PixelTextDark,
+                        fontSize = 12.sp,
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp)
                     )
                 }
             }

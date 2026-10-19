@@ -367,7 +367,7 @@ fun FloorCleaningGameDialog(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "🎉 ВСЕ ЛИСТЬЯ СОБРАНЫ! 🎉",
+                            text = "ВСЕ ЛИСТЬЯ СОБРАНЫ!",
                             fontFamily = AppFontFamily,
                             fontWeight = FontWeight.Black,
                             fontSize = 19.sp,

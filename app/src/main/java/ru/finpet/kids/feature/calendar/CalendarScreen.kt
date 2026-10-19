@@ -270,7 +270,7 @@ fun CalendarScreen(
                     Spacer(modifier = Modifier.width(6.dp))
                 }
                 Text(
-                    text = if (isNextMonday) "🎉 Завтра понедельник: выплата 200 монет карманных денег!"
+                    text = if (isNextMonday) "Завтра понедельник: выплата 200 монет карманных денег!"
                     else "Карманные деньги (+200 монет) выдаются по понедельникам",
                     fontSize = 15.sp,
                     color = PixelTextMuted,

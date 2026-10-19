@@ -59,6 +59,7 @@ import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
+import ru.finpet.kids.core.designsystem.RenderBoardIcon
 import ru.finpet.kids.core.designsystem.StardewBoard
 
 /**
@@ -130,7 +131,7 @@ fun RecurringExpensesDialog(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                                    Text(text = expense.icon, fontSize = 20.sp)
+                                    RenderBoardIcon(expense.icon, modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Column {
                                         Text(
@@ -182,7 +183,7 @@ fun RecurringExpensesDialog(
                     item {
                         Spacer(modifier = Modifier.height(4.dp))
                         PixelButton(
-                            text = "➕ Добавить цикличную трату",
+                            text = "Добавить цикличную трату",
                             onClick = onOpenAddRecurring,
                             containerColor = PixelGoldBright,
                             modifier = Modifier.fillMaxWidth(),
@@ -190,7 +191,7 @@ fun RecurringExpensesDialog(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         PixelButton(
-                            text = "✕ Закрыть",
+                            text = "Закрыть",
                             onClick = onDismiss,
                             containerColor = PixelParchmentDark,
                             textColor = PixelTextDark,
@@ -312,7 +313,7 @@ fun AddRecurringExpenseDialog(
                             .padding(vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = icon, fontSize = 18.sp)
+                        RenderBoardIcon(icon, modifier = Modifier.size(18.dp))
                     }
                 }
             }

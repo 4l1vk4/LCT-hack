@@ -298,7 +298,8 @@ fun HomeGoalsBottomSheet(
                                 }
                                 onDeposit(goalId, amount)
                             },
-                            onWithdrawClick = { withdrawWarningGoal = it }
+                            onWithdrawClick = { withdrawWarningGoal = it },
+                            onCustomWithdraw = { goalId, amount -> onWithdraw(goalId, amount) }
                         )
                     }
                 }

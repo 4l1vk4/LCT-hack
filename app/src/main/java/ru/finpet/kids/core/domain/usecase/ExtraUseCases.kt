@@ -182,7 +182,6 @@ class QuestEngineUseCase @Inject constructor(
 
 // --- 3. Раздел для взрослого ---
 data class AdultChallenge(
-    val title: String,
     val question: String,
     val correctAnswer: String,
     val options: List<String>
@@ -200,19 +199,16 @@ class AdultSectionUseCase @Inject constructor(
     fun generateAdultChallenge(): AdultChallenge {
         val challenges = listOf(
             AdultChallenge(
-                title = "Налоговая грамотность",
                 question = "Какова базовая ставка налога на доходы физических лиц (НДФЛ) в РФ?",
                 correctAnswer = "13%",
                 options = listOf("13%", "20%", "7%").shuffled()
             ),
             AdultChallenge(
-                title = "Гражданское право",
                 question = "С какого возраста в РФ наступает полная гражданская дееспособность?",
                 correctAnswer = "18 лет",
                 options = listOf("18 лет", "14 лет", "21 год").shuffled()
             ),
             AdultChallenge(
-                title = "Государственные документы",
                 question = "Как расшифровывается аббревиатура ИНН гражданина?",
                 correctAnswer = "Идентификационный номер налогоплательщика",
                 options = listOf(
@@ -222,43 +218,36 @@ class AdultSectionUseCase @Inject constructor(
                 ).shuffled()
             ),
             AdultChallenge(
-                title = "Алгебра (7 класс)",
                 question = "Решите уравнение: 4x - 18 = 46. Чему равен x?",
                 correctAnswer = "16",
                 options = listOf("16", "14", "18").shuffled()
             ),
             AdultChallenge(
-                title = "Алгебра (7 класс)",
                 question = "Решите уравнение: 5x + 27 = 92. Чему равен x?",
                 correctAnswer = "13",
                 options = listOf("13", "11", "15").shuffled()
             ),
             AdultChallenge(
-                title = "Финансовая математика",
                 question = "Сколько рублей составляют 15% скидки от суммы 600 рублей?",
                 correctAnswer = "90 руб.",
                 options = listOf("90 руб.", "60 руб.", "120 руб.").shuffled()
             ),
             AdultChallenge(
-                title = "Банковские вклады",
                 question = "Доход по банковскому вкладу 12% годовых от 10 000 рублей за год составит:",
                 correctAnswer = "1 200 руб.",
                 options = listOf("1 200 руб.", "800 руб.", "1 500 руб.").shuffled()
             ),
             AdultChallenge(
-                title = "Документооборот",
                 question = "Какой документ подтверждает регистрацию права собственности на квартиру?",
                 correctAnswer = "Выписка из ЕГРН",
                 options = listOf("Выписка из ЕГРН", "Паспорт БТИ", "Договор задатка").shuffled()
             ),
             AdultChallenge(
-                title = "Социальные стандарты",
                 question = "Какой документ удостоверяет регистрацию в системе пенсионного страхования РФ?",
                 correctAnswer = "СНИЛС",
                 options = listOf("СНИЛС", "ОМС", "ОГРН").shuffled()
             ),
             AdultChallenge(
-                title = "Система уравнений (7 класс)",
                 question = "Решите систему: x + y = 20, x - y = 6. Чему равен x?",
                 correctAnswer = "13",
                 options = listOf("13", "14", "11").shuffled()

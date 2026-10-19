@@ -83,10 +83,6 @@ fun OrbStatBar(
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (safeValue <= 30 && showWarning) {
-                    ExclamationIcon(modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                }
                 Text(
                     text = "$animatedValue%",
                     fontSize = 16.sp,

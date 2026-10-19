@@ -55,6 +55,7 @@ import ru.finpet.kids.core.designsystem.HeartIcon
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.LightningIcon
 import ru.finpet.kids.core.designsystem.LockIcon
+import ru.finpet.kids.core.designsystem.MoneyBagIcon
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.PixelBar
 import ru.finpet.kids.core.designsystem.PixelButton
@@ -66,6 +67,7 @@ import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
+import ru.finpet.kids.core.designsystem.TelezhkaIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.designsystem.WarningIcon
@@ -316,9 +318,9 @@ fun ShopBottomSheet(
         val takeFromFreeOptional = missingOptional
 
         val confirmButtonText = when {
-            item.id == "groceries_parents" -> "Выполнить 🛒"
-            isMandatoryShortage && takeFromOptional > 0 -> "Взять из желаемого и купить 🛒"
-            else -> "Купить 🛒"
+            item.id == "groceries_parents" -> "Выполнить"
+            isMandatoryShortage && takeFromOptional > 0 -> "Взять из желаемого и купить"
+            else -> "Купить"
         }
 
         PixelAlertDialog(
@@ -328,7 +330,7 @@ fun ShopBottomSheet(
                 !isEnoughCoins -> "Не хватает монет"
                 else -> "Покупка"
             },
-            icon = if (!isEnoughCoins) "!" else "🛒",
+            icon = if (!isEnoughCoins) "!" else "",
             confirmButton = {
                 if (isEnoughCoins) {
                     PixelButton(
@@ -340,6 +342,7 @@ fun ShopBottomSheet(
                         enabled = !isRunaway,
                         containerColor = if (isMandatoryShortage && takeFromOptional > 0) JoyOrange else FreshGreen,
                         textColor = Color.White,
+                        trailingIcon = { TelezhkaIcon(modifier = Modifier.size(16.dp)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 } else {
@@ -375,8 +378,10 @@ fun ShopBottomSheet(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        MoneyBagIcon(modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "💰 Награда: сдача 5, 10 или 15 ",
+                            text = "Награда: сдача 5, 10 или 15 ",
                             fontFamily = AppFontFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 17.sp,
@@ -533,7 +538,7 @@ fun ShopBottomSheet(
                                             Spacer(modifier = Modifier.height(4.dp))
                                             val jarInfo = if (remainingMandatory > 0) "В обязательной банке осталось $remainingMandatory монет. " else "В обязательной банке нет монет. "
                                             Text(
-                                                text = "${jarInfo}Из банки «Желаемое» будет взято $takeFromOptional монет (в ней больше нет монет), а остальные $takeFromFreeMandatory монет оплатятся свободными деньгами!",
+                                                text = "${jarInfo}Из банки «Желаемое» будет взято $takeFromOptional монет, а остальные $takeFromFreeMandatory монет спишутся из свободного кошелька. ⚠️ Оплата нераспределёнными деньгами снизит точность бюджета!",
                                                 fontFamily = AppFontFamily,
                                                 fontSize = 14.sp,
                                                 color = Color(0xFFE65100),
@@ -566,7 +571,7 @@ fun ShopBottomSheet(
                                                 "В банке «Обязательное» нет монет. "
                                             }
                                             Text(
-                                                text = "${mandInfo}В банке «Желаемое» монет тоже нет, поэтому недостающие $takeFromFreeMandatory монет полностью оплачиваются свободными деньгами (за дела и игры)!",
+                                                text = "${mandInfo}В банке «Желаемое» монет тоже нет, поэтому недостающие $takeFromFreeMandatory монет оплачиваются из свободного кошелька. ⚠️ Оплата нераспределёнными деньгами снизит точность бюджета!",
                                                 fontFamily = AppFontFamily,
                                                 fontSize = 14.sp,
                                                 color = PixelTextDark,
@@ -595,9 +600,9 @@ fun ShopBottomSheet(
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         val jarText = if (remainingOptional > 0) {
-                                            "В банке «Желаемое» осталось $remainingOptional монет. Недостающие $takeFromFreeOptional монет будут оплачены свободными деньгами, заработанными за полезные дела и игры (без штрафа за перерасход)!"
+                                            "В банке «Желаемое» осталось $remainingOptional монет. Недостающие $takeFromFreeOptional монет будут оплачены свободными деньгами из кошелька. ⚠️ Нераспределённые траты снижают точность бюджета!"
                                         } else {
-                                            "В банке «Желаемое» нет монет, но покупка полностью оплачивается свободными деньгами, заработанными за полезные дела и игры (без штрафа за перерасход)!"
+                                            "В банке «Желаемое» нет монет, покупка оплачивается свободными деньгами из кошелька. ⚠️ Нераспределённые траты труднее контролировать и они снижают точность бюджета!"
                                         }
                                         Text(
                                             text = jarText,
