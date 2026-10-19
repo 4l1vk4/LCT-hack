@@ -403,7 +403,7 @@ fun DishesCleaningGameDialog(
                                         .padding(horizontal = 12.dp, vertical = 4.dp)
                                 ) {
                                     Text(
-                                        text = if (cleanPercent >= 100) "Чисто! ✨" else "Чистота: $cleanPercent%",
+                                        text = if (cleanPercent >= 100) "Чисто!" else "Чистота: $cleanPercent%",
                                         fontFamily = AppFontFamily,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Bold,

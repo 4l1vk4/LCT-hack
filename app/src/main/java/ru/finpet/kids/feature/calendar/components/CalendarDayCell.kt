@@ -119,17 +119,7 @@ fun CalendarDayCell(
                 }
             }
 
-            // Нижняя золотая полоска статуса сегодняшнего дня
-            if (isToday) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(3.dp)
-                        .background(PixelGoldBright)
-                )
-            } else {
-                Spacer(modifier = Modifier.height(3.dp))
-            }
+            Spacer(modifier = Modifier.height(3.dp))
         }
     }
 }

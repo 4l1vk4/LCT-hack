@@ -84,6 +84,11 @@ fun HomeChoreCard(
                             contentDescription = chore.title,
                             modifier = Modifier.size(34.dp)
                         )
+                        "chore_match3" -> Image(
+                            painter = painterResource(id = R.drawable.blue_ball),
+                            contentDescription = chore.title,
+                            modifier = Modifier.size(34.dp)
+                        )
                         else -> Text(text = chore.icon, fontSize = 26.sp)
                     }
                 }
@@ -120,13 +125,15 @@ fun HomeChoreCard(
                 }
             } else {
                 PixelButton(
-                    text = "Играть! +${chore.rewardCoins}",
+                    text = if (chore.rewardCoins > 0) "Играть! +${chore.rewardCoins}" else "Играть!",
                     onClick = { onPlayMinigame(chore) },
                     containerColor = PixelGoldBright,
                     textColor = PixelTextDark,
                     fontSize = 16.sp,
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                    trailingIcon = { CoinIcon(modifier = Modifier.size(16.dp)) }
+                    trailingIcon = if (chore.rewardCoins > 0) {
+                        { CoinIcon(modifier = Modifier.size(16.dp)) }
+                    } else null
                 )
             }
         }

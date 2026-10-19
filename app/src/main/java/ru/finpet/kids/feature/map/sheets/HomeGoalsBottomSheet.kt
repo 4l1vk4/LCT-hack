@@ -66,6 +66,7 @@ import ru.finpet.kids.feature.map.components.PixelDarkBrown
 import ru.finpet.kids.feature.map.components.PixelLocationModalSheet
 import ru.finpet.kids.feature.map.minigames.DishesCleaningGameDialog
 import ru.finpet.kids.feature.map.minigames.FloorCleaningGameDialog
+import ru.finpet.kids.feature.map.minigames.MatchThreeGameDialog
 import ru.finpet.kids.feature.map.minigames.TrashCollectionGameDialog
 import ru.finpet.kids.feature.map.sheets.components.GoalProgressCard
 import ru.finpet.kids.feature.map.sheets.components.HomeChoreCard
@@ -102,6 +103,13 @@ val DEFAULT_HOME_CHORES = listOf(
         description = "Помыть за собой тарелку, ложку и кружку после еды (каждый день)",
         icon = "🍽️",
         rewardCoins = 5
+    ),
+    HomeChoreItem(
+        id = "chore_match3",
+        title = "Три в ряд",
+        description = "Бесконечная игра с котиком (для удовольствия, без монет)",
+        icon = "🎮",
+        rewardCoins = 0
     )
 )
 
@@ -169,6 +177,7 @@ fun HomeGoalsBottomSheet(
 
     // Проверка периода кулдауна домашних дел
     fun checkChoreDone(choreId: String): Boolean {
+        if (choreId == "chore_match3") return false
         val chore = questProgress.find { it.questId == choreId } ?: return false
         if (!chore.isCompleted) return false
         return when (choreId) {
@@ -502,6 +511,12 @@ fun HomeGoalsBottomSheet(
                         onCompleteHomeChore(c.id, c.rewardCoins)
                         completedChoreRewardInfo = c.title to c.rewardCoins
                     },
+                    onDismiss = { activeMinigameChore = null }
+                )
+            }
+            "chore_match3" -> {
+                MatchThreeGameDialog(
+                    currentPeriodIndex = currentPeriodIndex,
                     onDismiss = { activeMinigameChore = null }
                 )
             }

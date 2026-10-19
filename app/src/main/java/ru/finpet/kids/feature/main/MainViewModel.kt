@@ -35,6 +35,9 @@ import ru.finpet.kids.core.domain.usecase.CompletePeriodUseCase
 import ru.finpet.kids.core.domain.usecase.ConfirmBudgetUseCase
 import ru.finpet.kids.core.domain.usecase.DepositToGoalUseCase
 import ru.finpet.kids.core.domain.usecase.MakePurchaseUseCase
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Context
+import ru.finpet.kids.feature.map.minigames.MatchThreePreferences
 import ru.finpet.kids.core.domain.usecase.QuestEngineUseCase
 import ru.finpet.kids.core.domain.usecase.ResetDemoProfileUseCase
 import ru.finpet.kids.core.domain.usecase.WithdrawFromGoalUseCase
@@ -76,6 +79,7 @@ data class PetGrowthInfo(
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val repository: FinPetRepository,
     private val contentRepository: ContentRepository,
     private val settingsRepository: SettingsRepository,
@@ -530,6 +534,9 @@ class MainViewModel @Inject constructor(
             if (result != null && result.coinsAwarded > 0) {
                 showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
             }
+            if (result != null && result.isRecommended) {
+                MatchThreePreferences.awardSchoolBooster(context)
+            }
             val currentDay = _virtualDate.value.dayOfMonth
             val prof = repository.getProfileSync()
             val completedToday = repository.getQuestProgress().first().count {
@@ -556,6 +563,9 @@ class MainViewModel @Inject constructor(
             if (result != null && result.coinsAwarded > 0) {
                 showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
             }
+            if (result != null && result.isRecommended) {
+                MatchThreePreferences.awardSchoolBooster(context)
+            }
             val currentDay = _virtualDate.value.dayOfMonth
             val prof = repository.getProfileSync()
             val completedToday = repository.getQuestProgress().first().count {
@@ -581,6 +591,9 @@ class MainViewModel @Inject constructor(
             val result = questEngineUseCase.executeAllocation(questId, amount)
             if (result != null && result.coinsAwarded > 0) {
                 showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
+            }
+            if (result != null && result.isRecommended) {
+                MatchThreePreferences.awardSchoolBooster(context)
             }
             val currentDay = _virtualDate.value.dayOfMonth
             val prof = repository.getProfileSync()
