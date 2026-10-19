@@ -36,7 +36,7 @@ import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
-import ru.finpet.kids.core.designsystem.TargetIcon
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.feature.map.sheets.components.GoalStickerIcon
@@ -59,6 +59,7 @@ fun FinikGoalCard(
         animationSpec = tween(durationMillis = 500),
         label = "goal_anim"
     )
+    val uiScale = LocalUiScale.current
     val goalBrush = remember {
         Brush.horizontalGradient(listOf(Color(0xFFFFB74D), JoyOrange))
     }
@@ -66,7 +67,7 @@ fun FinikGoalCard(
     FinCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = 6.dp)
+            .padding(bottom = (6.dp * uiScale).coerceIn(4.dp, 6.dp))
             .then(
                 if (onNavigateToGoals != null) {
                     Modifier.clickable(
@@ -76,41 +77,45 @@ fun FinikGoalCard(
                 } else Modifier
             )
     ) {
-        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+        Column(
+            modifier = Modifier.padding(
+                horizontal = (14.dp * uiScale).coerceIn(8.dp, 14.dp),
+                vertical = (10.dp * uiScale).coerceIn(6.dp, 10.dp)
+            )
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f, fill = false)
-                ) {
-                    GoalStickerIcon(goalId = activeGoal.id, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
+                GoalStickerIcon(
+                    goalId = activeGoal.id,
+                    modifier = Modifier.size((20.dp * uiScale).coerceIn(16.dp, 20.dp))
+                )
+                Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 6.dp)))
 
-                    Text(
-                        text = "Цель: ${activeGoal.title}",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Цель: ${activeGoal.title}",
+                    modifier = Modifier.weight(1f),
+                    fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${activeGoal.savedAmount} / ${activeGoal.targetCost} ",
-                        fontSize = 16.sp,
+                        text = "${activeGoal.savedAmount}/${activeGoal.targetCost}",
+                        fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = JoyOrange
                     )
-                    CoinIcon(modifier = Modifier.size(15.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(2.dp))
+                    CoinIcon(modifier = Modifier.size((14.dp * uiScale).coerceIn(11.dp, 15.dp)))
+                    Spacer(modifier = Modifier.width(3.dp))
                     Text(
                         text = "($percent%)",
-                        fontSize = 14.sp,
+                        fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                         fontWeight = FontWeight.Bold,
                         color = if (activeGoal.isReached) FreshGreen else TextSecondary
                     )

@@ -26,6 +26,10 @@ import ru.finpet.kids.core.notification.NotificationPreferences
 import ru.finpet.kids.core.notification.NotificationScheduler
 import javax.inject.Inject
 
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -57,8 +61,15 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FinPetTheme {
+                val focusManager = LocalFocusManager.current
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectTapGestures(onTap = {
+                                focusManager.clearFocus()
+                            })
+                        },
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val viewModel: MainViewModel = hiltViewModel()

@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,17 +30,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.LampochkaIcon
-import ru.finpet.kids.core.designsystem.LightningIcon
 import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
@@ -49,7 +46,6 @@ import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
-import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelTextMuted
@@ -88,7 +84,7 @@ fun  financialGlossary(petName: String) = listOf(
         term = "Обязательные траты",
         icon = "🥣",
         definition = "Это то, без чего нельзя обойтись: еда, вода, уход за питомцем.",
-        example = "Корм для $petName и лекарства — обязательные траты."
+        example = "Корм для питомца и уход — обязательные траты."
     ),
     GlossaryTerm(
         term = "Желаемые траты",
@@ -106,7 +102,7 @@ fun  financialGlossary(petName: String) = listOf(
         term = "Копилка",
         icon = "empty_jar",
         definition = "Место, где хранятся накопления. Их нельзя взять просто так — только с подтверждением.",
-        example = "В копилке уже 100 монет на домик для $petName."
+        example = "В копилке уже 100 монет на домик для питомца."
     ),
     GlossaryTerm(
         term = "Финансовая цель",
@@ -152,8 +148,9 @@ fun GlossaryDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        KeepScreenImmersive()
-        Box(
+        FinPetTheme {
+            KeepScreenImmersive()
+            Box(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .fillMaxHeight(0.92f)
@@ -161,7 +158,7 @@ fun GlossaryDialog(
         ) {
             StardewBoard(
                 modifier = Modifier.fillMaxSize(),
-                headerTitle = "СЛОВАРИК ${petName.uppercase()}",
+                headerTitle = "ФИНАНСОВЫЙ СЛОВАРИК",
                 headerIcon = "📚"
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
@@ -299,5 +296,6 @@ fun GlossaryDialog(
                 }
             }
         }
+    }
     }
 }

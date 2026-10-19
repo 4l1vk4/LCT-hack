@@ -7,7 +7,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -23,11 +22,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
 import ru.finpet.kids.core.designsystem.CatCryIcon
 import ru.finpet.kids.core.designsystem.CloudIcon
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -50,19 +47,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.data.local.entity.GoalEntity
-import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import androidx.compose.ui.text.style.TextAlign
 import ru.finpet.kids.core.designsystem.AppFontFamily
-import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
-import ru.finpet.kids.core.domain.model.ActualExpenses
-import ru.finpet.kids.core.domain.model.BudgetPlan
-import ru.finpet.kids.feature.budget.BudgetPlanVsFactDialog
-import ru.finpet.kids.feature.budget.BudgetPlanningDialog
 import ru.finpet.kids.feature.finik.components.FinikDailyTaskCard
 import ru.finpet.kids.feature.finik.components.FinikGoalCard
 import ru.finpet.kids.feature.finik.components.FinikRunawaySection
@@ -91,16 +82,12 @@ fun FinikScreen(
     animationsEnabled: Boolean = true,
     onNavigateToGoals: ((String?) -> Unit)? = null,
     onNavigateToMap: (() -> Unit)? = null,
-    onNavigateToPlans: (() -> Unit)? = null,
     onNavigateToTask: ((CalendarNoteEntity) -> Unit)? = null,
     openAdvice: Boolean = false,
     onAdviceDismissed: () -> Unit = {},
     onAskQuestion: () -> Unit = {},
     onPlaceFoodBowl: () -> Unit = {},
     onToggleNote: (CalendarNoteEntity) -> Unit = {},
-    isBudgetConfirmed: Boolean = true,
-    currentPeriod: PeriodEntity? = null,
-    onConfirmBudget: (BudgetPlan) -> Unit = {},
     isNight: Boolean = false
 ) {
     var panelOpen by remember { mutableStateOf(false) }
@@ -113,8 +100,6 @@ fun FinikScreen(
 
     var showWardrobe by remember { mutableStateOf(false) }
     var showTasksMenu by remember { mutableStateOf(false) }
-    var showBudgetPlanningDialog by remember { mutableStateOf(false) }
-    var showPlanVsFactDialog by remember { mutableStateOf(false) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
     var hiddenRoomItems by remember {
@@ -482,73 +467,6 @@ fun FinikScreen(
                 onOpenQuestions = { panelOpen = true },
                 onDismiss = { showTasksMenu = false },
                 isPetRunaway = isPetRunaway
-            )
-        }
-
-        // Диалог планирования бюджета
-        if (showBudgetPlanningDialog) {
-            val initialPlan = remember(currentPeriod) {
-                BudgetPlan(
-                    plannedMandatory = currentPeriod?.plannedMandatory ?: 0,
-                    plannedOptional = currentPeriod?.plannedOptional ?: 0,
-                    plannedSavings = currentPeriod?.plannedSavings ?: 0
-                )
-            }
-            BudgetPlanningDialog(
-                balance = profile?.balance ?: 0,
-                currentDay = profile?.currentPeriodIndex ?: 1,
-                initialPlan = initialPlan,
-                isConfirmed = isBudgetConfirmed,
-                onConfirm = { newPlan ->
-                    onConfirmBudget(newPlan)
-                    showBudgetPlanningDialog = false
-                },
-                onDismiss = { showBudgetPlanningDialog = false }
-            )
-        }
-
-        // Диалог «План vs Факт»
-        if (showPlanVsFactDialog && currentPeriod != null) {
-            val plan = remember(currentPeriod) {
-                BudgetPlan(
-                    plannedMandatory = currentPeriod.plannedMandatory,
-                    plannedOptional = currentPeriod.plannedOptional,
-                    plannedSavings = currentPeriod.plannedSavings
-                )
-            }
-            val actual = remember(currentPeriod) {
-                ActualExpenses(
-                    actualMandatory = currentPeriod.actualMandatory,
-                    actualOptional = currentPeriod.actualOptional,
-                    actualSavings = currentPeriod.actualSavings,
-                    withdrawnSavings = currentPeriod.withdrawnSavings,
-                    borrowedFromOptional = currentPeriod.borrowedFromOptional,
-                    hasPurchasedFood = currentPeriod.actualMandatory >= PetEconomyCalculator.MIN_FOOD_COST,
-                    hasPurchasedWater = currentPeriod.actualMandatory >= PetEconomyCalculator.MIN_WATER_COST
-                )
-            }
-            val compliance = remember(plan, actual, profile) {
-                PetEconomyCalculator.calculateCompliance(
-                    plan = plan,
-                    actual = actual,
-                    isPetRunaway = profile?.isPetRunaway == true,
-                    petMood = if (profile?.isPetRunaway == true) 0 else (profile?.mood ?: 70),
-                    petSatiety = profile?.satiety ?: 100,
-                    petHealth = profile?.health ?: 100
-                )
-            }
-            BudgetPlanVsFactDialog(
-                currentDay = profile?.currentPeriodIndex ?: 1,
-                plan = plan,
-                actual = actual,
-                compliance = compliance,
-                onEditPlan = if (isBudgetConfirmed) null else {
-                    {
-                        showPlanVsFactDialog = false
-                        showBudgetPlanningDialog = true
-                    }
-                },
-                onDismiss = { showPlanVsFactDialog = false }
             )
         }
 

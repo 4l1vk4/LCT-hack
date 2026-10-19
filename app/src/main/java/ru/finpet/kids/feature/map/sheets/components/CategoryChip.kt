@@ -11,7 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextAlign
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelTextDark
@@ -26,24 +29,31 @@ import ru.finpet.kids.core.designsystem.pixelButtonBackground
 fun CategoryChip(
     text: String,
     isSelected: Boolean,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val uiScale = LocalUiScale.current
     Box(
-        modifier = Modifier
+        modifier = modifier
             .pixelButtonBackground(containerColor = if (isSelected) PixelGoldBright else PixelParchmentLight)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 12.dp, vertical = 7.dp)
+            .padding(
+                horizontal = (8.dp * uiScale).coerceIn(4.dp, 12.dp),
+                vertical = (5.dp * uiScale).coerceIn(3.dp, 7.dp)
+            ),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
             fontFamily = AppFontFamily,
-            fontSize = 16.sp,
+            fontSize = (15f * uiScale).coerceIn(10f, 16f).sp,
             fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
-            color = if (isSelected) PixelTextDark else PixelWoodDark
+            color = if (isSelected) PixelTextDark else PixelWoodDark,
+            textAlign = TextAlign.Center
         )
     }
 }

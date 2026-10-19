@@ -2,7 +2,6 @@ package ru.finpet.kids.feature.main
 
 import android.util.Log
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image

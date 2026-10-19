@@ -1,6 +1,5 @@
 package ru.finpet.kids.feature.map.sheets
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,6 +44,7 @@ import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.AppleIcon
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.ExclamationIcon
+import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.HeartIcon
@@ -52,7 +52,6 @@ import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.LightningIcon
 import ru.finpet.kids.core.designsystem.PixelButton
-import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
@@ -61,7 +60,6 @@ import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.TelezhkaIcon
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
-import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.StardewBoard
 
@@ -135,8 +133,9 @@ fun PreorderPlanDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        KeepScreenImmersive()
-        Box(
+        FinPetTheme {
+            KeepScreenImmersive()
+            Box(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .fillMaxHeight(0.9f)
@@ -329,6 +328,7 @@ fun PreorderPlanDialog(
             }
         }
     }
+    }
 
     // диалог подтверждения быстрой покупки
     if (showConfirmDialog) {
@@ -385,8 +385,9 @@ fun QuickBuyConfirmDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        KeepScreenImmersive()
-        Box(
+        FinPetTheme {
+            KeepScreenImmersive()
+            Box(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .fillMaxHeight(0.94f)
@@ -712,5 +713,6 @@ fun QuickBuyConfirmDialog(
                 }
             }
         }
+    }
     }
 }

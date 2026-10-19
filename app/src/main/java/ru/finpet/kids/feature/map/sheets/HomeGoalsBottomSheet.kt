@@ -6,20 +6,16 @@ import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.res.painterResource
 import ru.finpet.kids.feature.map.sheets.components.GoalStickerIcon
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -49,18 +45,15 @@ import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
-import ru.finpet.kids.core.designsystem.PixelBar
 import ru.finpet.kids.core.designsystem.PixelButton
-import ru.finpet.kids.core.designsystem.PixelGoldBright
-import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
-import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.feature.map.components.PixelDarkBrown
 import ru.finpet.kids.feature.map.components.PixelLocationModalSheet
@@ -188,8 +181,6 @@ fun HomeGoalsBottomSheet(
         }
     }
 
-    val completedChoresCount = DEFAULT_HOME_CHORES.count { chore -> checkChoreDone(chore.id) }
-
     val animTotalSaved by animateIntAsState(
         targetValue = totalSaved,
         animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
@@ -201,25 +192,27 @@ fun HomeGoalsBottomSheet(
         subtitle = "Выполняй домашние дела, зарабатывай монеты и копи на мечту",
         headerDrawableRes = R.drawable.house_background_empty,
         badgeContent = {
+            val uiScale = LocalUiScale.current
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = "$animTotalSaved",
-                    fontSize = 16.sp,
+                    fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = PixelDarkBrown,
                     fontFamily = AppFontFamily
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                CoinIcon(modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width((3.dp * uiScale).coerceIn(2.dp, 4.dp)))
+                CoinIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 18.dp)))
             }
         },
         onDismiss = onDismiss,
         listState = listState
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        val uiScale = LocalUiScale.current
+        Column(verticalArrangement = Arrangement.spacedBy((12.dp * uiScale).coerceIn(8.dp, 14.dp))) {
             // Кнопка-аккордеон копилки целей
             FinCard(
                 modifier = Modifier
@@ -230,7 +223,10 @@ fun HomeGoalsBottomSheet(
                     ) { isPiggyBankExpanded = !isPiggyBankExpanded }
             ) {
                 Row(
-                    modifier = Modifier.padding(14.dp),
+                    modifier = Modifier.padding(
+                        horizontal = (12.dp * uiScale).coerceIn(8.dp, 14.dp),
+                        vertical = (10.dp * uiScale).coerceIn(6.dp, 12.dp)
+                    ),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -241,27 +237,27 @@ fun HomeGoalsBottomSheet(
                         Image(
                             painter = painterResource(id = R.drawable.saving_jar),
                             contentDescription = "Копилка на мечту",
-                            modifier = Modifier.size(42.dp)
+                            modifier = Modifier.size((32.dp * uiScale).coerceIn(20.dp, 34.dp))
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(4.dp, 12.dp)))
                         Column {
                             Text(
                                 text = "Копилка на мечту",
-                                fontSize = 18.sp,
+                                fontSize = (16f * uiScale).coerceIn(12f, 18f).sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = if (isPiggyBankExpanded) "Нажми, чтобы скрыть цели ▲" else "Накоплено $totalSaved монет • Нажми, чтобы открыть ▼",
-                                fontSize = 16.sp,
+                                fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
                                 color = TextSecondary
                             )
                         }
                     }
                     Text(
                         text = if (isPiggyBankExpanded) "▲" else "▼",
-                        fontSize = 20.sp,
+                        fontSize = (16f * uiScale).coerceIn(12f, 18f).sp,
                         fontWeight = FontWeight.Bold,
                         color = JoyOrange
                     )
@@ -270,20 +266,23 @@ fun HomeGoalsBottomSheet(
 
             // Раскрывающийся список целей
             AnimatedVisibility(visible = isPiggyBankExpanded) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy((10.dp * uiScale).coerceIn(6.dp, 12.dp))) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .pixelButtonBackground(containerColor = Color(0xFFFFF9EE))
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                            .padding(
+                                horizontal = (12.dp * uiScale).coerceIn(8.dp, 16.dp),
+                                vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp)
+                            ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CoinIcon(modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
+                        CoinIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 20.dp)))
+                        Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
                         Text(
                             text = "Доступно для накоплений: $balance монет",
                             fontFamily = AppFontFamily,
-                            fontSize = 18.sp,
+                            fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF2E7D32)
                         )
@@ -318,7 +317,7 @@ fun HomeGoalsBottomSheet(
             // Блок домашних дел (заданий)
             Column(
                 modifier = Modifier.bringIntoViewRequester(choresRequester),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy((8.dp * uiScale).coerceIn(4.dp, 10.dp))
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -328,7 +327,7 @@ fun HomeGoalsBottomSheet(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "Задания и дела по дому",
-                            fontSize = 22.sp,
+                            fontSize = (18f * uiScale).coerceIn(13f, 22f).sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = TextPrimary
                         )
@@ -337,7 +336,7 @@ fun HomeGoalsBottomSheet(
 
                 Text(
                     text = "Выполняй задания по дому и получай монеты в награду:",
-                    fontSize = 16.sp,
+                    fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
                     color = TextSecondary
                 )
 
@@ -357,7 +356,7 @@ fun HomeGoalsBottomSheet(
         PixelAlertDialog(
             onDismissRequest = { completedChoreRewardInfo = null },
             title = "Дело сделано!",
-            icon = "🎉",
+            icon = "",
             confirmButton = {
                 PixelButton(
                     text = "Ура! +$reward",

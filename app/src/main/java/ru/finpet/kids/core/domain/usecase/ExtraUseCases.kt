@@ -5,8 +5,6 @@ import kotlinx.coroutines.coroutineScope
 import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.data.repository.ContentRepository
-import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
-import ru.finpet.kids.core.domain.model.GrowthStage
 import ru.finpet.kids.core.domain.repository.FinPetRepository
 import javax.inject.Inject
 import kotlin.math.ceil

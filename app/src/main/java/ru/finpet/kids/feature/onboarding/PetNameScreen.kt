@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -19,7 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
-import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
@@ -29,6 +27,10 @@ import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.StardewBoard
 
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+
 @Composable
 fun PetNameScreen(
     onNameConfirmed: (String) -> Unit
@@ -36,11 +38,15 @@ fun PetNameScreen(
     var name by remember { mutableStateOf("") }
     val trimmed = name.trim()
     val isValid = trimmed.length in 2..16
+    val focusManager = LocalFocusManager.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFE8DAC2))
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            }
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -55,9 +61,6 @@ fun PetNameScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 12.dp)
             ) {
-                Text(text = "✏️", fontSize = 54.sp)
-                Spacer(modifier = Modifier.height(10.dp))
-
                 Text(
                     text = "Как назовём питомца?",
                     fontFamily = AppFontFamily,

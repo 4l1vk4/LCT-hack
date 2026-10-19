@@ -32,7 +32,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,6 +64,7 @@ import kotlinx.coroutines.launch
 import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
@@ -121,17 +121,7 @@ fun DishesCleaningGameDialog(
         }
     }
 
-    // Пульсация кнопки победы
     val infiniteTransition = rememberInfiniteTransition(label = "winPulseDishes")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(600, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulseScaleDishes"
-    )
 
     // Анимация покачивания подсказки губки
     val spongeBobbing by infiniteTransition.animateFloat(
@@ -196,8 +186,9 @@ fun DishesCleaningGameDialog(
             usePlatformDefaultWidth = false
         )
     ) {
-        KeepScreenImmersive()
-        Box(
+        FinPetTheme {
+            KeepScreenImmersive()
+            Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clickable(
@@ -283,7 +274,7 @@ fun DishesCleaningGameDialog(
                                     .padding(horizontal = 10.dp, vertical = 3.dp)
                             ) {
                                 Text(
-                                    text = "Нажми 👆",
+                                    text = "Нажми",
                                     fontFamily = AppFontFamily,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
@@ -366,32 +357,9 @@ fun DishesCleaningGameDialog(
                                 modifier = Modifier.fillMaxSize()
                             )
 
-                            // Губка и индикатор процесса мытья
+                            // индикатор процесса мытья
                             if (!isFlyingToTable) {
                                 val spongeOffset = spongePosition
-                                if (isTouching && spongeOffset != null) {
-                                    Text(
-                                        text = "🧽",
-                                        fontSize = 36.sp,
-                                        modifier = Modifier
-                                            .align(Alignment.TopStart)
-                                            .offset {
-                                                IntOffset(
-                                                    (spongeOffset.x - 20.dp.toPx()).roundToInt(),
-                                                    (spongeOffset.y - 32.dp.toPx()).roundToInt()
-                                                )
-                                            }
-                                    )
-                                } else {
-                                    // Подсказка с покачивающейся губкой
-                                    Text(
-                                        text = "🧽",
-                                        fontSize = 34.sp,
-                                        modifier = Modifier
-                                            .align(Alignment.Center)
-                                            .offset(y = spongeBobbing.dp)
-                                    )
-                                }
 
                                 // Индикатор чистоты под тарелкой
                                 val cleanPercent = (100f - currentDirtyPercent).roundToInt()
@@ -437,14 +405,9 @@ fun DishesCleaningGameDialog(
                             fontSize = 17.sp,
                             color = PixelWoodDark
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "🍽️",
-                            fontSize = 17.sp
-                        )
                     }
                     Text(
-                        text = if (!isPlateZoomed) "Нажми на тарелку в раковине, чтобы вымыть!" else "Води пальцем по тарелке, смывая грязь 🧽",
+                        text = if (!isPlateZoomed) "Нажми на тарелку в раковине, чтобы вымыть!" else "Води пальцем по тарелке, смывая грязь",
                         fontSize = 13.sp,
                         color = Color(0xFF6B4423)
                     )
@@ -549,19 +512,18 @@ fun DishesCleaningGameDialog(
                         }
                         Spacer(modifier = Modifier.height(14.dp))
                         PixelButton(
-                            text = "Забрать $rewardCoins монет ➔",
+                            text = "Забрать $rewardCoins монет",
                             onClick = onCompleteGame,
                             containerColor = FreshGreen,
                             textColor = Color.White,
                             fontSize = 16.sp,
                             trailingIcon = { CoinIcon(modifier = Modifier.size(18.dp)) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .scale(pulseScale)
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
             }
         }
+    }
     }
 }

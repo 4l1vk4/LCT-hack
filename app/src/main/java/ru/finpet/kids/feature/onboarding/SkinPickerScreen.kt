@@ -1,6 +1,5 @@
 package ru.finpet.kids.feature.onboarding
 
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -10,10 +9,8 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -21,32 +18,23 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import ru.finpet.kids.R
-import kotlin.math.roundToInt
 
 data class SkinOption(val id: String, val title: String)
 
@@ -74,8 +62,6 @@ private val PLAY_BUTTON = Hotspot(0.185f, 0.774f, 0.835f, 0.873f)
 private const val CAT_CENTER_X = 0.5f
 private const val CAT_CENTER_Y = 0.6f
 private const val CAT_WIDTH_RATIO = 0.55f
-
-private const val DEBUG = false
 
 @Composable
 @Suppress("UnusedBoxWithConstraintsScope")
@@ -179,54 +165,6 @@ fun SkinPickerScreen(
                 enabled = true,
                 onClick = { onSkinSelected(AVAILABLE_SKINS[currentIndex].id) }
             )
-
-            // 4. Debug: красные рамки + лог тапов
-            if (DEBUG) {
-                Box(
-                    modifier = Modifier
-                        .offset(x = w * LEFT_ARROW.left, y = h * LEFT_ARROW.top)
-                        .size(w * (LEFT_ARROW.right - LEFT_ARROW.left), h * (LEFT_ARROW.bottom - LEFT_ARROW.top))
-                        .background(Color.Red.copy(alpha = 0.25f))
-                        .border(2.dp, Color.Red)
-                )
-                Box(
-                    modifier = Modifier
-                        .offset(x = w * RIGHT_ARROW.left, y = h * RIGHT_ARROW.top)
-                        .size(w * (RIGHT_ARROW.right - RIGHT_ARROW.left), h * (RIGHT_ARROW.bottom - RIGHT_ARROW.top))
-                        .background(Color.Red.copy(alpha = 0.25f))
-                        .border(2.dp, Color.Red)
-                )
-                Box(
-                    modifier = Modifier
-                        .offset(x = w * PLAY_BUTTON.left, y = h * PLAY_BUTTON.top)
-                        .size(w * (PLAY_BUTTON.right - PLAY_BUTTON.left), h * (PLAY_BUTTON.bottom - PLAY_BUTTON.top))
-                        .background(Color.Red.copy(alpha = 0.25f))
-                        .border(2.dp, Color.Red)
-                )
-
-                var debugTaps by remember { mutableStateOf(listOf<Offset>()) }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectTapGestures { offset ->
-                                val nx = offset.x / size.width
-                                val ny = offset.y / size.height
-                                Log.d("SKIN", "tap: nx=$nx ny=$ny (px=${offset.x.roundToInt()},${offset.y.roundToInt()})")
-                                debugTaps = debugTaps + offset
-                            }
-                        }
-                ) {
-                    debugTaps.forEach { pos ->
-                        Box(
-                            modifier = Modifier
-                                .offset { IntOffset(pos.x.roundToInt() - 8, pos.y.roundToInt() - 8) }
-                                .size(16.dp)
-                                .background(Color.Magenta, CircleShape)
-                        )
-                    }
-                }
-            }
         }
     }
 }

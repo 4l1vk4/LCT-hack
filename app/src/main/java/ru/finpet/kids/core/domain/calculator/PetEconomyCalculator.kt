@@ -7,7 +7,6 @@ import ru.finpet.kids.core.domain.model.GrowthStage
 import ru.finpet.kids.core.domain.model.PeriodResolution
 import ru.finpet.kids.core.domain.model.PetEmotion
 import ru.finpet.kids.core.domain.model.PetStats
-import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -37,7 +36,7 @@ object PetEconomyCalculator {
         }
     }
 
-    // карманные деньги начисляются по понедельникам: +200 крокетсов на неделю вперед
+    // карманные деньги начисляются по понедельникам: +200 монет на неделю вперед
     fun calculateDayIncome(nextDayIndex: Int, yearMonth: java.time.YearMonth? = null, isPeriodSkip: Boolean = false): Int {
         return if (isPeriodSkip || isMonday(nextDayIndex, yearMonth)) WEEKLY_ALLOWANCE else DAILY_INCOME
     }

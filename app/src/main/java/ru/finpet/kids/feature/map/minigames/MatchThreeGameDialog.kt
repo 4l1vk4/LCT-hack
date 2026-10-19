@@ -60,6 +60,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
@@ -102,9 +103,18 @@ fun MatchThreeGameDialog(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    var singleCount by remember { mutableIntStateOf(MatchThreePreferences.getBoosterCount(context, BoosterType.SINGLE)) }
+    var columnCount by remember { mutableIntStateOf(MatchThreePreferences.getBoosterCount(context, BoosterType.COLUMN)) }
+    var rowCount by remember { mutableIntStateOf(MatchThreePreferences.getBoosterCount(context, BoosterType.ROW)) }
+    var areaCount by remember { mutableIntStateOf(MatchThreePreferences.getBoosterCount(context, BoosterType.AREA)) }
+
     // Проверка и начисление бустеров каждую неделю (+3 каждого)
     LaunchedEffect(currentPeriodIndex) {
         MatchThreePreferences.checkAndGrantWeekly(context, currentPeriodIndex)
+        singleCount = MatchThreePreferences.getBoosterCount(context, BoosterType.SINGLE)
+        columnCount = MatchThreePreferences.getBoosterCount(context, BoosterType.COLUMN)
+        rowCount = MatchThreePreferences.getBoosterCount(context, BoosterType.ROW)
+        areaCount = MatchThreePreferences.getBoosterCount(context, BoosterType.AREA)
     }
 
     var board by remember { mutableStateOf(MatchThreeGameLogic.generateInitialBoard()) }
@@ -124,11 +134,6 @@ fun MatchThreeGameDialog(
 
     var score by remember { mutableIntStateOf(0) }
     var highScore by remember { mutableIntStateOf(MatchThreePreferences.getHighScore(context)) }
-
-    var singleCount by remember { mutableIntStateOf(MatchThreePreferences.getBoosterCount(context, BoosterType.SINGLE)) }
-    var columnCount by remember { mutableIntStateOf(MatchThreePreferences.getBoosterCount(context, BoosterType.COLUMN)) }
-    var rowCount by remember { mutableIntStateOf(MatchThreePreferences.getBoosterCount(context, BoosterType.ROW)) }
-    var areaCount by remember { mutableIntStateOf(MatchThreePreferences.getBoosterCount(context, BoosterType.AREA)) }
 
     var activeBooster by remember { mutableStateOf<BoosterType?>(null) }
     var statusBannerText by remember { mutableStateOf<String?>(null) }
@@ -335,9 +340,10 @@ fun MatchThreeGameDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        KeepScreenImmersive()
+        FinPetTheme {
+            KeepScreenImmersive()
 
-        BoxWithConstraints(
+            BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFF1B140B)),
@@ -694,7 +700,6 @@ fun MatchThreeGameDialog(
                         modifier = Modifier
                             .offset(x = cPx(bx), y = cPx(by))
                             .size(cPx(141f), cPx(162f))
-                            .clip(CircleShape)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
@@ -707,22 +712,22 @@ fun MatchThreeGameDialog(
                     )
                 }
 
-                // 8. Бейджи с количеством бустеров: сдвинуты правее и ниже (+4 px), крупный адаптивный шрифт
+                // 8. Бейджи с количеством бустеров: отцентрированы точно на круглых ушках кнопок
                 val badgePositions = listOf(
-                    272f to 1874f to singleCount,
-                    481f to 1874f to columnCount,
-                    690f to 1874f to rowCount,
-                    899f to 1874f to areaCount
+                    245f to 1877f to singleCount,
+                    453f to 1877f to columnCount,
+                    662f to 1877f to rowCount,
+                    871f to 1877f to areaCount
                 )
 
-                val badgeFontSize = (24f * scale).coerceAtLeast(14f).sp
+                val badgeFontSize = (28f * scale).coerceIn(11f, 18f).sp
 
                 badgePositions.forEach { (pos, count) ->
                     val (bx, by) = pos
                     Box(
                         modifier = Modifier
                             .offset(x = cPx(bx), y = cPx(by))
-                            .size(cPx(50f), cPx(50f)),
+                            .size(cPx(70f), cPx(70f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -736,6 +741,7 @@ fun MatchThreeGameDialog(
                     }
                 }
             }
+        }
         }
     }
 }

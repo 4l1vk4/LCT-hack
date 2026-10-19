@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +31,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.LampochkaIcon
 import ru.finpet.kids.core.designsystem.PawsIcon
@@ -37,7 +39,6 @@ import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.PixelBlueWater
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldDark
-import ru.finpet.kids.core.designsystem.PixelGoldGlow
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
@@ -84,9 +85,10 @@ fun PeriodAnalysisDialog(
         onDismissRequest = onConfirm,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        KeepScreenImmersive()
+        FinPetTheme {
+            KeepScreenImmersive()
 
-        Box(
+            Box(
             modifier = Modifier
                 .fillMaxWidth(0.94f)
                 .wrapContentHeight()
@@ -147,8 +149,6 @@ fun PeriodAnalysisDialog(
                         ) {
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(text = "🎉", fontSize = 18.sp)
-                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "Понедельник — выплата карманных!",
                                         fontWeight = FontWeight.Bold,
@@ -235,15 +235,39 @@ fun PeriodAnalysisDialog(
                                         color = PixelTextDark
                                     )
                                 }
-                                val hasProblems = compliance.isPetHungry ||
-                                        compliance.mandatoryOverspend > 0 ||
-                                        compliance.optionalOverspend > 0 ||
-                                        (compliance.overspendAmount > 0 && compliance.mandatoryOverspend == 0 && compliance.optionalOverspend == 0) ||
-                                        actual.borrowedFromOptional > 0 ||
-                                        actual.withdrawnSavings > 0 ||
-                                        (plan.plannedSavings > 0 && actual.actualSavings < plan.plannedSavings)
+                                val problemMessages = remember(compliance, actual, plan) {
+                                    buildList {
+                                        if (compliance.isPetHungry) {
+                                            add("Питомец остался голодным (экономия на питании)")
+                                        }
+                                        if (compliance.mandatoryOverspend > 0) {
+                                            add("Перерасход в «Обязательном»: +${compliance.mandatoryOverspend} 🪙")
+                                        }
+                                        if (compliance.optionalOverspend > 0) {
+                                            add("Перерасход в «Желаемом»: +${compliance.optionalOverspend} 🪙")
+                                        }
+                                        if (compliance.overspendAmount > 0 && compliance.mandatoryOverspend == 0 && compliance.optionalOverspend == 0) {
+                                            add("Перерасход на ${compliance.overspendAmount} 🪙")
+                                        }
+                                        if (actual.borrowedFromOptional > 0) {
+                                            add("Взято из «Желаемого» в «Обязательное»: ${actual.borrowedFromOptional} 🪙")
+                                        }
+                                        if (actual.withdrawnSavings > 0) {
+                                            add("Снято из прошлых накоплений: ${actual.withdrawnSavings} 🪙")
+                                        }
+                                        if (plan.plannedSavings > 0 && actual.actualSavings < plan.plannedSavings) {
+                                            val diff = plan.plannedSavings - actual.actualSavings
+                                            val savingsText = if (actual.actualSavings == 0) {
+                                                "Копилка мечты не пополнена (план: ${plan.plannedSavings} 🪙)"
+                                            } else {
+                                                "Недобор в копилку: недоложено $diff 🪙 (план: ${plan.plannedSavings} 🪙)"
+                                            }
+                                            add(savingsText)
+                                        }
+                                    }
+                                }
 
-                                if (hasProblems) {
+                                if (problemMessages.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Column(
                                         modifier = Modifier
@@ -254,32 +278,8 @@ fun PeriodAnalysisDialog(
                                             .padding(horizontal = 8.dp, vertical = 6.dp),
                                         verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
-                                        if (compliance.isPetHungry) {
-                                            BudgetProblemRow(text = "Питомец остался голодным (экономия на питании)")
-                                        }
-                                        if (compliance.mandatoryOverspend > 0) {
-                                            BudgetProblemRow(text = "Перерасход в «Обязательном»: +${compliance.mandatoryOverspend} 🪙")
-                                        }
-                                        if (compliance.optionalOverspend > 0) {
-                                            BudgetProblemRow(text = "Перерасход в «Желаемом»: +${compliance.optionalOverspend} 🪙")
-                                        }
-                                        if (compliance.overspendAmount > 0 && compliance.mandatoryOverspend == 0 && compliance.optionalOverspend == 0) {
-                                            BudgetProblemRow(text = "Перерасход на ${compliance.overspendAmount} 🪙")
-                                        }
-                                        if (actual.borrowedFromOptional > 0) {
-                                            BudgetProblemRow(text = "Взято из «Желаемого» в «Обязательное»: ${actual.borrowedFromOptional} 🪙")
-                                        }
-                                        if (actual.withdrawnSavings > 0) {
-                                            BudgetProblemRow(text = "Снято из прошлых накоплений: ${actual.withdrawnSavings} 🪙")
-                                        }
-                                        if (plan.plannedSavings > 0 && actual.actualSavings < plan.plannedSavings) {
-                                            val diff = plan.plannedSavings - actual.actualSavings
-                                            val savingsText = if (actual.actualSavings == 0) {
-                                                "Копилка мечты не пополнена (план: ${plan.plannedSavings} 🪙)"
-                                            } else {
-                                                "Недобор в копилку: недоложено $diff 🪙 (план: ${plan.plannedSavings} 🪙)"
-                                            }
-                                            BudgetProblemRow(text = savingsText)
+                                        for (msg in problemMessages) {
+                                            BudgetProblemRow(text = msg)
                                         }
                                     }
                                 }
@@ -471,13 +471,13 @@ fun PeriodAnalysisDialog(
                         GrowthStage.ADULT -> "Взрослый кот 👑"
                     }
                     val targetPoints = when (stage) {
-                        GrowthStage.BABY -> 28
-                        GrowthStage.TEEN -> 70
-                        GrowthStage.ADULT -> 70
+                        GrowthStage.BABY -> GrowthStage.TEEN.minPoints
+                        GrowthStage.TEEN -> GrowthStage.ADULT.minPoints
+                        GrowthStage.ADULT -> GrowthStage.ADULT.minPoints
                     }
                     val progressFraction = when (stage) {
-                        GrowthStage.BABY -> (newStats.carePoints.toFloat() / 28f).coerceIn(0f, 1f)
-                        GrowthStage.TEEN -> (newStats.carePoints.toFloat() / 70f).coerceIn(0f, 1f)
+                        GrowthStage.BABY -> (newStats.carePoints.toFloat() / GrowthStage.TEEN.minPoints.toFloat()).coerceIn(0f, 1f)
+                        GrowthStage.TEEN -> (newStats.carePoints.toFloat() / GrowthStage.ADULT.minPoints.toFloat()).coerceIn(0f, 1f)
                         GrowthStage.ADULT -> 1f
                     }
 
@@ -539,8 +539,8 @@ fun PeriodAnalysisDialog(
                             Spacer(modifier = Modifier.height(6.dp))
 
                             val remainingMsg = when (stage) {
-                                GrowthStage.BABY -> "До «Подростка» осталось: ${maxOf(0, 28 - newStats.carePoints)} очков (порог 28)"
-                                GrowthStage.TEEN -> "До «Взрослого» осталось: ${maxOf(0, 70 - newStats.carePoints)} очков (порог 70)"
+                                GrowthStage.BABY -> "До «Подростка» осталось: ${maxOf(0, GrowthStage.TEEN.minPoints - newStats.carePoints)} очков (порог ${GrowthStage.TEEN.minPoints})"
+                                GrowthStage.TEEN -> "До «Взрослого» осталось: ${maxOf(0, GrowthStage.ADULT.minPoints - newStats.carePoints)} очков (порог ${GrowthStage.ADULT.minPoints})"
                                 GrowthStage.ADULT -> "Максимальная стадия роста достигнута!"
                             }
                             Text(
@@ -569,7 +569,7 @@ fun PeriodAnalysisDialog(
 
                     // 4. Кнопка «Понятно, к новому плану!»
                     PixelButton(
-                        text = "Понятно, к новому плану! ➔",
+                        text = "Понятно, к новому плану!",
                         onClick = onConfirm,
                         containerColor = PixelGreenCrop,
                         textColor = Color.White,
@@ -580,6 +580,7 @@ fun PeriodAnalysisDialog(
                 }
             }
         }
+    }
     }
 }
 

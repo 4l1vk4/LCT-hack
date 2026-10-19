@@ -1,8 +1,5 @@
 package ru.finpet.kids.feature.calendar.dialogs
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,15 +22,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import ru.finpet.kids.core.designsystem.PixelCheckbox
 import ru.finpet.kids.core.designsystem.StarIcon
-import ru.finpet.kids.core.designsystem.DocsIcon
-import ru.finpet.kids.core.designsystem.PawsIcon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -41,21 +34,16 @@ import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import ru.finpet.kids.R
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
-import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
-import ru.finpet.kids.core.designsystem.DiagramIcon
+import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
-import ru.finpet.kids.core.designsystem.PixelGoldGlow
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
-import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
-import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
@@ -74,13 +62,9 @@ import ru.finpet.kids.feature.calendar.model.CalendarTaskCategory
 fun DayDetailsDialog(
     dayNumber: Int,
     isToday: Boolean,
-    balance: Int,
     notes: List<CalendarNoteEntity>,
-    recurringExpenses: List<RecurringExpenseEntity> = emptyList(),
-    isNextMonday: Boolean = false,
     demoMode: Boolean = false,
     onToggleNote: (CalendarNoteEntity) -> Unit,
-    onCompleteChecklistTask: (note: CalendarNoteEntity, rewardCoins: Int) -> Unit,
     onOpenAddNote: () -> Unit,
     onDeleteNote: (CalendarNoteEntity) -> Unit,
     onCompletePeriod: () -> Unit,
@@ -98,8 +82,9 @@ fun DayDetailsDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        KeepScreenImmersive()
-        Box(
+        FinPetTheme {
+            KeepScreenImmersive()
+            Box(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .fillMaxHeight(0.92f)
@@ -231,7 +216,7 @@ fun DayDetailsDialog(
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             if (note.category == "GROCERIES" && note.cost > 0) {
                                                 Text(
-                                                    text = "✅ Сдача +${note.cost}",
+                                                    text = "Сдача +${note.cost}",
                                                     fontFamily = AppFontFamily,
                                                     fontSize = 14.sp,
                                                     fontWeight = FontWeight.Bold,
@@ -241,7 +226,7 @@ fun DayDetailsDialog(
                                                 CoinIcon(modifier = Modifier.size(14.dp))
                                             } else {
                                                 Text(
-                                                    text = "✅ Готово",
+                                                    text = "Готово",
                                                     fontFamily = AppFontFamily,
                                                     fontSize = 14.sp,
                                                     fontWeight = FontWeight.Bold,
@@ -394,5 +379,6 @@ fun DayDetailsDialog(
                 }
             }
         }
+    }
     }
 }

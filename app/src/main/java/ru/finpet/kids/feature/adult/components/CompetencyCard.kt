@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.domain.usecase.CompetencyItem
@@ -39,6 +40,7 @@ fun CompetencyCard(
     competency: CompetencyItem,
     modifier: Modifier = Modifier
 ) {
+    val uiScale = LocalUiScale.current
     // подсвечиваем зеленым при успехе от 70%, иначе предупреждающим оранжевым
     val isConfident = competency.scorePercent >= 70
     val accentBrush = remember(isConfident) {
@@ -53,9 +55,9 @@ fun CompetencyCard(
     FinCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = (3.dp * uiScale).coerceIn(2.dp, 4.dp))
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding((12.dp * uiScale).coerceIn(8.dp, 14.dp))) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -63,26 +65,26 @@ fun CompetencyCard(
             ) {
                 Text(
                     text = competency.title,
-                    fontSize = 17.sp,
+                    fontSize = (15f * uiScale).coerceIn(11f, 17f).sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
                     text = "${competency.scorePercent}%",
-                    fontSize = 17.sp,
+                    fontSize = (15f * uiScale).coerceIn(11f, 17f).sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = accentColor
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
 
             // прогресс-бар компетенции (контрастный песочный трек как на главном экране)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(11.dp)
+                    .height((10.dp * uiScale).coerceIn(7.dp, 11.dp))
                     .clip(RoundedCornerShape(6.dp))
                     .background(Color(0xFFD7C4A5))
                     .border(1.dp, Color(0xFF8D6E63).copy(alpha = 0.35f), RoundedCornerShape(6.dp))
@@ -96,19 +98,19 @@ fun CompetencyCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
 
             Text(
                 text = "Статус: ${competency.statusDescription}",
-                fontSize = 15.sp,
+                fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextPrimary
             )
             Text(
                 text = competency.advice,
-                fontSize = 15.sp,
+                fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
                 color = TextSecondary,
-                lineHeight = 20.sp
+                lineHeight = (17f * uiScale).coerceIn(12f, 20f).sp
             )
         }
     }

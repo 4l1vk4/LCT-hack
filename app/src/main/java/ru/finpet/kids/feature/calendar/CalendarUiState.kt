@@ -1,8 +1,5 @@
 package ru.finpet.kids.feature.calendar
 
-import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
-import ru.finpet.kids.core.data.local.entity.PeriodEntity
-import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
@@ -38,13 +35,3 @@ data class CalendarMonthInfo(
         }
     }
 }
-
-data class CalendarUiState(
-    val currentDayIndex: Int = 1,
-    val balance: Int = 50,
-    val currentPeriod: PeriodEntity? = null,
-    val monthInfo: CalendarMonthInfo = CalendarMonthInfo.current(),
-    val notesByDay: Map<Int, List<CalendarNoteEntity>> = emptyMap(),
-    val recurringDayMap: Map<Int, List<RecurringExpenseEntity>> = emptyMap(),
-    val activeDialog: CalendarDialog? = null
-)

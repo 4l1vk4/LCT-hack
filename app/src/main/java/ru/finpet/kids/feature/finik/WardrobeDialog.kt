@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -45,14 +44,12 @@ import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.R
 import ru.finpet.kids.core.data.local.entity.GoalEntity
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.PixelButton
-import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
-import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
-import ru.finpet.kids.core.designsystem.StardewBoard
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
 
 data class RoomItemDef(
@@ -94,8 +91,9 @@ fun WardrobeDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        KeepScreenImmersive()
-        Box(
+        FinPetTheme {
+            KeepScreenImmersive()
+            Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clickable(
@@ -137,7 +135,7 @@ fun WardrobeDialog(
                             color = PixelTextDark
                         )
                         Text(
-                            text = "Надень одежду на $petName или расставь вещи",
+                            text = "Надень одежду на питомца или расставь вещи",
                             fontFamily = AppFontFamily,
                             fontSize = 15.sp,
                             color = PixelTextMuted
@@ -184,7 +182,7 @@ fun WardrobeDialog(
                             // Заголовок секции аксессуаров
                             item(span = { GridItemSpan(3) }, key = "header_accessories") {
                                 Text(
-                                    text = "Одежда для $petName",
+                                    text = "Одежда и аксессуары",
                                     fontFamily = AppFontFamily,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
@@ -379,5 +377,6 @@ fun WardrobeDialog(
                 }
             }
         }
+    }
     }
 }

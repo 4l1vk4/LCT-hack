@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,6 +58,7 @@ import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.HeartIcon
 import ru.finpet.kids.core.designsystem.JoyOrange
@@ -98,6 +100,16 @@ fun TrashCollectionGameDialog(
     var collectedCount by remember { mutableIntStateOf(0) }
     var livesLeft by remember { mutableIntStateOf(3) }
     var isGameOver by remember { mutableStateOf(false) }
+
+    val isSuccess = collectedCount >= 20
+
+    // Автоматическое завершение через 3.5 секунды после победы
+    LaunchedEffect(isGameOver, isSuccess) {
+        if (isGameOver && isSuccess) {
+            delay(3500)
+            onCompleteGame()
+        }
+    }
 
     var gameRenderTick by remember { mutableLongStateOf(0L) }
     val activeTrash = remember { ArrayList<GameTrash>() }
@@ -202,12 +214,13 @@ fun TrashCollectionGameDialog(
 
     Dialog(
         onDismissRequest = {
-            if (isGameOver) onDismiss()
+            if (isGameOver && isSuccess) onCompleteGame() else if (isGameOver) onDismiss()
         },
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        KeepScreenImmersive()
-        Box(
+        FinPetTheme {
+            KeepScreenImmersive()
+            Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clickable(
@@ -296,7 +309,7 @@ fun TrashCollectionGameDialog(
                             .padding(horizontal = 14.dp, vertical = 8.dp)
                     ) {
                         Text(
-                            text = "👆 Удерживай палец и веди корзину влево-вправо!",
+                            text = "Удерживай палец и веди корзину влево-вправо!",
                             color = Color.White,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
@@ -435,7 +448,7 @@ fun TrashCollectionGameDialog(
                             }
                             Spacer(modifier = Modifier.height(14.dp))
                             PixelButton(
-                                text = "Забрать монеты ➔",
+                                text = "Забрать монеты",
                                 onClick = onCompleteGame,
                                 containerColor = FreshGreen,
                                 textColor = Color.White,
@@ -444,7 +457,7 @@ fun TrashCollectionGameDialog(
                             )
                         } else {
                             Text(
-                                text = "💔 Мусор улетел мимо!",
+                                text = "Мусор улетел мимо!",
                                 fontFamily = AppFontFamily,
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 18.sp,
@@ -492,5 +505,6 @@ fun TrashCollectionGameDialog(
                 }
             }
         }
+    }
     }
 }

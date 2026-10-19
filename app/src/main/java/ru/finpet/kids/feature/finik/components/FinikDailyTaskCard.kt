@@ -28,10 +28,8 @@ import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
-import ru.finpet.kids.core.designsystem.PixelTextDark
-import ru.finpet.kids.core.designsystem.PixelTextMuted
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.TextPrimary
-import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.feature.calendar.model.CalendarTaskCategory
 
 /**
@@ -52,6 +50,7 @@ fun FinikDailyTaskCard(
 ) {
     if (todayNotes.isEmpty()) return
 
+    val uiScale = LocalUiScale.current
     val pendingTask = todayNotes.firstOrNull { !it.isCompleted }
     val completedCount = todayNotes.count { it.isCompleted }
     val totalCount = todayNotes.size
@@ -73,13 +72,18 @@ fun FinikDailyTaskCard(
     FinCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = 12.dp)
+            .padding(bottom = (12.dp * uiScale).coerceIn(8.dp, 12.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) { onShowTasksMenu() }
     ) {
-        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+        Column(
+            modifier = Modifier.padding(
+                horizontal = (14.dp * uiScale).coerceIn(8.dp, 14.dp),
+                vertical = (10.dp * uiScale).coerceIn(6.dp, 10.dp)
+            )
+        ) {
             // Верхняя строка: заголовок и счетчик выполненных задач
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -148,27 +152,25 @@ fun FinikDailyTaskCard(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { handleTaskClick() }
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .padding(vertical = (4.dp * uiScale).coerceIn(2.dp, 4.dp)),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        RenderBoardIcon(taskIcon, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = displayTitle,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+                    RenderBoardIcon(
+                        taskIcon,
+                        modifier = Modifier.size((18.dp * uiScale).coerceIn(14.dp, 18.dp))
+                    )
+                    Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
+                    Text(
+                        text = displayTitle,
+                        modifier = Modifier.weight(1f),
+                        fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
 
                     // Метка действия / стоимости без округлой разноцветной плашки
                     Row(
@@ -182,25 +184,25 @@ fun FinikDailyTaskCard(
                             val badgeText = if (isPetRunaway) "Домой • 60" else "Лавка • 30"
                             Text(
                                 text = badgeText,
-                                fontSize = 14.sp,
+                                fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                 fontWeight = FontWeight.Bold,
                                 color = JoyOrange
                             )
                             Spacer(modifier = Modifier.width(2.dp))
-                            CoinIcon(modifier = Modifier.size(14.dp))
+                            CoinIcon(modifier = Modifier.size((13.dp * uiScale).coerceIn(10.dp, 14.dp)))
                         } else if (pendingTask.cost > 0 && !category.isSystem) {
                             Text(
                                 text = "${pendingTask.cost}",
-                                fontSize = 14.sp,
+                                fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                 fontWeight = FontWeight.Bold,
                                 color = JoyOrange
                             )
                             Spacer(modifier = Modifier.width(2.dp))
-                            CoinIcon(modifier = Modifier.size(14.dp))
+                            CoinIcon(modifier = Modifier.size((13.dp * uiScale).coerceIn(10.dp, 14.dp)))
                         } else {
                             Text(
                                 text = taskBadge,
-                                fontSize = 14.sp,
+                                fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                 fontWeight = FontWeight.Bold,
                                 color = JoyOrange
                             )

@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -110,12 +109,6 @@ fun MapWithHotspots(
             contentDescription = "Карта приключений",
             contentScale = ContentScale.Crop,
             alignment = Alignment.BottomCenter,
-            modifier = Modifier.fillMaxSize()
-        )
-
-        // 1.5. анимированный слой плывущих облаков над картой
-        ru.finpet.kids.feature.map.components.MovingCloudsOverlay(
-            isNight = isNight,
             modifier = Modifier.fillMaxSize()
         )
 
@@ -213,6 +206,12 @@ fun MapWithHotspots(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
                 ) { homeSpot?.let(onClickHotspot) }
+        )
+
+        // 1.5. анимированный слой плывущих облаков над картой
+        ru.finpet.kids.feature.map.components.MovingCloudsOverlay(
+            isNight = isNight,
+            modifier = Modifier.fillMaxSize()
         )
 
         // 2. кликабельные зоны: масштабируются и позиционируются строго относительно картинки карты

@@ -122,13 +122,13 @@ fun FinikStatsCard(
             Spacer(modifier = Modifier.height(10.dp))
             val stageEnum = try { GrowthStage.valueOf(growthStage) } catch (_: Exception) { GrowthStage.BABY }
             val (stageName, targetPts) = when (stageEnum) {
-                GrowthStage.BABY -> Pair("Малыш", 28)
-                GrowthStage.TEEN -> Pair("Подросток", 70)
-                GrowthStage.ADULT -> Pair("Взрослый кот", 70)
+                GrowthStage.BABY -> Pair(stageEnum.title, GrowthStage.TEEN.minPoints)
+                GrowthStage.TEEN -> Pair(stageEnum.title, GrowthStage.ADULT.minPoints)
+                GrowthStage.ADULT -> Pair("Взрослый кот", GrowthStage.ADULT.minPoints)
             }
             val progressFraction = when (stageEnum) {
-                GrowthStage.BABY -> (carePoints.toFloat() / 28f).coerceIn(0f, 1f)
-                GrowthStage.TEEN -> (carePoints.toFloat() / 70f).coerceIn(0f, 1f)
+                GrowthStage.BABY -> (carePoints.toFloat() / GrowthStage.TEEN.minPoints.toFloat()).coerceIn(0f, 1f)
+                GrowthStage.TEEN -> (carePoints.toFloat() / GrowthStage.ADULT.minPoints.toFloat()).coerceIn(0f, 1f)
                 GrowthStage.ADULT -> 1f
             }
 

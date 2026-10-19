@@ -55,7 +55,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -65,6 +64,7 @@ import kotlinx.coroutines.launch
 import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
@@ -192,17 +192,7 @@ fun FloorCleaningGameDialog(
         }
     }
 
-    // Пульсация кнопки победы
-    val infiniteTransition = rememberInfiniteTransition(label = "winPulse")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(600, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulseScale"
-    )
+
 
     Dialog(
         onDismissRequest = {
@@ -212,8 +202,9 @@ fun FloorCleaningGameDialog(
             usePlatformDefaultWidth = false
         )
     ) {
-        KeepScreenImmersive()
-        Box(
+        FinPetTheme {
+            KeepScreenImmersive()
+            Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clickable(
@@ -400,20 +391,19 @@ fun FloorCleaningGameDialog(
                         }
                         Spacer(modifier = Modifier.height(14.dp))
                         PixelButton(
-                            text = "Забрать $rewardCoins монет ➔",
+                            text = "Забрать $rewardCoins монет",
                             onClick = onCompleteGame,
                             containerColor = FreshGreen,
                             textColor = Color.White,
                             fontSize = 16.sp,
                             trailingIcon = { CoinIcon(modifier = Modifier.size(18.dp)) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .scale(pulseScale)
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
             }
         }
+    }
     }
 }
 

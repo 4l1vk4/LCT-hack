@@ -14,13 +14,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
-import ru.finpet.kids.core.designsystem.DocsIcon
+import androidx.compose.ui.text.font.FontWeight
+import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.PawsIcon
+import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelTextDark
 
@@ -31,29 +32,24 @@ import ru.finpet.kids.core.designsystem.PixelTextDark
 fun CalendarLegend(
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp))
-            .background(PixelParchmentMedium)
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            PawsIcon(modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Сегодня", fontSize = 15.sp, fontFamily = AppFontFamily, color = PixelTextDark)
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            DocsIcon(modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Задачи", fontSize = 15.sp, fontFamily = AppFontFamily, color = PixelTextDark)
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            CoinIcon(modifier = Modifier.size(15.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Регулярные", fontSize = 15.sp, fontFamily = AppFontFamily, color = PixelTextDark)
-        }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        PawsIcon(modifier = Modifier.size(15.dp))
+        Spacer(modifier = Modifier.width(3.dp))
+        Text("Сегодня", fontSize = 14.sp, fontFamily = AppFontFamily, color = PixelTextDark)
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("✓", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PixelGreenCrop)
+        Spacer(modifier = Modifier.width(3.dp))
+        Text("Прошедшие", fontSize = 14.sp, fontFamily = AppFontFamily, color = PixelTextDark)
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("✓", fontSize = 14.sp, fontWeight = FontWeight.Black, color = JoyOrange)
+        Spacer(modifier = Modifier.width(3.dp))
+        Text("Все задачи", fontSize = 14.sp, fontFamily = AppFontFamily, color = PixelTextDark)
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        CoinIcon(modifier = Modifier.size(14.dp))
+        Spacer(modifier = Modifier.width(3.dp))
+        Text("Выплата карманных", fontSize = 14.sp, fontFamily = AppFontFamily, color = PixelTextDark)
     }
 }

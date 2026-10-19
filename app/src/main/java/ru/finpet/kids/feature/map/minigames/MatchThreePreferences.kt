@@ -24,7 +24,7 @@ object MatchThreePreferences {
 
     fun checkAndGrantWeekly(context: Context, currentPeriod: Int) {
         val prefs = getPrefs(context)
-        val lastPeriod = prefs.getInt(KEY_LAST_PERIOD_AWARDED, 0)
+        val lastPeriod = prefs.getInt(KEY_LAST_PERIOD_AWARDED, 1)
         if (currentPeriod > lastPeriod) {
             val single = prefs.getInt(KEY_BOOSTER_SINGLE, 3) + 3
             val column = prefs.getInt(KEY_BOOSTER_COLUMN, 3) + 3
@@ -37,6 +37,9 @@ object MatchThreePreferences {
                 .putInt(KEY_BOOSTER_AREA, area)
                 .putInt(KEY_LAST_PERIOD_AWARDED, currentPeriod)
                 .apply()
+        } else if (lastPeriod > currentPeriod) {
+            // Исправление рассинхронизации, если ранее ошибочно был записан dayIndex
+            prefs.edit().putInt(KEY_LAST_PERIOD_AWARDED, currentPeriod).apply()
         }
     }
 
@@ -91,5 +94,17 @@ object MatchThreePreferences {
             return true
         }
         return false
+    }
+
+    fun resetAll(context: Context) {
+        val prefs = getPrefs(context)
+        prefs.edit()
+            .putInt(KEY_BOOSTER_SINGLE, 3)
+            .putInt(KEY_BOOSTER_COLUMN, 3)
+            .putInt(KEY_BOOSTER_ROW, 3)
+            .putInt(KEY_BOOSTER_AREA, 3)
+            .putInt(KEY_LAST_PERIOD_AWARDED, 1)
+            .putInt(KEY_HIGH_SCORE, 0)
+            .apply()
     }
 }

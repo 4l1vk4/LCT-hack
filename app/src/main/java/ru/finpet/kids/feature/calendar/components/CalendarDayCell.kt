@@ -21,22 +21,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
-import ru.finpet.kids.core.designsystem.DocsIcon
 import ru.finpet.kids.core.designsystem.PawsIcon
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
-import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.PixelWoodDark
+import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.PixelGreenCrop
 
 /**
  * Ячейка отдельного дня в сетке календаря Stardew Valley.
@@ -47,8 +46,8 @@ fun CalendarDayCell(
     isToday: Boolean,
     isSelected: Boolean,
     isPast: Boolean,
-    hasRecurring: Boolean,
-    hasNotes: Boolean,
+    isIncomeDay: Boolean = false,
+    allTasksCompleted: Boolean = false,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -94,28 +93,36 @@ fun CalendarDayCell(
                     text = "$dayNumber",
                     fontFamily = AppFontFamily,
                     fontWeight = if (isToday) FontWeight.Black else FontWeight.Bold,
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     color = if (isToday) PixelGoldDark else if (isPast) PixelTextMuted else PixelTextDark
                 )
                 if (isToday) {
-                    PawsIcon(modifier = Modifier.size(13.dp))
+                    PawsIcon(modifier = Modifier.size(12.dp))
+                } else if (allTasksCompleted) {
+                    Text(
+                        text = "✓",
+                        fontSize = 12.sp,
+                        color = JoyOrange,
+                        fontWeight = FontWeight.Black
+                    )
                 } else if (isPast) {
-                    Text(text = "✓", fontSize = 13.sp, color = PixelGreenCrop, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "✓",
+                        fontSize = 12.sp,
+                        color = PixelGreenCrop,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
-            // Иконки событий/трат в этот день
+            // Иконки событий/выплат в этот день (монетка по понедельникам)
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (hasRecurring) {
+                if (isIncomeDay) {
                     CoinIcon(modifier = Modifier.size(13.dp))
-                    Spacer(modifier = Modifier.width(2.dp))
-                }
-                if (hasNotes) {
-                    DocsIcon(modifier = Modifier.size(13.dp))
                 }
             }
 

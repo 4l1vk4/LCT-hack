@@ -401,12 +401,16 @@ fun Modifier.pixelButtonBackground(containerColor: Color? = null): Modifier = co
         null
     }
 
+    val uiScale = LocalUiScale.current
+    val standardHeightDp = (40.dp * uiScale).coerceIn(26.dp, 40.dp)
+
     this.drawBehind {
         drawPixelHorizontalBar(
             leftBmp = leftBmp,
             midBmp = midBmp,
             rightBmp = rightBmp,
-            colorFilter = colorFilter
+            colorFilter = colorFilter,
+            standardHeightDp = standardHeightDp
         )
     }
 }

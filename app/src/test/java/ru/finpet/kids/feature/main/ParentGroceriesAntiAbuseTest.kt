@@ -82,6 +82,7 @@ class FakeCalendarDaoForTest : CalendarDao {
     override suspend fun insertRecurringExpenses(expenses: List<RecurringExpenseEntity>) {}
     override suspend fun deleteRecurringExpense(expense: RecurringExpenseEntity) {}
     override suspend fun clearAllNotes() { notes.clear() }
+    override suspend fun deleteSchoolNotes() { notes.removeAll { it.category == "SCHOOL" } }
     override suspend fun clearAllRecurringExpenses() {}
 }
 

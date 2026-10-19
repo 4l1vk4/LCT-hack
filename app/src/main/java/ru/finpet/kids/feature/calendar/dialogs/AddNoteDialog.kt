@@ -26,6 +26,10 @@ import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelTextDark
 
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+
 /**
  * Аутентичный пиксельный диалог создания заметки / дела на выбранный день.
  * Позволяет ребенку запланировать свое личное дело без трат и без категорий.
@@ -37,6 +41,7 @@ fun AddNoteDialog(
     onAddNote: (title: String, cost: Int, category: String) -> Unit
 ) {
     var noteTitle by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
 
     PixelAlertDialog(
         onDismissRequest = onDismiss,
@@ -67,7 +72,13 @@ fun AddNoteDialog(
             )
         }
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { focusManager.clearFocus() })
+                }
+        ) {
             Text(
                 text = "Какое дело запланируем?",
                 fontFamily = AppFontFamily,

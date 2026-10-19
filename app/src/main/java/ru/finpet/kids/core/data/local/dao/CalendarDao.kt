@@ -78,6 +78,9 @@ interface CalendarDao {
     @Query("DELETE FROM calendar_notes")
     suspend fun clearAllNotes()
 
+    @Query("DELETE FROM calendar_notes WHERE category = 'SCHOOL'")
+    suspend fun deleteSchoolNotes()
+
     @Query("DELETE FROM recurring_expenses")
     suspend fun clearAllRecurringExpenses()
 }

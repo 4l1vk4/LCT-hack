@@ -3,17 +3,12 @@ package ru.finpet.kids.feature.main
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,12 +22,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import ru.finpet.kids.core.designsystem.SoftBackground
@@ -56,11 +49,9 @@ import ru.finpet.kids.feature.onboarding.PetNameScreen
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
 import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
 import androidx.compose.runtime.mutableStateOf
 import ru.finpet.kids.core.designsystem.MoneyNotification
-import kotlin.math.roundToInt
 import ru.finpet.kids.feature.onboarding.TutorialScreen
 
 @Composable
@@ -106,7 +97,6 @@ fun MainScreen(
 
     var selectedTab by rememberSaveable { mutableIntStateOf(2) } // по умолчанию вкладка финни
     var previousTabBeforeSettings by rememberSaveable { mutableIntStateOf(2) }
-    val showWardrobe = remember { mutableStateOf(false) }
     var navBarHeight by remember { mutableStateOf(140.dp) }
     val density = LocalDensity.current
 
@@ -267,8 +257,33 @@ fun MainScreen(
                         .padding(top = contentTopPadding)
                 ) {
                     val currentDayIndex = virtualDate.dayOfMonth
-                    val todayNotes = remember(calendarNotes, currentDayIndex) {
-                        calendarNotes.filter { it.dayIndex == currentDayIndex }
+                    val allSchoolQuestsDone = remember(quests, questProgress, profile?.growthStage, demoMode) {
+                        if (quests.isEmpty()) false else {
+                            val currentStageIndex = when (profile?.growthStage) {
+                                "ADULT" -> 2
+                                "TEEN" -> 1
+                                else -> 0
+                            }
+                            val available = quests.filter { q ->
+                                if (demoMode) true else {
+                                    val targetIndex = when (q.stage) {
+                                        "ADULT" -> 2
+                                        "TEEN" -> 1
+                                        else -> 0
+                                    }
+                                    targetIndex <= currentStageIndex
+                                }
+                            }
+                            available.isNotEmpty() && available.all { q ->
+                                questProgress.any { p -> p.questId == q.id && p.isCompleted }
+                            }
+                        }
+                    }
+                    val todayNotes = remember(calendarNotes, currentDayIndex, allSchoolQuestsDone) {
+                        calendarNotes.filter { note ->
+                            note.dayIndex == currentDayIndex &&
+                                !(note.category == "SCHOOL" && allSchoolQuestsDone)
+                        }
                     }
                     KeepAliveTab(
                         visible = selectedTab == 0,
@@ -345,12 +360,6 @@ fun MainScreen(
                             onDeleteNote = { note -> viewModel.deleteCalendarNote(note) },
                             onToggleNote = { note -> viewModel.toggleCalendarNote(note) },
                             onNavigateToTask = onNavigateToTask,
-                            onCompleteChecklistTask = { note, reward ->
-                                viewModel.completeChecklistTask(
-                                    note,
-                                    reward
-                                )
-                            },
                             onAddRecurring = { title, cost, freq, icon ->
                                 viewModel.addRecurringExpense(
                                     title,
@@ -379,12 +388,8 @@ fun MainScreen(
                             onToggleAccessory = { accId -> viewModel.toggleAccessory(accId) },
                             // анимации персонажа включены только на активной вкладке
                             animationsEnabled = selectedTab == 2,
-                            isBudgetConfirmed = currentPeriod?.isBudgetConfirmed == true,
-                            currentPeriod = currentPeriod,
                             openAdvice = finikOpenAdvice,
                             onAdviceDismissed = { finikOpenAdvice = false },
-                            onConfirmBudget = { plan -> viewModel.confirmBudget(plan) },
-                            onNavigateToPlans = { selectedTab = 1 },
                             onNavigateToGoals = { goalId ->
                                 mapInitialModal = "GOALS"
                                 mapTargetGoalId = goalId

@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,19 +42,16 @@ import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
-import ru.finpet.kids.core.designsystem.CoinText
+import ru.finpet.kids.core.designsystem.FinPetTheme
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.KoshelekIcon
 import ru.finpet.kids.core.designsystem.LockIcon
-import ru.finpet.kids.core.designsystem.PawsIcon
 import ru.finpet.kids.core.designsystem.RenderBoardIcon
-import ru.finpet.kids.core.designsystem.StarIcon
-import ru.finpet.kids.core.designsystem.VesiIcon
 import ru.finpet.kids.core.designsystem.PixelBlueWater
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
-import ru.finpet.kids.core.designsystem.PixelGoldGlow
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelJar
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
@@ -69,10 +67,8 @@ import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.PixelWoodDark
-import ru.finpet.kids.core.designsystem.PixelWoodLight
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.StardewBoard
-import ru.finpet.kids.core.designsystem.TargetIcon
 import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.domain.model.BudgetPlan
 import kotlin.math.roundToInt
@@ -108,8 +104,10 @@ fun BudgetPlanningDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        KeepScreenImmersive()
-        Box(
+        FinPetTheme {
+            val uiScale = LocalUiScale.current
+            KeepScreenImmersive()
+            Box(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .fillMaxHeight(0.94f)
@@ -121,7 +119,7 @@ fun BudgetPlanningDialog(
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy((10.dp * uiScale).coerceIn(6.dp, 10.dp)),
                     contentPadding = PaddingValues(bottom = 8.dp)
                 ) {
                     if (isConfirmed) {
@@ -132,23 +130,26 @@ fun BudgetPlanningDialog(
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(Color(0xFFE8F5E9))
                                     .border(1.dp, PixelGreenCrop, RoundedCornerShape(6.dp))
-                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                                    .padding(
+                                        horizontal = (10.dp * uiScale).coerceIn(6.dp, 10.dp),
+                                        vertical = (8.dp * uiScale).coerceIn(5.dp, 8.dp)
+                                    )
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    LockIcon(modifier = Modifier.size(18.dp))
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Column {
+                                    LockIcon(modifier = Modifier.size((18.dp * uiScale).coerceIn(14.dp, 18.dp)))
+                                    Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(4.dp, 8.dp)))
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = "Бюджет на период утверждён!",
-                                            fontSize = 16.sp,
+                                            fontSize = (15f * uiScale).coerceIn(12f, 16f).sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF1B5E20)
                                         )
                                         Text(
                                             text = "Распределение монет зафиксировано. Новый план можно составить в начале следующей недели.",
-                                            fontSize = 15.sp,
+                                            fontSize = (14f * uiScale).coerceIn(11f, 15f).sp,
                                             color = Color(0xFF2E7D32),
-                                            lineHeight = 19.sp
+                                            lineHeight = (18f * uiScale).coerceIn(13f, 19f).sp
                                         )
                                     }
                                 }
@@ -160,7 +161,10 @@ fun BudgetPlanningDialog(
                     item {
                         PixelPanel(
                             modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
+                            contentPadding = PaddingValues(
+                                horizontal = (12.dp * uiScale).coerceIn(6.dp, 14.dp),
+                                vertical = (8.dp * uiScale).coerceIn(5.dp, 10.dp)
+                            )
                         ) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Row(
@@ -172,19 +176,24 @@ fun BudgetPlanningDialog(
                                         Text(
                                             text = "В кошельке: $balance",
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 17.sp,
+                                            fontSize = (16f * uiScale).coerceIn(11f, 17f).sp,
                                             color = PixelTextDark,
                                             fontFamily = AppFontFamily
                                         )
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        CoinIcon(modifier = Modifier.size(19.dp))
+                                        Spacer(modifier = Modifier.width(3.dp))
+                                        CoinIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 19.dp)))
                                     }
-                                    CoinText(
-                                        prefix = "В баночках: $totalPlanned",
-                                        fontSize = 17.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isOverBudget) PixelRedBerry else PixelTextDark
-                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "В баночках: $totalPlanned",
+                                            fontSize = (16f * uiScale).coerceIn(11f, 17f).sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isOverBudget) PixelRedBerry else PixelTextDark,
+                                            fontFamily = AppFontFamily
+                                        )
+                                        Spacer(modifier = Modifier.width(3.dp))
+                                        CoinIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 19.dp)))
+                                    }
                                 }
 
                                 Spacer(modifier = Modifier.height(6.dp))
@@ -193,20 +202,24 @@ fun BudgetPlanningDialog(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .pixelButtonBackground(containerColor = if (isOverBudget) Color(0xFFFFCDD2) else Color(0xFFDCEDC8))
-                                        .padding(horizontal = 18.dp, vertical = 8.dp)
+                                        .padding(
+                                            horizontal = (12.dp * uiScale).coerceIn(6.dp, 18.dp),
+                                            vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp)
+                                        )
                                 ) {
                                     if (isOverBudget) {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                                         ) {
-                                            WarningIcon(modifier = Modifier.size(18.dp))
+                                            WarningIcon(modifier = Modifier.size((18.dp * uiScale).coerceIn(14.dp, 18.dp)))
                                             Text(
                                                 text = "Превышение бюджета на ${-remainder} монет! Уменьши суммы в баночках.",
                                                 fontFamily = AppFontFamily,
-                                                fontSize = 16.sp,
+                                                fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = PixelRedBerry
+                                                color = PixelRedBerry,
+                                                modifier = Modifier.weight(1f)
                                             )
                                         }
                                     } else {
@@ -215,22 +228,23 @@ fun BudgetPlanningDialog(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                                             ) {
-                                                KoshelekIcon(modifier = Modifier.size(20.dp))
+                                                KoshelekIcon(modifier = Modifier.size((18.dp * uiScale).coerceIn(14.dp, 20.dp)))
                                                 Text(
                                                     text = "Свободно в кошельке: $remainder монет останется на руках.",
                                                     fontFamily = AppFontFamily,
-                                                    fontSize = 16.sp,
+                                                    fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                                                     fontWeight = FontWeight.Bold,
-                                                    color = PixelGreenCrop
+                                                    color = PixelGreenCrop,
+                                                    modifier = Modifier.weight(1f)
                                                 )
                                             }
                                             if (remainder > 0) {
                                                 Spacer(modifier = Modifier.height(4.dp))
                                                 Text(
                                                     text = "Нераспределённые деньги расходуются только если в банках закончатся монеты. Траты из свободного кошелька снижают точность бюджета, так как их трудно контролировать!",
-                                                    fontSize = 15.sp,
+                                                    fontSize = (14f * uiScale).coerceIn(10f, 15f).sp,
                                                     color = PixelTextMuted,
-                                                    lineHeight = 17.sp,
+                                                    lineHeight = (16f * uiScale).coerceIn(12f, 17f).sp,
                                                     fontFamily = AppFontFamily
                                                 )
                                             }
@@ -434,12 +448,17 @@ fun BudgetPlanningDialog(
                                 textColor = Color.White,
                                 borderColor = Color(0xFF1B5E20),
                                 modifier = Modifier.fillMaxWidth(),
-                                fontSize = 17.sp
+                                fontSize = (16f * uiScale).coerceIn(12f, 17f).sp
                             )
                         } else {
+                            val confirmText = when {
+                                isOverBudget -> "Перерасход"
+                                uiScale < 0.85f -> "Утвердить"
+                                else -> "📜 Утвердить план"
+                            }
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp))
                             ) {
                                 PixelButton(
                                     text = "Закрыть",
@@ -448,12 +467,12 @@ fun BudgetPlanningDialog(
                                     textColor = PixelParchmentLight,
                                     borderColor = PixelWoodDark,
                                     modifier = Modifier.weight(1f),
-                                    fontSize = 17.sp
+                                    fontSize = (15f * uiScale).coerceIn(11f, 17f).sp
                                 )
                                 PixelButton(
-                                    text = if (isOverBudget) "Перерасход" else "📜 Утвердить план",
+                                    text = confirmText,
                                     leadingIcon = if (isOverBudget) {
-                                        { WarningIcon(modifier = Modifier.size(16.dp)) }
+                                        { WarningIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 16.dp))) }
                                     } else null,
                                     onClick = {
                                         if (isValid) {
@@ -471,7 +490,7 @@ fun BudgetPlanningDialog(
                                     textColor = Color.White,
                                     borderColor = if (isValid) Color(0xFF1B5E20) else Color(0xFF78909C),
                                     modifier = Modifier.weight(1.6f),
-                                    fontSize = 17.sp
+                                    fontSize = (15f * uiScale).coerceIn(11f, 17f).sp
                                 )
                             }
                         }
@@ -479,6 +498,7 @@ fun BudgetPlanningDialog(
                 }
             }
         }
+    }
     }
 }
 
@@ -495,6 +515,7 @@ private fun PresetCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val uiScale = LocalUiScale.current
     val bg = if (isSelected) PixelGoldBright else containerColor
     Box(
         modifier = modifier
@@ -504,7 +525,10 @@ private fun PresetCard(
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 8.dp, vertical = 7.dp),
+            .padding(
+                horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp),
+                vertical = (5.dp * uiScale).coerceIn(3.dp, 7.dp)
+            ),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -516,14 +540,14 @@ private fun PresetCard(
                 horizontalArrangement = Arrangement.Center
             ) {
                 if (icon == "↺") {
-                    RenderBoardIcon(icon = icon, modifier = Modifier.size(14.dp))
+                    RenderBoardIcon(icon = icon, modifier = Modifier.size((14.dp * uiScale).coerceIn(10.dp, 14.dp)))
                 } else {
-                    RenderBoardIcon(icon = icon, modifier = Modifier.size(20.dp))
+                    RenderBoardIcon(icon = icon, modifier = Modifier.size((18.dp * uiScale).coerceIn(12.dp, 20.dp)))
                 }
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(3.dp))
                 Text(
                     text = title,
-                    fontSize = 15.sp,
+                    fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
                     fontFamily = AppFontFamily,
                     fontWeight = FontWeight.ExtraBold,
                     color = PixelTextDark,
@@ -533,7 +557,7 @@ private fun PresetCard(
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = proportions,
-                fontSize = 14.sp,
+                fontSize = (12f * uiScale).coerceIn(9f, 14f).sp,
                 fontFamily = AppFontFamily,
                 fontWeight = FontWeight.Bold,
                 color = if (isSelected) PixelTextDark else PixelTextMuted,
@@ -596,7 +620,14 @@ private fun MagicJarCard(
                 )
             }
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            val focusManager = LocalFocusManager.current
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { focusManager.clearFocus() })
+                    }
+            ) {
                 Text(
                     text = "Баночка: $title",
                     fontFamily = AppFontFamily,
@@ -605,12 +636,34 @@ private fun MagicJarCard(
                     color = PixelTextDark
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Свободно в кошельке: $remainder 🪙 (максимум: ${amount + remainder} 🪙)",
-                    fontFamily = AppFontFamily,
-                    fontSize = 14.sp,
-                    color = PixelTextMuted
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Свободно: $remainder",
+                        fontFamily = AppFontFamily,
+                        fontSize = 14.sp,
+                        color = PixelTextMuted
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    CoinIcon(modifier = Modifier.size(15.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "(макс.: ${amount + remainder}",
+                        fontFamily = AppFontFamily,
+                        fontSize = 14.sp,
+                        color = PixelTextMuted
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    CoinIcon(modifier = Modifier.size(15.dp))
+                    Text(
+                        text = ")",
+                        fontFamily = AppFontFamily,
+                        fontSize = 14.sp,
+                        color = PixelTextMuted
+                    )
+                }
                 Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
                     value = customInput,
@@ -634,7 +687,8 @@ private fun MagicJarCard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     PixelButton(
-                        text = "0 🪙",
+                        text = "0",
+                        trailingIcon = { CoinIcon(modifier = Modifier.size(13.dp)) },
                         onClick = { customInput = "0" },
                         modifier = Modifier.weight(1f),
                         fontSize = 13.sp,
@@ -642,7 +696,9 @@ private fun MagicJarCard(
                         contentPadding = PaddingValues(vertical = 4.dp, horizontal = 4.dp)
                     )
                     PixelButton(
-                        text = "+10 🪙",
+                        text = "+10",
+                        trailingIcon = { CoinIcon(modifier = Modifier.size(13.dp)) },
+                        repeating = true,
                         onClick = {
                             val curr = customInput.toIntOrNull() ?: 0
                             val next = (curr + 10).coerceAtMost(amount + remainder)
@@ -666,6 +722,7 @@ private fun MagicJarCard(
         }
     }
 
+    val uiScale = LocalUiScale.current
     val fillRatio = if (walletBalance > 0) {
         (amount.toFloat() / walletBalance.toFloat()).coerceIn(0f, 1f)
     } else {
@@ -678,7 +735,7 @@ private fun MagicJarCard(
         modifier = Modifier
             .fillMaxWidth()
             .pixelPanelBackground()
-            .padding(10.dp)
+            .padding((10.dp * uiScale).coerceIn(6.dp, 10.dp))
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -688,35 +745,35 @@ private fun MagicJarCard(
                 PixelJar(
                     jarRes = jarRes,
                     fillDivisions = fillDivisions,
-                    modifier = Modifier.size(46.dp)
+                    modifier = Modifier.size((44.dp * uiScale).coerceIn(32.dp, 46.dp))
                 )
             } else {
                 Box(
                     modifier = Modifier
-                        .size(38.dp)
+                        .size((36.dp * uiScale).coerceIn(28.dp, 38.dp))
                         .pixelButtonBackground(containerColor = color.copy(alpha = 0.25f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = icon, fontSize = 20.sp)
+                    Text(text = icon, fontSize = (18f * uiScale).coerceIn(14f, 20f).sp)
                 }
             }
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
+                    fontSize = (17f * uiScale).coerceIn(13f, 18f).sp,
                     color = PixelTextDark
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
-                    fontSize = 16.sp,
+                    fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                     color = PixelTextMuted,
-                    lineHeight = 21.sp
+                    lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
                 )
             }
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 6.dp)))
             // текущая сумма в баночке в пиксельном бейдже (клик открывает ввод своей суммы)
             Box(
                 modifier = Modifier
@@ -725,37 +782,54 @@ private fun MagicJarCard(
                         customInput = amount.toString()
                         showCustomDialog = true
                     }
-                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                    .padding(
+                        horizontal = (8.dp * uiScale).coerceIn(4.dp, 10.dp),
+                        vertical = (4.dp * uiScale).coerceIn(3.dp, 5.dp)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CoinText(
-                        prefix = "$amount",
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "$amount",
                         fontWeight = FontWeight.ExtraBold,
                         color = color,
-                        fontSize = 17.sp,
+                        fontSize = (16f * uiScale).coerceIn(12f, 17f).sp,
                         fontFamily = AppFontFamily
                     )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    CoinIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 18.dp)))
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
 
-        // шкала наполнения баночки относительно всех денег в кошельке (без зеленых точек)
+        // шкала наполнения баночки относительно всех денег в кошельке и бейдж категории
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Наполнение баночки:",
-                    fontSize = 15.sp,
-                    color = PixelTextMuted
-                )
+                Box(
+                    modifier = Modifier
+                        .pixelButtonBackground(containerColor = color.copy(alpha = 0.35f))
+                        .padding(
+                            horizontal = (6.dp * uiScale).coerceIn(4.dp, 8.dp),
+                            vertical = (2.dp * uiScale).coerceIn(2.dp, 4.dp)
+                        )
+                ) {
+                    Text(
+                        text = categoryLabel,
+                        fontSize = (12f * uiScale).coerceIn(9f, 13f).sp,
+                        fontFamily = AppFontFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelTextDark
+                    )
+                }
                 Text(
                     text = "$fillPercent% от кошелька",
-                    fontSize = 15.sp,
+                    fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
                     fontWeight = FontWeight.Bold,
                     color = color,
                     fontFamily = AppFontFamily
@@ -780,74 +854,71 @@ private fun MagicJarCard(
         }
 
         if (!isReadOnly) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
 
-            // бейдж категории и кнопки быстрого добавления (-10, +10, +20, Своя)
+            // кнопки быстрого добавления (-10, +10, +20, Своя) на всю ширину
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy((4.dp * uiScale).coerceIn(2.dp, 4.dp)),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .pixelButtonBackground(containerColor = color.copy(alpha = 0.35f))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = categoryLabel,
-                        fontSize = 13.sp,
-                        fontFamily = AppFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        color = PixelTextDark
-                    )
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    PixelButton(
-                        text = "-10",
-                        onClick = onMinus,
-                        enabled = amount >= 10,
-                        repeating = true,
-                        containerColor = PixelParchmentMedium,
-                        textColor = PixelTextDark,
-                        fontSize = 13.sp,
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp)
-                    )
-                    PixelButton(
-                        text = "+10",
-                        onClick = onPlus10,
-                        enabled = remainder >= 10,
-                        repeating = true,
-                        containerColor = color,
-                        textColor = Color.White,
-                        fontSize = 13.sp,
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp)
-                    )
-                    PixelButton(
-                        text = "+20",
-                        onClick = onPlus20,
-                        enabled = remainder >= 20,
-                        repeating = true,
-                        containerColor = color,
-                        textColor = Color.White,
-                        fontSize = 13.sp,
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp)
-                    )
-                    PixelButton(
-                        text = "Своя",
-                        onClick = {
-                            customInput = amount.toString()
-                            showCustomDialog = true
-                        },
-                        containerColor = PixelParchmentLight,
-                        textColor = PixelTextDark,
-                        fontSize = 12.sp,
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp)
-                    )
-                }
+                PixelButton(
+                    text = "-10",
+                    onClick = onMinus,
+                    enabled = amount >= 10,
+                    repeating = true,
+                    containerColor = PixelParchmentMedium,
+                    textColor = PixelTextDark,
+                    fontSize = (13f * uiScale).coerceIn(10f, 13f).sp,
+                    contentPadding = PaddingValues(
+                        horizontal = (4.dp * uiScale).coerceIn(2.dp, 6.dp),
+                        vertical = (4.dp * uiScale).coerceIn(2.dp, 4.dp)
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
+                PixelButton(
+                    text = "+10",
+                    onClick = onPlus10,
+                    enabled = remainder >= 10,
+                    repeating = true,
+                    containerColor = color,
+                    textColor = Color.White,
+                    fontSize = (13f * uiScale).coerceIn(10f, 13f).sp,
+                    contentPadding = PaddingValues(
+                        horizontal = (4.dp * uiScale).coerceIn(2.dp, 6.dp),
+                        vertical = (4.dp * uiScale).coerceIn(2.dp, 4.dp)
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
+                PixelButton(
+                    text = "+20",
+                    onClick = onPlus20,
+                    enabled = remainder >= 20,
+                    repeating = true,
+                    containerColor = color,
+                    textColor = Color.White,
+                    fontSize = (13f * uiScale).coerceIn(10f, 13f).sp,
+                    contentPadding = PaddingValues(
+                        horizontal = (4.dp * uiScale).coerceIn(2.dp, 6.dp),
+                        vertical = (4.dp * uiScale).coerceIn(2.dp, 4.dp)
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
+                PixelButton(
+                    text = "Своя",
+                    onClick = {
+                        customInput = amount.toString()
+                        showCustomDialog = true
+                    },
+                    containerColor = PixelParchmentLight,
+                    textColor = PixelTextDark,
+                    fontSize = (12f * uiScale).coerceIn(9f, 12f).sp,
+                    contentPadding = PaddingValues(
+                        horizontal = (4.dp * uiScale).coerceIn(2.dp, 6.dp),
+                        vertical = (4.dp * uiScale).coerceIn(2.dp, 4.dp)
+                    ),
+                    modifier = Modifier.weight(1.1f)
+                )
             }
         }
     }

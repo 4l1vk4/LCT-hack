@@ -36,7 +36,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
+import ru.finpet.kids.core.designsystem.LocalUiScale
 
 // цвета пергамента и дерева для модалок локаций
 val PixelParchmentLight = Color(0xFFFFF8E7)
@@ -59,6 +61,7 @@ fun PixelLocationModalSheet(
     headerOverlay: (@Composable androidx.compose.foundation.layout.BoxWithConstraintsScope.() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
+    val uiScale = LocalUiScale.current
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -67,8 +70,9 @@ fun PixelLocationModalSheet(
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         dragHandle = null
     ) {
-        // сохранение полноэкранного режима без вылезающих системных панелей
-        KeepScreenImmersive()
+        FinPetTheme {
+            // сохранение полноэкранного режима без вылезающих системных панелей
+            KeepScreenImmersive()
 
         Column(
             modifier = Modifier
@@ -108,7 +112,7 @@ fun PixelLocationModalSheet(
                         } else {
                             Text(
                                 text = badgeText,
-                                fontSize = 14.sp,
+                                fontSize = (13f * uiScale).coerceIn(9f, 14f).sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PixelDarkBrown,
                                 maxLines = 1
@@ -133,8 +137,11 @@ fun PixelLocationModalSheet(
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(end = 12.dp, top = 12.dp)
-                        .size(44.dp)
+                        .padding(
+                            end = (10.dp * uiScale).coerceIn(6.dp, 12.dp),
+                            top = (10.dp * uiScale).coerceIn(6.dp, 12.dp)
+                        )
+                        .size((38.dp * uiScale).coerceIn(28.dp, 44.dp))
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
@@ -144,7 +151,7 @@ fun PixelLocationModalSheet(
                     Image(
                         painter = painterResource(id = ru.finpet.kids.R.drawable.close_sign),
                         contentDescription = "Закрыть",
-                        modifier = Modifier.size(34.dp)
+                        modifier = Modifier.size((28.dp * uiScale).coerceIn(20.dp, 34.dp))
                     )
                 }
             }
@@ -155,26 +162,26 @@ fun PixelLocationModalSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(top = 14.dp, bottom = 28.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(horizontal = (14.dp * uiScale).coerceIn(8.dp, 16.dp)),
+                contentPadding = PaddingValues(top = (12.dp * uiScale).coerceIn(8.dp, 14.dp), bottom = 28.dp),
+                verticalArrangement = Arrangement.spacedBy((10.dp * uiScale).coerceIn(6.dp, 12.dp))
             ) {
                 item(key = "location_header_texts") {
                     Column {
                         Text(
                             text = title,
-                            fontSize = 22.sp,
+                            fontSize = (20f * uiScale).coerceIn(14f, 22f).sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = PixelDarkBrown
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height((3.dp * uiScale).coerceIn(2.dp, 4.dp)))
                         Text(
                             text = subtitle,
-                            fontSize = 16.sp,
+                            fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                             color = PixelWoodMedium,
-                            lineHeight = 21.sp
+                            lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
                     }
                 }
 
@@ -182,6 +189,7 @@ fun PixelLocationModalSheet(
                     content()
                 }
             }
+        }
         }
     }
 }

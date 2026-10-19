@@ -75,7 +75,6 @@ fun CalendarScreen(
     onDeleteNote: (CalendarNoteEntity) -> Unit,
     onToggleNote: (CalendarNoteEntity) -> Unit,
     onNavigateToTask: ((CalendarNoteEntity) -> Unit)? = null,
-    onCompleteChecklistTask: (note: CalendarNoteEntity, rewardCoins: Int) -> Unit = { _, _ -> },
     onAddRecurring: (title: String, cost: Int, frequencyDays: Int, icon: String) -> Unit = { _, _, _, _ -> },
     onDeleteRecurring: (RecurringExpenseEntity) -> Unit = {},
     demoMode: Boolean = false
@@ -188,8 +187,7 @@ fun CalendarScreen(
                     currentDay = currentPeriod?.periodIndex ?: 1,
                     plan = plan,
                     actual = actual,
-                    compliance = compliance,
-                    onEditPlan = if (isConfirmed) null else { { activeDialog = CalendarDialog.BudgetPlanning } }
+                    compliance = compliance
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
@@ -265,10 +263,6 @@ fun CalendarScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (!isNextMonday) {
-                    LampochkaIcon(modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                }
                 Text(
                     text = if (isNextMonday) "Завтра понедельник: выплата 200 монет карманных денег!"
                     else "Карманные деньги (+200 монет) выдаются по понедельникам",
@@ -285,19 +279,14 @@ fun CalendarScreen(
         is CalendarDialog.DayDetails -> {
             val dayNum = dialog.dayIndex
             val selectedDayNotes = notesByDay[dayNum].orEmpty()
-            val selectedDayRecurring = recurringDayMap[dayNum].orEmpty()
             val isSelectedToday = dayNum == currentDayIndex
 
             DayDetailsDialog(
                 dayNumber = dayNum,
                 isToday = isSelectedToday,
-                balance = balance,
                 notes = selectedDayNotes,
-                recurringExpenses = selectedDayRecurring,
-                isNextMonday = isNextMonday,
                 demoMode = demoMode,
                 onToggleNote = onToggleNote,
-                onCompleteChecklistTask = onCompleteChecklistTask,
                 onOpenAddNote = { activeDialog = CalendarDialog.AddNote(dayNum) },
                 onDeleteNote = onDeleteNote,
                 onCompletePeriod = {

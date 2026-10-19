@@ -1,7 +1,6 @@
 package ru.finpet.kids.feature.finik.sheets
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.res.painterResource
 import ru.finpet.kids.R
@@ -11,16 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import ru.finpet.kids.core.designsystem.PixelCheckbox
 import ru.finpet.kids.core.designsystem.DocsIcon
@@ -31,7 +27,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -39,11 +34,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
-import ru.finpet.kids.core.designsystem.DiagramIcon
+import ru.finpet.kids.core.designsystem.FinPetTheme
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.RenderBoardIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
-import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
@@ -80,14 +75,21 @@ fun FinikTasksSheet(
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
     ) {
-        // сохраняем полноэкранный режим
-        KeepScreenImmersive()
+        FinPetTheme {
+            val uiScale = LocalUiScale.current
+            // сохраняем полноэкранный режим
+            KeepScreenImmersive()
 
-        Column(
+            Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(
+                    start = (16.dp * uiScale).coerceIn(10.dp, 16.dp),
+                    end = (16.dp * uiScale).coerceIn(10.dp, 16.dp),
+                    top = (16.dp * uiScale).coerceIn(10.dp, 16.dp),
+                    bottom = (16.dp * uiScale).coerceIn(10.dp, 16.dp)
+                ),
+            verticalArrangement = Arrangement.spacedBy((12.dp * uiScale).coerceIn(8.dp, 12.dp))
         ) {
             // Пиксельная шапка со счетчиком и крестиком
             PixelBar(
@@ -174,61 +176,65 @@ fun FinikTasksSheet(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .padding(
+                                    horizontal = (10.dp * uiScale).coerceIn(6.dp, 12.dp),
+                                    vertical = (8.dp * uiScale).coerceIn(5.dp, 10.dp)
+                                ),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                PixelCheckbox(
-                                    checked = note.isCompleted,
-                                    onCheckedChange = if (isSystemTask) null else { { onToggleNote(note) } },
-                                    enabled = !isSystemTask,
-                                    modifier = Modifier.size(26.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                RenderBoardIcon(taskIcon, modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                val displayTitle = if (note.category == "PET_FOOD" && isPetRunaway) {
-                                    "Купить корм для возвращения"
-                                } else {
-                                    note.title
-                                }
-                                Text(
-                                    text = displayTitle,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = if (note.isCompleted) TextSecondary else TextPrimary,
-                                    textDecoration = if (note.isCompleted) TextDecoration.LineThrough else TextDecoration.None
-                                )
+                            PixelCheckbox(
+                                checked = note.isCompleted,
+                                onCheckedChange = if (isSystemTask) null else { { onToggleNote(note) } },
+                                enabled = !isSystemTask,
+                                modifier = Modifier.size((24.dp * uiScale).coerceIn(18.dp, 26.dp))
+                            )
+                            Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
+                            RenderBoardIcon(
+                                taskIcon,
+                                modifier = Modifier.size((18.dp * uiScale).coerceIn(14.dp, 20.dp))
+                            )
+                            Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
+                            val displayTitle = if (note.category == "PET_FOOD" && isPetRunaway) {
+                                "Купить корм для возвращения"
+                            } else {
+                                note.title
                             }
+                            Text(
+                                text = displayTitle,
+                                modifier = Modifier.weight(1f),
+                                fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
+                                fontWeight = FontWeight.Medium,
+                                color = if (note.isCompleted) TextSecondary else TextPrimary,
+                                textDecoration = if (note.isCompleted) TextDecoration.LineThrough else TextDecoration.None
+                            )
 
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(3.dp, 8.dp)))
 
                             if (note.isCompleted) {
                                 Box(
                                     modifier = Modifier
                                         .pixelButtonBackground(containerColor = Color(0xFFE8F5E9))
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        .padding(
+                                            horizontal = (6.dp * uiScale).coerceIn(4.dp, 8.dp),
+                                            vertical = (3.dp * uiScale).coerceIn(2.dp, 4.dp)
+                                        )
                                 ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         if (note.category == "GROCERIES" && note.cost > 0) {
                                              Text(
-                                                text = "✅ +${note.cost}",
-                                                fontSize = 14.sp,
+                                                text = "+${note.cost}",
+                                                fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = FreshGreen
                                             )
-                                            Spacer(modifier = Modifier.width(3.dp))
-                                            CoinIcon(modifier = Modifier.size(13.dp))
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            CoinIcon(modifier = Modifier.size((13.dp * uiScale).coerceIn(10.dp, 13.dp)))
                                         } else {
                                             Text(
-                                                text = "✅ Готово",
-                                                fontSize = 14.sp,
+                                                text = "Готово",
+                                                fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = FreshGreen
                                             )
@@ -247,7 +253,10 @@ fun FinikTasksSheet(
                                                 ) { handleNavigate() }
                                             } else Modifier
                                         )
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        .padding(
+                                            horizontal = (6.dp * uiScale).coerceIn(4.dp, 8.dp),
+                                            vertical = (3.dp * uiScale).coerceIn(2.dp, 4.dp)
+                                        )
                                 ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically
@@ -256,25 +265,25 @@ fun FinikTasksSheet(
                                             val badgeText = if (isPetRunaway) "Домой • 60" else "Лавка • 30"
                                             Text(
                                                 text = badgeText,
-                                                fontSize = 14.sp,
+                                                fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = TextPrimary,
                                             )
-                                            Spacer(modifier = Modifier.width(3.dp))
-                                            CoinIcon(modifier = Modifier.size(13.dp))
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            CoinIcon(modifier = Modifier.size((13.dp * uiScale).coerceIn(10.dp, 13.dp)))
                                         } else if (note.cost > 0 && !isSystemTask) {
                                             Text(
                                                 text = "${note.cost}",
-                                                fontSize = 14.sp,
+                                                fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = TextPrimary,
                                             )
-                                            Spacer(modifier = Modifier.width(3.dp))
-                                            CoinIcon(modifier = Modifier.size(13.dp))
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            CoinIcon(modifier = Modifier.size((13.dp * uiScale).coerceIn(10.dp, 13.dp)))
                                         } else {
                                             Text(
                                                 text = taskBadge,
-                                                fontSize = 14.sp,
+                                                fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = TextPrimary,
                                             )
@@ -294,5 +303,6 @@ fun FinikTasksSheet(
                 modifier = Modifier.fillMaxWidth()
             )
         }
+    }
     }
 }

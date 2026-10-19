@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,6 +49,7 @@ import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
@@ -126,10 +130,11 @@ fun GoalProgressCard(
         val maxWithdraw = goal.savedAmount
         val currentMax = if (isDepositTab) maxDeposit else maxWithdraw
 
+        val focusManager = LocalFocusManager.current
         PixelAlertDialog(
             onDismissRequest = { showCustomDialog = false },
             title = if (isDepositTab) "ОТЛОЖИТЬ В КОПИЛКУ" else "ЗАБРАТЬ ИЗ КОПИЛКИ",
-            icon = "bank",
+            icon = "",
             confirmButton = {
                 PixelButton(
                     text = if (isDepositTab) "Положить" else "Забрать",
@@ -162,7 +167,13 @@ fun GoalProgressCard(
                 )
             }
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { focusManager.clearFocus() })
+                    }
+            ) {
                 Text(
                     text = "Цель: ${goal.title}",
                     fontFamily = AppFontFamily,
@@ -171,12 +182,16 @@ fun GoalProgressCard(
                     color = PixelTextDark
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "В копилке: ${goal.savedAmount} из ${goal.targetCost} 🪙",
-                    fontFamily = AppFontFamily,
-                    fontSize = 14.sp,
-                    color = PixelTextMuted
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "В копилке: ${goal.savedAmount} из ${goal.targetCost}",
+                        fontFamily = AppFontFamily,
+                        fontSize = 14.sp,
+                        color = PixelTextMuted
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    CoinIcon(modifier = Modifier.size(15.dp))
+                }
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Вкладки: Положить / Снять
@@ -185,7 +200,7 @@ fun GoalProgressCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     PixelButton(
-                        text = "Положить 📥",
+                        text = "Положить",
                         onClick = {
                             isDepositTab = true
                             customAmountText = minOf(10, maxDeposit).toString()
@@ -196,7 +211,7 @@ fun GoalProgressCard(
                         modifier = Modifier.weight(1f)
                     )
                     PixelButton(
-                        text = "Забрать 📤",
+                        text = "Забрать",
                         onClick = {
                             isDepositTab = false
                             customAmountText = minOf(10, maxWithdraw).toString()
@@ -210,17 +225,45 @@ fun GoalProgressCard(
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
-                val limitInfo = if (isDepositTab) {
-                    "Доступно в кошельке: $balance 🪙 (макс. для цели: $maxDeposit 🪙)"
-                } else {
-                    "В копилке: $maxWithdraw 🪙"
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (isDepositTab) {
+                        Text(
+                            text = "Доступно: $balance",
+                            fontFamily = AppFontFamily,
+                            fontSize = 13.sp,
+                            color = PixelTextMuted
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        CoinIcon(modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = "(макс.: $maxDeposit",
+                            fontFamily = AppFontFamily,
+                            fontSize = 13.sp,
+                            color = PixelTextMuted
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        CoinIcon(modifier = Modifier.size(14.dp))
+                        Text(
+                            text = ")",
+                            fontFamily = AppFontFamily,
+                            fontSize = 13.sp,
+                            color = PixelTextMuted
+                        )
+                    } else {
+                        Text(
+                            text = "В копилке: $maxWithdraw",
+                            fontFamily = AppFontFamily,
+                            fontSize = 13.sp,
+                            color = PixelTextMuted
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        CoinIcon(modifier = Modifier.size(14.dp))
+                    }
                 }
-                Text(
-                    text = limitInfo,
-                    fontFamily = AppFontFamily,
-                    fontSize = 13.sp,
-                    color = PixelTextMuted
-                )
                 Spacer(modifier = Modifier.height(6.dp))
 
                 OutlinedTextField(
@@ -246,7 +289,9 @@ fun GoalProgressCard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     PixelButton(
-                        text = "+10 🪙",
+                        text = "+10",
+                        trailingIcon = { CoinIcon(modifier = Modifier.size(13.dp)) },
+                        repeating = true,
                         onClick = {
                             val curr = customAmountText.toIntOrNull() ?: 0
                             customAmountText = (curr + 10).coerceAtMost(currentMax).toString()
@@ -257,7 +302,9 @@ fun GoalProgressCard(
                         contentPadding = PaddingValues(vertical = 4.dp, horizontal = 4.dp)
                     )
                     PixelButton(
-                        text = "+50 🪙",
+                        text = "+50",
+                        trailingIcon = { CoinIcon(modifier = Modifier.size(13.dp)) },
+                        repeating = true,
                         onClick = {
                             val curr = customAmountText.toIntOrNull() ?: 0
                             customAmountText = (curr + 50).coerceAtMost(currentMax).toString()
@@ -292,12 +339,14 @@ fun GoalProgressCard(
         label = "checkbox_scale"
     )
 
+    val uiScale = LocalUiScale.current
+
     FinCard(
         modifier = Modifier
             .fillMaxWidth()
             .then(if (isTarget) Modifier.bringIntoViewRequester(bringIntoViewRequester) else Modifier)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding((14.dp * uiScale).coerceIn(8.dp, 16.dp))) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -320,7 +369,7 @@ fun GoalProgressCard(
                                 scaleX = checkboxScale
                                 scaleY = checkboxScale
                             }
-                            .size(28.dp)
+                            .size((26.dp * uiScale).coerceIn(18.dp, 28.dp))
                             .clip(RoundedCornerShape(4.dp))
                             .background(if (isSelected) JoyOrange else Color(0xFFD7C4A5))
                             .border(
@@ -334,29 +383,29 @@ fun GoalProgressCard(
                             Text(
                                 text = "✓",
                                 color = Color.White,
-                                fontSize = 18.sp,
+                                fontSize = (16f * uiScale).coerceIn(12f, 18f).sp,
                                 fontWeight = FontWeight.Black
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.width(10.dp))
-                    GoalStickerIcon(goalId = goal.id, modifier = Modifier.size(28.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
+                    Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
+                    GoalStickerIcon(goalId = goal.id, modifier = Modifier.size((26.dp * uiScale).coerceIn(18.dp, 28.dp)))
+                    Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = goal.title,
-                            fontSize = 18.sp,
+                            fontSize = (17f * uiScale).coerceIn(12f, 18f).sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
                         if (isSelected) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                StarIcon(modifier = Modifier.size(14.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
+                                StarIcon(modifier = Modifier.size((13.dp * uiScale).coerceIn(10.dp, 14.dp)))
+                                Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = "Главная цель",
-                                    fontSize = 15.sp,
+                                    fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
                                     fontWeight = FontWeight.Bold,
                                     color = JoyOrange
                                 )
@@ -433,32 +482,40 @@ fun GoalProgressCard(
                     )
                 }
             } else {
+                val depositText = if (uiScale < 0.85f) "+10" else "+10 в копилку"
+                val withdrawText = if (uiScale < 0.85f) "-10" else "Взять -10"
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy((4.dp * uiScale).coerceIn(3.dp, 6.dp))
                 ) {
                     PixelButton(
-                        text = "+10 в копилку",
+                        text = depositText,
                         onClick = { onDeposit(goal.id, 10) },
                         enabled = balance >= 10,
                         repeating = true,
                         containerColor = PixelGreenCrop,
                         textColor = Color.White,
                         borderColor = Color(0xFF1B5E20),
-                        fontSize = 15.sp,
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
+                        fontSize = (14f * uiScale).coerceIn(11f, 15f).sp,
+                        contentPadding = PaddingValues(
+                            horizontal = (4.dp * uiScale).coerceIn(3.dp, 6.dp),
+                            vertical = (5.dp * uiScale).coerceIn(3.dp, 6.dp)
+                        ),
                         modifier = Modifier.weight(1.3f)
                     )
 
                     if (goal.savedAmount > 0) {
                         PixelButton(
-                            text = "Взять -10",
+                            text = withdrawText,
                             onClick = { onWithdrawClick(goal) },
                             containerColor = Color(0xFFFFF3E0),
                             textColor = PixelRedBerry,
                             borderColor = Color(0xFFE57373),
-                            fontSize = 15.sp,
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
+                            fontSize = (14f * uiScale).coerceIn(11f, 15f).sp,
+                            contentPadding = PaddingValues(
+                                horizontal = (4.dp * uiScale).coerceIn(3.dp, 6.dp),
+                                vertical = (5.dp * uiScale).coerceIn(3.dp, 6.dp)
+                            ),
                             modifier = Modifier.weight(1.1f)
                         )
                     }
@@ -472,8 +529,11 @@ fun GoalProgressCard(
                         },
                         containerColor = PixelGoldBright,
                         textColor = PixelTextDark,
-                        fontSize = 14.sp,
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
+                        fontSize = (13f * uiScale).coerceIn(11f, 14f).sp,
+                        contentPadding = PaddingValues(
+                            horizontal = (4.dp * uiScale).coerceIn(3.dp, 6.dp),
+                            vertical = (5.dp * uiScale).coerceIn(3.dp, 6.dp)
+                        ),
                         modifier = Modifier.weight(0.9f)
                     )
                 }

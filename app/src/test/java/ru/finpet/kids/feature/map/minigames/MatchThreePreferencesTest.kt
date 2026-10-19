@@ -39,21 +39,21 @@ class MatchThreePreferencesTest {
 
     @Test
     fun `checkAndGrantWeekly grants 3 of each booster when period increases`() {
-        // First grant: period 1
+        // Initial period 1 does not add duplicate boosters (starts with base 3)
         MatchThreePreferences.checkAndGrantWeekly(context, 1)
 
-        assertEquals(6, MatchThreePreferences.getBoosterCount(context, BoosterType.SINGLE)) // default 3 + 3
-        assertEquals(6, MatchThreePreferences.getBoosterCount(context, BoosterType.COLUMN))
-        assertEquals(6, MatchThreePreferences.getBoosterCount(context, BoosterType.ROW))
-        assertEquals(6, MatchThreePreferences.getBoosterCount(context, BoosterType.AREA))
+        assertEquals(3, MatchThreePreferences.getBoosterCount(context, BoosterType.SINGLE))
+        assertEquals(3, MatchThreePreferences.getBoosterCount(context, BoosterType.COLUMN))
+        assertEquals(3, MatchThreePreferences.getBoosterCount(context, BoosterType.ROW))
+        assertEquals(3, MatchThreePreferences.getBoosterCount(context, BoosterType.AREA))
 
         // Same period does not grant again
         MatchThreePreferences.checkAndGrantWeekly(context, 1)
-        assertEquals(6, MatchThreePreferences.getBoosterCount(context, BoosterType.SINGLE))
+        assertEquals(3, MatchThreePreferences.getBoosterCount(context, BoosterType.SINGLE))
 
-        // Next period grants +3 more
+        // Next period (period 2) grants +3 more
         MatchThreePreferences.checkAndGrantWeekly(context, 2)
-        assertEquals(9, MatchThreePreferences.getBoosterCount(context, BoosterType.SINGLE))
+        assertEquals(6, MatchThreePreferences.getBoosterCount(context, BoosterType.SINGLE))
     }
 
     @Test

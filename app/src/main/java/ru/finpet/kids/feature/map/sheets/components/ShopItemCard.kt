@@ -1,8 +1,6 @@
 package ru.finpet.kids.feature.map.sheets.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -17,13 +15,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -39,10 +35,9 @@ import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.HeartIcon
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.LightningIcon
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelGoldBright
-import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
-import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.TextSecondary
@@ -84,6 +79,7 @@ fun ShopItemCard(
     val boostsLowMood = curMood <= 30 && item.moodBonus > 0
     val boostsLowHealth = curHealth <= 30 && item.healthBonus > 0
     val canBoostAnyLowStat = boostsLowSatiety || boostsLowMood || boostsLowHealth
+    val uiScale = LocalUiScale.current
 
     FinCard(
         modifier = Modifier
@@ -93,28 +89,27 @@ fun ShopItemCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding((12.dp * uiScale).coerceIn(8.dp, 14.dp)),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 // Название товара + отметки важности и выполнения
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = item.name,
-                        fontSize = 18.sp,
+                        fontSize = (17f * uiScale).coerceIn(12f, 18f).sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
                     if (canBoostAnyLowStat && !isRunaway) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        ExclamationIcon(modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width((5.dp * uiScale).coerceIn(3.dp, 6.dp)))
+                        ExclamationIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 18.dp)))
                     }
                     if (isGroceriesCompleted) {
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
                         Text(
-                            text = "✅ Выполнено",
-                            fontSize = 15.sp,
+                            text = "Выполнено",
+                            fontSize = (14f * uiScale).coerceIn(10f, 15f).sp,
                             fontWeight = FontWeight.Bold,
                             color = FreshGreen
                         )
@@ -128,50 +123,50 @@ fun ShopItemCard(
                         isGroceriesUnavailable -> "Родители сегодня не давали поручение на покупки. Загляни во Вт, Чт или Сб!"
                         else -> item.description
                     },
-                    fontSize = 16.sp,
+                    fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                     color = TextSecondary,
-                    lineHeight = 21.sp
+                    lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(5.dp))
 
                 // Бонусы к характеристикам питомца
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (item.satietyBonus > 0) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            AppleIcon(modifier = Modifier.size(16.dp))
+                            AppleIcon(modifier = Modifier.size((15.dp * uiScale).coerceIn(11.dp, 16.dp)))
                             Spacer(modifier = Modifier.width(2.dp))
-                            Text("+${item.satietyBonus}", fontSize = 16.sp, color = JoyOrange, fontWeight = FontWeight.Bold)
+                            Text("+${item.satietyBonus}", fontSize = (14f * uiScale).coerceIn(11f, 16f).sp, color = JoyOrange, fontWeight = FontWeight.Bold)
                         }
                     }
                     if (item.moodBonus > 0) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            LightningIcon(modifier = Modifier.size(16.dp))
+                            LightningIcon(modifier = Modifier.size((15.dp * uiScale).coerceIn(11.dp, 16.dp)))
                             Spacer(modifier = Modifier.width(2.dp))
-                            Text("+${item.moodBonus}", fontSize = 16.sp, color = SkyBlue, fontWeight = FontWeight.Bold)
+                            Text("+${item.moodBonus}", fontSize = (14f * uiScale).coerceIn(11f, 16f).sp, color = SkyBlue, fontWeight = FontWeight.Bold)
                         }
                     }
                     if (item.healthBonus > 0) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            HeartIcon(modifier = Modifier.size(16.dp))
+                            HeartIcon(modifier = Modifier.size((15.dp * uiScale).coerceIn(11.dp, 16.dp)))
                             Spacer(modifier = Modifier.width(2.dp))
-                            Text("+${item.healthBonus}", fontSize = 16.sp, color = FreshGreen, fontWeight = FontWeight.Bold)
+                            Text("+${item.healthBonus}", fontSize = (14f * uiScale).coerceIn(11f, 16f).sp, color = FreshGreen, fontWeight = FontWeight.Bold)
                         }
                     }
                     if (isGroceriesItem && !isGroceriesCompleted && !isGroceriesUnavailable) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            CoinIcon(modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Сдача: 5, 10 или 15", fontSize = 16.sp, color = FreshGreen, fontWeight = FontWeight.Bold)
+                            CoinIcon(modifier = Modifier.size((15.dp * uiScale).coerceIn(11.dp, 16.dp)))
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text("Сдача: 5, 10 или 15", fontSize = (14f * uiScale).coerceIn(11f, 16f).sp, color = FreshGreen, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
 
             // Кнопка действия (покупка / сдача / статус блокировки) в аутентичном пиксельном дизайне
             when {
@@ -179,16 +174,19 @@ fun ShopItemCard(
                     Box(
                         modifier = Modifier
                             .pixelButtonBackground(containerColor = Color(0xFFDED0B6))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .padding(
+                                horizontal = (8.dp * uiScale).coerceIn(4.dp, 10.dp),
+                                vertical = (5.dp * uiScale).coerceIn(3.dp, 6.dp)
+                            )
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            LockIcon(modifier = Modifier.size(15.dp))
+                            LockIcon(modifier = Modifier.size((14.dp * uiScale).coerceIn(10.dp, 15.dp)))
                             Spacer(modifier = Modifier.width(3.dp))
                             Text(
                                 text = "Закрыто",
                                 fontFamily = AppFontFamily,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                 color = TextSecondary
                             )
                         }
@@ -198,24 +196,27 @@ fun ShopItemCard(
                     Box(
                         modifier = Modifier
                             .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .padding(
+                                horizontal = (8.dp * uiScale).coerceIn(4.dp, 10.dp),
+                                vertical = (5.dp * uiScale).coerceIn(3.dp, 6.dp)
+                            )
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if ((groceryTask?.cost ?: 0) > 0) {
                                 Text(
-                                    text = "✅ +${groceryTask?.cost} ",
+                                    text = "+${groceryTask?.cost} ",
                                     fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp,
+                                    fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                     color = PixelGreenCrop
                                 )
-                                CoinIcon(modifier = Modifier.size(15.dp))
+                                CoinIcon(modifier = Modifier.size((14.dp * uiScale).coerceIn(10.dp, 15.dp)))
                             } else {
                                 Text(
-                                    text = "✅ Готово",
+                                    text = "Готово",
                                     fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp,
+                                    fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                     color = PixelGreenCrop
                                 )
                             }
@@ -226,16 +227,19 @@ fun ShopItemCard(
                     Box(
                         modifier = Modifier
                             .pixelButtonBackground(containerColor = Color(0xFFDED0B6))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .padding(
+                                horizontal = (8.dp * uiScale).coerceIn(4.dp, 10.dp),
+                                vertical = (5.dp * uiScale).coerceIn(3.dp, 6.dp)
+                            )
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            LockIcon(modifier = Modifier.size(15.dp))
+                            LockIcon(modifier = Modifier.size((14.dp * uiScale).coerceIn(10.dp, 15.dp)))
                             Spacer(modifier = Modifier.width(3.dp))
                             Text(
                                 text = "Нет задания",
                                 fontFamily = AppFontFamily,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                 color = TextSecondary
                             )
                         }
@@ -249,19 +253,28 @@ fun ShopItemCard(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
                             ) { onBuyClick(item) }
-                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                            .padding(
+                                horizontal = (10.dp * uiScale).coerceIn(5.dp, 12.dp),
+                                vertical = (6.dp * uiScale).coerceIn(4.dp, 7.dp)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         if (isGroceriesItem) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("0 ", fontFamily = AppFontFamily, fontWeight = FontWeight.Black, fontSize = 16.sp, color = Color.White)
-                                CoinIcon(modifier = Modifier.size(16.dp))
-                                Text(" • Сдача!", fontFamily = AppFontFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
+                                if (uiScale < 0.85f) {
+                                    CoinIcon(modifier = Modifier.size((14.dp * uiScale).coerceIn(10.dp, 15.dp)))
+                                    Spacer(modifier = Modifier.width(2.dp))
+                                    Text("Сдача!", fontFamily = AppFontFamily, fontWeight = FontWeight.Bold, fontSize = (14f * uiScale).coerceIn(10f, 15f).sp, color = Color.White)
+                                } else {
+                                    Text("0 ", fontFamily = AppFontFamily, fontWeight = FontWeight.Black, fontSize = 16.sp, color = Color.White)
+                                    CoinIcon(modifier = Modifier.size(16.dp))
+                                    Text(" • Сдача!", fontFamily = AppFontFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
+                                }
                             }
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("${item.price} ", fontFamily = AppFontFamily, fontWeight = FontWeight.Black, fontSize = 17.sp, color = PixelTextDark)
-                                CoinIcon(modifier = Modifier.size(17.dp))
+                                Text("${item.price} ", fontFamily = AppFontFamily, fontWeight = FontWeight.Black, fontSize = (16f * uiScale).coerceIn(11f, 17f).sp, color = PixelTextDark)
+                                CoinIcon(modifier = Modifier.size((15.dp * uiScale).coerceIn(11.dp, 17.dp)))
                             }
                         }
                     }

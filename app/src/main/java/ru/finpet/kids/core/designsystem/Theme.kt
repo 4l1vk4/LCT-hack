@@ -12,6 +12,7 @@ import ru.finpet.kids.R
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Density
 
 import androidx.compose.ui.text.TextStyle
@@ -130,16 +131,40 @@ private val LightColorScheme = lightColorScheme(
     onError = Color.White
 )
 
+val LocalUiScale = androidx.compose.runtime.compositionLocalOf { 1f }
+
 @Composable
 fun FinPetTheme(
     content: @Composable () -> Unit
 ) {
     val currentDensity = LocalDensity.current
-    // пиксельный шрифт Epilepsy Sans оптически компактнее обычных шрифтов,
-    // масштабируем fontScale на ~18% (+2..4sp), чтобы текст читался крупно и четко
+    val configuration = LocalConfiguration.current
+
+    // Базовый дизайн рассчитан на эталонную ширину 390dp (стандарт современных мобильных макетов).
+    val baseWidthDp = 390f
+    val screenWidthDp = configuration.screenWidthDp.toFloat().coerceAtLeast(200f)
+
+    // Динамический масштаб шрифта:
+    // На эталонной ширине 390dp масштаб составляет 1.18f (оптимально для пиксельного шрифта Epilepsy Sans).
+    // При уменьшении ширины экрана (или увеличении Density до 700, где ширина ~247dp)
+    // fontScale пропорционально масштабируется вниз (до ~0.70f), благодаря чему текст всегда занимает
+    // строго одинаковую долю экрана и никогда не вылезает за пределы кнопок, карточек и диалогов.
+    // На планшетах и широких экранах (700dp+) масштаб аккуратно ограничивается (до 1.25f),
+    // чтобы текст оставался гармоничным и не выглядел избыточно крупным.
+    val widthRatio = (screenWidthDp / baseWidthDp).coerceIn(0.65f, 1.25f)
+    val dynamicFontScale = (1.18f * widthRatio).coerceIn(0.68f, 1.25f)
+
+    // Учитываем системную настройку размера шрифта пользователя (Accessibility),
+    // защищая игровой интерфейс от поломки при экстремальных значениях.
+    val systemScale = currentDensity.fontScale.coerceIn(0.85f, 1.15f)
+    val effectiveFontScale = (dynamicFontScale * systemScale).coerceIn(0.60f, 1.30f)
+
+    // ВАЖНО: density НЕ масштабируется (сохраняется currentDensity.density),
+    // что сохраняет точную привязку к физическим пикселям экрана, WindowInsets,
+    // 9-slice графике и предотвращает искажение размеров dp и канваса.
     val scaledDensity = Density(
         density = currentDensity.density,
-        fontScale = currentDensity.fontScale * 1.18f
+        fontScale = effectiveFontScale
     )
 
     MaterialTheme(
@@ -148,6 +173,7 @@ fun FinPetTheme(
     ) {
         CompositionLocalProvider(
             LocalDensity provides scaledDensity,
+            LocalUiScale provides widthRatio,
             LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = AppFontFamily)
         ) {
             content()

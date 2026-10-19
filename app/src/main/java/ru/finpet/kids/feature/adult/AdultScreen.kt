@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.DiagramIcon
 import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
@@ -101,37 +102,39 @@ fun AdultScreen(
         ) {
             // шапка раздела
             item {
+                val uiScale = LocalUiScale.current
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "👨‍👩‍👦 Родительский контроль",
-                        fontSize = 22.sp,
+                        text = "Родительский контроль",
+                        fontSize = (20f * uiScale).coerceIn(14f, 22f).sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = TextPrimary
                     )
                     Text(
                         text = "Аналитика и настройки периода",
-                        fontSize = 16.sp,
+                        fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                         color = TextSecondary
                     )
                 }
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height((10.dp * uiScale).coerceIn(6.dp, 14.dp)))
             }
 
             // блок компетенций ребенка (Минфин РФ / ТЗ)
             item {
+                val uiScale = LocalUiScale.current
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(3.dp, 6.dp))
                 ) {
-                    DiagramIcon(modifier = Modifier.size(28.dp))
+                    DiagramIcon(modifier = Modifier.size((24.dp * uiScale).coerceIn(18.dp, 28.dp)))
                     Text(
                         text = "Финансовые компетенции ребенка",
-                        fontSize = 18.sp,
+                        fontSize = (16f * uiScale).coerceIn(11f, 18f).sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
             }
 
             items(report?.competencies ?: emptyList(), key = { it.title }) { comp ->

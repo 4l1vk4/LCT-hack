@@ -1,13 +1,10 @@
 package ru.finpet.kids.feature.budget
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,11 +32,10 @@ import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
-import ru.finpet.kids.core.designsystem.CoinText
 import ru.finpet.kids.core.designsystem.DiagramIcon
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.LockIcon
-import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.PixelBlueWater
 import ru.finpet.kids.core.designsystem.PixelButton
@@ -54,9 +49,7 @@ import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
-import ru.finpet.kids.core.designsystem.PixelWoodBevel
 import ru.finpet.kids.core.designsystem.PixelWoodDark
-import ru.finpet.kids.core.designsystem.PixelWoodLight
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.WarningIcon
@@ -77,21 +70,24 @@ fun BudgetPlanVsFactCard(
     plan: BudgetPlan,
     actual: ActualExpenses,
     compliance: BudgetCompliance,
-    onEditPlan: (() -> Unit)? = null,
-    onDismiss: (() -> Unit)? = null
+    modifier: Modifier = Modifier
 ) {
+    val uiScale = LocalUiScale.current
     StardewBoard(
         headerTitle = "ПЛАН vs ФАКТ",
         headerIcon = "📊"
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy((8.dp * uiScale).coerceIn(5.dp, 8.dp))
         ) {
             // верхняя сводная плашка: компактно и последовательно «План: 150 🪙 ➔ Факт: 120 🪙»
             PixelPanel(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                contentPadding = PaddingValues(
+                    horizontal = (10.dp * uiScale).coerceIn(6.dp, 12.dp),
+                    vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp)
+                )
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -101,51 +97,40 @@ fun BudgetPlanVsFactCard(
                     Column(modifier = Modifier.weight(1f)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            horizontalArrangement = Arrangement.spacedBy((3.dp * uiScale).coerceIn(2.dp, 4.dp))
                         ) {
                             Text(
-                                text = "План:",
+                                text = "План: ${plan.totalPlanned}",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
+                                fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                                 color = PixelTextDark,
                                 fontFamily = AppFontFamily
                             )
-                            CoinText(
-                                prefix = "${plan.totalPlanned}",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                color = PixelTextDark,
-                                fontFamily = AppFontFamily
-                            )
+                            CoinIcon(modifier = Modifier.size((15.dp * uiScale).coerceIn(11.dp, 17.dp)))
+                            Spacer(modifier = Modifier.width((3.dp * uiScale).coerceIn(2.dp, 4.dp)))
                             Text(
-                                text = "➔ Факт:",
+                                text = "➔ Факт: ${actual.totalActual}",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                color = PixelTextDark,
-                                fontFamily = AppFontFamily
-                            )
-                            CoinText(
-                                prefix = "${actual.totalActual}",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
+                                fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                                 color = if (actual.totalActual <= plan.totalPlanned) PixelGreenCrop else PixelRedBerry,
                                 fontFamily = AppFontFamily
                             )
+                            CoinIcon(modifier = Modifier.size((15.dp * uiScale).coerceIn(11.dp, 17.dp)))
                         }
                         Spacer(modifier = Modifier.height(3.dp))
                         if (compliance.mandatoryOverspend > 0 && compliance.optionalOverspend > 0) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                WarningIcon(modifier = Modifier.size(14.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
+                                WarningIcon(modifier = Modifier.size((13.dp * uiScale).coerceIn(10.dp, 14.dp)))
+                                Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = "Перерасход: обяз. +${compliance.mandatoryOverspend}, жел. +${compliance.optionalOverspend}",
-                                    fontSize = 13.sp,
+                                    fontSize = (12f * uiScale).coerceIn(9f, 13f).sp,
                                     fontWeight = FontWeight.Bold,
                                     color = PixelRedBerry,
                                     fontFamily = AppFontFamily
                                 )
                                 Spacer(modifier = Modifier.width(2.dp))
-                                CoinIcon(modifier = Modifier.size(12.dp))
+                                CoinIcon(modifier = Modifier.size((12.dp * uiScale).coerceIn(9.dp, 12.dp)))
                             }
                         } else if (compliance.mandatoryOverspend > 0) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -369,254 +354,25 @@ fun BudgetPlanVsFactCard(
                 )
             }
 
-            // кнопки действий
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (onDismiss != null) {
-                    PixelButton(
-                        text = "Закрыть",
-                        onClick = onDismiss,
-                        containerColor = PixelWoodMedium,
-                        textColor = PixelParchmentLight,
-                        borderColor = PixelWoodDark,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                if (onEditPlan != null) {
-                    PixelButton(
-                        text = "✏️ Изменить план",
-                        onClick = onEditPlan,
-                        containerColor = PixelParchmentMedium,
-                        textColor = PixelTextDark,
-                        borderColor = PixelParchmentBorder,
-                        modifier = Modifier.weight(if (onDismiss != null) 1.5f else 1f)
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .weight(if (onDismiss != null) 1.5f else 1f)
-                            .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
-                            .padding(vertical = 9.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            LockIcon(modifier = Modifier.size(17.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "План утверждён",
-                                fontFamily = AppFontFamily,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1B5E20)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * диалоговая обертка над BudgetPlanVsFactCard для открытия по тапу на Пульс Бюджета
- */
-@Composable
-fun BudgetPlanVsFactDialog(
-    currentDay: Int,
-    plan: BudgetPlan,
-    actual: ActualExpenses,
-    compliance: BudgetCompliance,
-    onEditPlan: (() -> Unit)? = null,
-    onDismiss: () -> Unit
-) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        KeepScreenImmersive()
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.95f)
-                .wrapContentHeight()
-                .clip(RoundedCornerShape(8.dp))
-        ) {
-            BudgetPlanVsFactCard(
-                currentDay = currentDay,
-                plan = plan,
-                actual = actual,
-                compliance = compliance,
-                onEditPlan = onEditPlan,
-                onDismiss = onDismiss
-            )
-        }
-    }
-}
-
-/**
- * строка сопоставления плана и факта по категории с индикатором наполнения
- */
-@Composable
-private fun CategoryComparisonRow(
-    icon: String,
-    title: String,
-    categoryLabel: String,
-    planned: Int,
-    actual: Int,
-    color: Color,
-    isCompleted: Boolean = false,
-    isOverspent: Boolean = false
-) {
-    val progress = if (planned > 0) (actual.toFloat() / planned.toFloat()).coerceIn(0f, 1f) else if (actual > 0) 1f else 0f
-
-    PixelPanel(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = icon, fontSize = 16.sp)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = title,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = PixelTextDark
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Левая колонка: цифры с монетой сверху, а ПОД НИМИ слово категории ("Обязательное", "Желаемое", "В копилку")
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "$actual / $planned",
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 17.sp,
-                            color = if (isOverspent) PixelRedBerry else color,
-                            fontFamily = AppFontFamily
-                        )
-                        CoinIcon(modifier = Modifier.size(16.dp))
-                    }
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = categoryLabel,
-                        fontSize = 13.sp,
-                        fontFamily = AppFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        color = color
-                    )
-                }
-
-                // Правый бейдж статуса выполнения с нарисованными эмодзи
-                val statusBgColor = when {
-                    isOverspent -> Color(0xFFFFCDD2)
-                    isCompleted && actual > planned -> Color(0xFFFFF9C4)
-                    else -> Color(0xFFDCEDC8)
-                }
-                val statusTextColor = when {
-                    isOverspent -> PixelRedBerry
-                    isCompleted && actual > planned -> Color(0xFFF57F17)
-                    else -> Color(0xFF2E7D32)
-                }
-
-                Box(
-                    modifier = Modifier
-                        .pixelButtonBackground(containerColor = statusBgColor)
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (isOverspent) {
-                            WarningIcon(modifier = Modifier.size(14.dp))
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text(
-                                text = "+${actual - planned}",
-                                fontSize = 14.sp,
-                                fontFamily = AppFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                color = statusTextColor
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            CoinIcon(modifier = Modifier.size(14.dp))
-                        } else if (isCompleted && actual > planned) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                StarIcon(modifier = Modifier.size(13.dp))
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Text(
-                                    text = "+${actual - planned}",
-                                    fontSize = 14.sp,
-                                    fontFamily = AppFontFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = statusTextColor
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(2.dp))
-                            CoinIcon(modifier = Modifier.size(14.dp))
-                        } else if (isCompleted) {
-                            Text(
-                                text = "✓ Норма",
-                                fontSize = 14.sp,
-                                fontFamily = AppFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                color = statusTextColor
-                            )
-                        } else if (actual < planned && planned > 0) {
-                            val isSavings = categoryLabel.contains("копилк", ignoreCase = true)
-                            Text(
-                                text = if (isSavings) "ещё ${planned - actual}" else "в банке: ${planned - actual}",
-                                fontSize = 13.sp,
-                                fontFamily = AppFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                color = statusTextColor
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            CoinIcon(modifier = Modifier.size(13.dp))
-                        } else {
-                            Text(
-                                text = "✓ Ок",
-                                fontSize = 13.sp,
-                                fontFamily = AppFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                color = statusTextColor
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // шкала выполнения категории (без зеленых точек на конце)
+            // Статус утверждения плана
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(PixelParchmentBorder)
+                    .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
+                    .padding(vertical = 9.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(progress.coerceIn(0f, 1f))
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(if (isOverspent) PixelRedBerry else color)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    LockIcon(modifier = Modifier.size(17.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "План утверждён",
+                        fontFamily = AppFontFamily,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1B5E20)
+                    )
+                }
             }
         }
     }

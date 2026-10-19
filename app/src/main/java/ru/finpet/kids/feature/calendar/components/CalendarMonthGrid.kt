@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,9 +58,10 @@ fun CalendarMonthGrid(
                     text = dayName,
                     fontFamily = AppFontFamily,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     color = if (dayName in listOf("СБ", "ВС")) PixelRedBerry else PixelTextMuted,
                     textAlign = TextAlign.Center,
+                    maxLines = 1,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -87,16 +86,17 @@ fun CalendarMonthGrid(
                             val isToday = dayNum == currentDayIndex
                             val isSelected = dayNum == inspectedDay
                             val isPast = dayNum < currentDayIndex
-                            val hasNotes = notesByDay[dayNum]?.isNotEmpty() == true
-                            val hasRecurring = recurringDayMap[dayNum]?.isNotEmpty() == true
+                            val notesForDay = notesByDay[dayNum]
+                            val isIncomeDay = (col == 0)
+                            val allTasksCompleted = !notesForDay.isNullOrEmpty() && notesForDay.all { it.isCompleted }
 
                             CalendarDayCell(
                                 dayNumber = dayNum,
                                 isToday = isToday,
                                 isSelected = isSelected,
                                 isPast = isPast,
-                                hasRecurring = hasRecurring,
-                                hasNotes = hasNotes,
+                                isIncomeDay = isIncomeDay,
+                                allTasksCompleted = allTasksCompleted,
                                 modifier = Modifier
                                     .weight(1f)
                                     .aspectRatio(0.85f),

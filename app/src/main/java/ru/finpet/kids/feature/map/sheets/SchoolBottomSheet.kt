@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -40,8 +39,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,7 +55,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import ru.finpet.kids.R
 import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.data.repository.QuestItem
@@ -68,13 +64,13 @@ import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.KubikIcon
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.LockIcon
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
-import ru.finpet.kids.core.designsystem.PixelParchmentMedium
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
@@ -114,13 +110,17 @@ fun SchoolBottomSheet(
     onAnswerText: (questId: String, answer: String) -> Unit = { _, _ -> },
     onAnswerAllocation: (questId: String, amount: Int) -> Unit = { _, _ -> }
 ) {
+    val schoolQuestIds = remember(quests) { quests.map { it.id }.toSet() }
+
     val completedCount = quests.count { q ->
         progressList.any { p -> p.questId == q.id && p.isCompleted }
     }
-    // Количество задач, решенных именно сегодня
+    // Количество школьных задач, решенных именно сегодня (игры в домике не учитываются)
     val todaySolvedCount = progressList.count { p ->
-        p.isCompleted && p.completedInPeriod == currentPeriodIndex
+        p.isCompleted && p.completedInPeriod == currentPeriodIndex && p.questId in schoolQuestIds
     }
+    val displayTodaySolved = todaySolvedCount.coerceIn(0, 2)
+    val displayCompleted = completedCount.coerceIn(0, quests.size)
     // Ограничение: максимум 2 задачи в день, но в демо-режиме лимита нет
     val isDailyLimitReached = !demoMode && todaySolvedCount >= 2
     var showGlossary by remember { mutableStateOf(false) }
@@ -189,12 +189,13 @@ fun SchoolBottomSheet(
 
     PixelLocationModalSheet(
         title = "Школа финансовой грамотности",
-        subtitle = "Интерактивные квесты • Растем и учимся вместе с $petName",
+        subtitle = "Интерактивные квесты • Растем и учимся финансовой грамотности",
         headerDrawableRes = R.drawable.school_background_empty,
         badgeContent = {
+            val uiScale = LocalUiScale.current
             Text(
-                text = if (demoMode) "$completedCount / ${quests.size}" else "$todaySolvedCount/2 • $completedCount/${quests.size}",
-                fontSize = 16.sp,
+                text = if (demoMode) "$displayCompleted / ${quests.size}" else "$displayTodaySolved/2 • $displayCompleted/${quests.size}",
+                fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
                 fontWeight = FontWeight.Bold,
                 color = PixelDarkBrown,
                 fontFamily = AppFontFamily,
@@ -204,44 +205,8 @@ fun SchoolBottomSheet(
         onDismiss = onDismiss,
         listState = listState
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-
-            // Оповещение об исчерпании дневного лимита (2 задачи в день)
-            if (isDailyLimitReached) {
-                FinCard(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFE8F5E9)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            BooksIcon(modifier = Modifier.size(22.dp))
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = "Дневная норма выполнена!",
-                                fontFamily = AppFontFamily,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PixelGreenCrop
-                            )
-                            Text(
-                                text = "Ты решил 2 задачи за сегодня ($todaySolvedCount/2). Новые уроки откроются в следующий день!",
-                                fontFamily = AppFontFamily,
-                                fontSize = 14.sp,
-                                color = PixelTextMuted,
-                                lineHeight = 18.sp
-                            )
-                        }
-                    }
-                }
-            }
+        val uiScale = LocalUiScale.current
+        Column(verticalArrangement = Arrangement.spacedBy((12.dp * uiScale).coerceIn(8.dp, 14.dp))) {
 
             // Карточка словарика в пиксельном стиле
             FinCard(
@@ -253,50 +218,93 @@ fun SchoolBottomSheet(
                     ) { showGlossary = true }
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                    modifier = Modifier.padding(
+                        horizontal = (12.dp * uiScale).coerceIn(8.dp, 14.dp),
+                        vertical = (10.dp * uiScale).coerceIn(6.dp, 12.dp)
+                    ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(38.dp)
+                            .size((36.dp * uiScale).coerceIn(26.dp, 38.dp))
                             .clip(RoundedCornerShape(6.dp))
                             .pixelButtonBackground(containerColor = PixelGoldBright.copy(alpha = 0.35f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        BooksIcon(modifier = Modifier.size(24.dp))
+                        BooksIcon(modifier = Modifier.size((22.dp * uiScale).coerceIn(16.dp, 24.dp)))
                     }
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width((10.dp * uiScale).coerceIn(6.dp, 12.dp)))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Словарик $petName",
+                            text = "ФИНАНСОВЫЙ СЛОВАРИК",
                             fontFamily = AppFontFamily,
-                            fontSize = 18.sp,
+                            fontSize = (16f * uiScale).coerceIn(11f, 18f).sp,
                             fontWeight = FontWeight.Bold,
                             color = PixelTextDark
                         )
                         Text(
                             text = "Что значит «бюджет», «накопления», «сдача» и другие слова",
                             fontFamily = AppFontFamily,
-                            fontSize = 15.sp,
+                            fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
                             color = TextSecondary,
-                            lineHeight = 20.sp
+                            lineHeight = (17f * uiScale).coerceIn(12f, 20f).sp
                         )
                     }
                 }
             }
 
+            // Оповещение об исчерпании дневного лимита (2 задачи в день)
+            if (isDailyLimitReached) {
+                FinCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.padding(
+                            horizontal = (12.dp * uiScale).coerceIn(8.dp, 14.dp),
+                            vertical = (10.dp * uiScale).coerceIn(6.dp, 12.dp)
+                        ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size((36.dp * uiScale).coerceIn(26.dp, 38.dp))
+                                .clip(RoundedCornerShape(6.dp))
+                                .pixelButtonBackground(containerColor = PixelGoldBright.copy(alpha = 0.35f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            BooksIcon(modifier = Modifier.size((22.dp * uiScale).coerceIn(16.dp, 24.dp)))
+                        }
+                        Spacer(modifier = Modifier.width((10.dp * uiScale).coerceIn(6.dp, 12.dp)))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "ДНЕВНАЯ НОРМА ВЫПОЛНЕНА!",
+                                fontFamily = AppFontFamily,
+                                fontSize = (16f * uiScale).coerceIn(11f, 18f).sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PixelTextDark
+                            )
+                            Text(
+                                text = "Ты решил 2 задачи за сегодня ($displayTodaySolved/2). Новые уроки откроются в следующий день!",
+                                fontFamily = AppFontFamily,
+                                fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
+                                color = TextSecondary,
+                                lineHeight = (17f * uiScale).coerceIn(12f, 20f).sp
+                            )
+                        }
+                    }
+                }
+            }
+
             // Переключатель стадий взросления питомца
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy((5.dp * uiScale).coerceIn(3.dp, 6.dp))) {
                 Text(
-                    text = "Стадии обучения $petName:",
-                    fontSize = 15.sp,
+                    text = "Стадии обучения и взросления:",
+                    fontSize = (14f * uiScale).coerceIn(11f, 15f).sp,
                     fontWeight = FontWeight.Bold,
                     color = PixelTextDark
                 )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy((4.dp * uiScale).coerceIn(2.dp, 6.dp))
                 ) {
                     StageTabChip(
                         title = "Малыш",
@@ -420,7 +428,7 @@ fun SchoolBottomSheet(
                             .fillMaxWidth()
                             .then(if (isTarget) Modifier.bringIntoViewRequester(bringIntoViewRequester) else Modifier)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding((14.dp * uiScale).coerceIn(8.dp, 16.dp))) {
 
                             // Заголовок карточки и значки темы/стадии
                             Row(
@@ -429,7 +437,7 @@ fun SchoolBottomSheet(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy((5.dp * uiScale).coerceIn(3.dp, 6.dp)),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     TopicChip(topic = quest.topic, topicTitle = quest.topicTitle)
@@ -440,7 +448,7 @@ fun SchoolBottomSheet(
                                     Text(
                                         text = "[Пройдено]",
                                         fontFamily = AppFontFamily,
-                                        fontSize = 14.sp,
+                                        fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                         color = FreshGreen,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -448,31 +456,31 @@ fun SchoolBottomSheet(
                                     Text(
                                         text = "+${quest.rewardCoins} монет",
                                         fontFamily = AppFontFamily,
-                                        fontSize = 14.sp,
+                                        fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
                                         fontWeight = FontWeight.Bold,
                                         color = PixelGoldDark
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
 
                             // Название задания
                             Text(
                                 text = quest.title,
-                                fontSize = 18.sp,
+                                fontSize = (16f * uiScale).coerceIn(12f, 18f).sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary
                             )
 
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height((4.dp * uiScale).coerceIn(2.dp, 6.dp)))
 
                             // Описание ситуации
                             Text(
                                 text = displaySituation,
-                                fontSize = 16.sp,
+                                fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                                 color = TextPrimary,
-                                lineHeight = 21.sp
+                                lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
                             )
 
                             // Кнопка вариативности рандома (если есть альтернативные тексты ситуации)
@@ -502,17 +510,13 @@ fun SchoolBottomSheet(
                                         .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(8.dp))
                                         .padding(12.dp)
                                 ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(text = "⏳", fontSize = 18.sp)
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "На сегодня лимит задач исчерпан ($todaySolvedCount/2). Переходи к следующему дню, чтобы решать новые задания!",
-                                            fontFamily = AppFontFamily,
-                                            fontSize = 14.sp,
-                                            color = Color(0xFFE65100),
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                    }
+                                    Text(
+                                        text = "На сегодня лимит задач исчерпан ($displayTodaySolved/2). Переходи к следующему дню, чтобы решать новые задания!",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = 14.sp,
+                                        color = Color(0xFFE65100),
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                 }
                             } else {
                                 // --- РЕНДЕРИНГ МЕХАНИКИ ПО ТИПУ ЗАДАНИЯ ---
@@ -598,6 +602,7 @@ private fun StageTabChip(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val uiScale = LocalUiScale.current
     val bg = if (isSelected) PixelGoldBright else if (isUnlocked) Color(0xFFF3E5AB) else Color(0xFFDED0B6)
     val textColor = if (isSelected) PixelTextDark else if (isUnlocked) PixelWoodMedium else Color(0xFF8D7B68)
 
@@ -608,30 +613,35 @@ private fun StageTabChip(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) { onClick() }
-            .padding(vertical = 7.dp, horizontal = 4.dp),
+            .padding(
+                vertical = (6.dp * uiScale).coerceIn(3.dp, 7.dp),
+                horizontal = (3.dp * uiScale).coerceIn(1.dp, 4.dp)
+            ),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!isUnlocked) {
-                    LockIcon(modifier = Modifier.size(12.dp))
-                    Spacer(modifier = Modifier.width(3.dp))
+                    LockIcon(modifier = Modifier.size((11.dp * uiScale).coerceIn(8.dp, 12.dp)))
+                    Spacer(modifier = Modifier.width((2.dp * uiScale).coerceIn(1.dp, 3.dp)))
                 }
                 Text(
                     text = title,
                     fontFamily = AppFontFamily,
-                    fontSize = 13.sp,
+                    fontSize = (12f * uiScale).coerceIn(8f, 13f).sp,
                     fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
-                    color = textColor
+                    color = textColor,
+                    maxLines = 1
                 )
             }
             if (totalCount > 0) {
                 Text(
                     text = "$countDone/$totalCount",
                     fontFamily = AppFontFamily,
-                    fontSize = 11.sp,
+                    fontSize = (10f * uiScale).coerceIn(7f, 11f).sp,
                     color = if (isSelected) PixelGreenCrop else PixelTextMuted,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
                 )
             }
         }
@@ -643,6 +653,7 @@ private fun StageTabChip(
  */
 @Composable
 private fun TopicChip(topic: String, topicTitle: String) {
+    val uiScale = LocalUiScale.current
     val bg = when (topic) {
         "SAVINGS" -> Color(0xFFFFD54F)
         "PURCHASES" -> Color(0xFFC8E6C9)
@@ -652,15 +663,19 @@ private fun TopicChip(topic: String, topicTitle: String) {
     Box(
         modifier = Modifier
             .pixelButtonBackground(containerColor = bg)
-            .padding(horizontal = 9.dp, vertical = 5.dp),
+            .padding(
+                horizontal = (7.dp * uiScale).coerceIn(4.dp, 9.dp),
+                vertical = (4.dp * uiScale).coerceIn(2.dp, 5.dp)
+            ),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = topicTitle,
             fontFamily = AppFontFamily,
-            fontSize = 12.sp,
+            fontSize = (11f * uiScale).coerceIn(8f, 12f).sp,
             fontWeight = FontWeight.Bold,
-            color = PixelTextDark
+            color = PixelTextDark,
+            maxLines = 1
         )
     }
 }
@@ -670,6 +685,7 @@ private fun TopicChip(topic: String, topicTitle: String) {
  */
 @Composable
 private fun StageBadge(stage: String) {
+    val uiScale = LocalUiScale.current
     val label = when (stage) {
         "ADULT" -> "3 стадия"
         "TEEN" -> "2 стадия"
@@ -684,15 +700,19 @@ private fun StageBadge(stage: String) {
     Box(
         modifier = Modifier
             .pixelButtonBackground(containerColor = bg)
-            .padding(horizontal = 8.dp, vertical = 5.dp),
+            .padding(
+                horizontal = (7.dp * uiScale).coerceIn(4.dp, 8.dp),
+                vertical = (4.dp * uiScale).coerceIn(2.dp, 5.dp)
+            ),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
             fontFamily = AppFontFamily,
-            fontSize = 11.sp,
+            fontSize = (10f * uiScale).coerceIn(7f, 11f).sp,
             fontWeight = FontWeight.Bold,
-            color = PixelTextDark
+            color = PixelTextDark,
+            maxLines = 1
         )
     }
 }

@@ -39,6 +39,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Context
 import ru.finpet.kids.feature.map.minigames.MatchThreePreferences
 import ru.finpet.kids.core.domain.usecase.QuestEngineUseCase
+import ru.finpet.kids.core.domain.usecase.QuestExecutionResult
 import ru.finpet.kids.core.domain.usecase.ResetDemoProfileUseCase
 import ru.finpet.kids.core.domain.usecase.WithdrawFromGoalUseCase
 import javax.inject.Inject
@@ -299,6 +300,9 @@ class MainViewModel @Inject constructor(
                 ensureCalendarDataInitialized()
                 _purchases.value = purchasesDeferred.await()
                 _quests.value = questsDeferred.await()
+                if (areAllAvailableQuestsDone()) {
+                    calendarDao.deleteSchoolNotes()
+                }
                 loadCurrentPeriod()
             }
             refreshReportSync()
@@ -384,6 +388,7 @@ class MainViewModel @Inject constructor(
     private suspend fun seedCalendarNotesForMonth(yearMonth: YearMonth) {
         val daysInMonth = yearMonth.lengthOfMonth()
         val petName = repository.getProfileSync()?.petName ?: "Финни"
+        val allQuestsDone = areAllAvailableQuestsDone()
         calendarDao.clearAllNotes()
         val allNotes = mutableListOf<CalendarNoteEntity>()
         for (day in 1..daysInMonth) {
@@ -421,13 +426,13 @@ class MainViewModel @Inject constructor(
                 allNotes.add(
                     CalendarNoteEntity(
                         dayIndex = day,
-                        title = "Спросить вопросы у $petName",
+                        title = "Поговорить с питомцем",
                         cost = 0,
                         category = "PET_QUESTION",
                         isCompleted = false
                     )
                 )
-            } else {
+            } else if (!allQuestsDone) {
                 allNotes.add(
                     CalendarNoteEntity(
                         dayIndex = day,
@@ -520,90 +525,80 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private suspend fun getCompletedTodayQuestsCount(): Int {
+        val currentDay = _virtualDate.value.dayOfMonth
+        val prof = repository.getProfileSync()
+        val schoolQuestIds = (_quests.value.ifEmpty { contentRepository.getQuests() }).map { it.id }.toSet()
+        return repository.getQuestProgress().first().count {
+            it.questId in schoolQuestIds &&
+            (it.completedInPeriod == currentDay || (prof != null && it.completedInPeriod == prof.currentPeriodIndex)) &&
+            it.isCompleted
+        }
+    }
+
+    suspend fun areAllAvailableQuestsDone(): Boolean {
+        val qList = _quests.value.ifEmpty { contentRepository.getQuests() }
+        if (qList.isEmpty()) return false
+        val prof = repository.getProfileSync() ?: return false
+        val progress = repository.getQuestProgress().first()
+        val isDemo = demoMode.value
+        val currentStageIndex = when (prof.growthStage) {
+            "ADULT" -> 2
+            "TEEN" -> 1
+            else -> 0
+        }
+        val available = qList.filter { q ->
+            if (isDemo) true else {
+                val targetIndex = when (q.stage) {
+                    "ADULT" -> 2
+                    "TEEN" -> 1
+                    else -> 0
+                }
+                targetIndex <= currentStageIndex
+            }
+        }
+        return available.isNotEmpty() && available.all { q ->
+            progress.any { p -> p.questId == q.id && p.isCompleted }
+        }
+    }
+
+    private suspend fun onQuestAnswered(result: QuestExecutionResult?) {
+        if (result != null && result.coinsAwarded > 0) {
+            showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
+        }
+        if (result != null && result.isRecommended) {
+            MatchThreePreferences.awardSchoolBooster(context)
+        }
+        if (getCompletedTodayQuestsCount() >= 2) {
+            calendarDao.completeChecklistTaskByCategory(_virtualDate.value.dayOfMonth, "SCHOOL")
+        }
+        if (areAllAvailableQuestsDone()) {
+            calendarDao.deleteSchoolNotes()
+        }
+        loadCurrentPeriod()
+    }
+
     fun answerQuest(questId: String, optionId: String) {
         viewModelScope.launch {
-            if (!demoMode.value) {
-                val currentDay = _virtualDate.value.dayOfMonth
-                val prof = repository.getProfileSync()
-                val completedToday = repository.getQuestProgress().first().count {
-                    (it.completedInPeriod == currentDay || (prof != null && it.completedInPeriod == prof.currentPeriodIndex)) && it.isCompleted
-                }
-                if (completedToday >= 2) return@launch
-            }
+            if (!demoMode.value && getCompletedTodayQuestsCount() >= 2) return@launch
             val result = questEngineUseCase.executeOption(questId, optionId)
-            if (result != null && result.coinsAwarded > 0) {
-                showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
-            }
-            if (result != null && result.isRecommended) {
-                MatchThreePreferences.awardSchoolBooster(context)
-            }
-            val currentDay = _virtualDate.value.dayOfMonth
-            val prof = repository.getProfileSync()
-            val completedToday = repository.getQuestProgress().first().count {
-                (it.completedInPeriod == currentDay || (prof != null && it.completedInPeriod == prof.currentPeriodIndex)) && it.isCompleted
-            }
-            if (completedToday >= 2) {
-                calendarDao.completeChecklistTaskByCategory(currentDay, "SCHOOL")
-            }
-            loadCurrentPeriod()
+            onQuestAnswered(result)
         }
     }
 
     fun answerQuestText(questId: String, answer: String) {
         viewModelScope.launch {
-            if (!demoMode.value) {
-                val currentDay = _virtualDate.value.dayOfMonth
-                val prof = repository.getProfileSync()
-                val completedToday = repository.getQuestProgress().first().count {
-                    (it.completedInPeriod == currentDay || (prof != null && it.completedInPeriod == prof.currentPeriodIndex)) && it.isCompleted
-                }
-                if (completedToday >= 2) return@launch
-            }
+            if (!demoMode.value && getCompletedTodayQuestsCount() >= 2) return@launch
             val result = questEngineUseCase.executeTextAnswer(questId, answer)
-            if (result != null && result.coinsAwarded > 0) {
-                showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
-            }
-            if (result != null && result.isRecommended) {
-                MatchThreePreferences.awardSchoolBooster(context)
-            }
-            val currentDay = _virtualDate.value.dayOfMonth
-            val prof = repository.getProfileSync()
-            val completedToday = repository.getQuestProgress().first().count {
-                (it.completedInPeriod == currentDay || (prof != null && it.completedInPeriod == prof.currentPeriodIndex)) && it.isCompleted
-            }
-            if (completedToday >= 2) {
-                calendarDao.completeChecklistTaskByCategory(currentDay, "SCHOOL")
-            }
-            loadCurrentPeriod()
+            onQuestAnswered(result)
         }
     }
 
     fun answerQuestAllocation(questId: String, amount: Int) {
         viewModelScope.launch {
-            if (!demoMode.value) {
-                val currentDay = _virtualDate.value.dayOfMonth
-                val prof = repository.getProfileSync()
-                val completedToday = repository.getQuestProgress().first().count {
-                    (it.completedInPeriod == currentDay || (prof != null && it.completedInPeriod == prof.currentPeriodIndex)) && it.isCompleted
-                }
-                if (completedToday >= 2) return@launch
-            }
+            if (!demoMode.value && getCompletedTodayQuestsCount() >= 2) return@launch
             val result = questEngineUseCase.executeAllocation(questId, amount)
-            if (result != null && result.coinsAwarded > 0) {
-                showMoneyEvent(amount = result.coinsAwarded, source = "Урок в Школе")
-            }
-            if (result != null && result.isRecommended) {
-                MatchThreePreferences.awardSchoolBooster(context)
-            }
-            val currentDay = _virtualDate.value.dayOfMonth
-            val prof = repository.getProfileSync()
-            val completedToday = repository.getQuestProgress().first().count {
-                (it.completedInPeriod == currentDay || (prof != null && it.completedInPeriod == prof.currentPeriodIndex)) && it.isCompleted
-            }
-            if (completedToday >= 2) {
-                calendarDao.completeChecklistTaskByCategory(currentDay, "SCHOOL")
-            }
-            loadCurrentPeriod()
+            onQuestAnswered(result)
         }
     }
 
@@ -716,7 +711,7 @@ class MainViewModel @Inject constructor(
             showMoneyEvent(
                 amount = rewardCoins,
                 source = "Домашнее дело: ${choreTitle(choreId)}",
-                icon = ""
+                icon = "🪙"
             )
             loadCurrentPeriod()
         }
@@ -982,6 +977,7 @@ class MainViewModel @Inject constructor(
     fun resetDemoProfile() {
         viewModelScope.launch {
             resetDemoProfileUseCase()
+            ru.finpet.kids.feature.map.minigames.MatchThreePreferences.resetAll(context)
             val initialDate = LocalDate.now()
             _virtualDate.value = initialDate
             settingsRepository.setVirtualDate(initialDate)
@@ -1022,21 +1018,6 @@ class MainViewModel @Inject constructor(
     fun toggleCalendarNote(note: CalendarNoteEntity) {
         viewModelScope.launch {
             calendarDao.updateNoteCompleted(note.id, !note.isCompleted)
-        }
-    }
-
-    fun completeChecklistTask(note: CalendarNoteEntity, rewardCoins: Int) {
-        viewModelScope.launch {
-            if (note.isCompleted) return@launch
-            calendarDao.updateNoteStatus(note.id, true, if (rewardCoins > 0) rewardCoins else note.cost)
-            if (rewardCoins > 0) {
-                val prof = repository.getProfileSync() ?: return@launch
-                repository.saveProfile(prof.copy(balance = prof.balance + rewardCoins))
-                showMoneyEvent(
-                    amount = rewardCoins,
-                    source = "Задание: ${note.title}"
-                )
-            }
         }
     }
 

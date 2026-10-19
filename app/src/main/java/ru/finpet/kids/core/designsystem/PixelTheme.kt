@@ -3,8 +3,6 @@ package ru.finpet.kids.core.designsystem
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -31,21 +29,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,7 +59,7 @@ val PixelParchmentMedium = Color(0xFFF5E4BE)
 val PixelParchmentDark = Color(0xFFDFC490)
 val PixelParchmentBorder = Color(0xFFC7A86E)
 
-val PixelGoldBright = Color(0xFFFFC107)
+val PixelGoldBright = Color(0xFFFFC766)
 val PixelGoldGlow = Color(0xFFFFD54F)
 val PixelGoldDark = Color(0xFFC67D00)
 
@@ -87,10 +85,14 @@ fun StardewBoard(
             .pixelPanelBackground()
             .padding(horizontal = 4.dp, vertical = 2.dp)
     ) {
+        val uiScale = LocalUiScale.current
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 8.dp)
+                .padding(
+                    horizontal = (10.dp * uiScale).coerceIn(6.dp, 10.dp),
+                    vertical = (8.dp * uiScale).coerceIn(4.dp, 8.dp)
+                )
         ) {
             if (headerTitle != null) {
                 // Пиксельная плашка заголовка на основе left_part, middle_little_part, right_part
@@ -98,28 +100,32 @@ fun StardewBoard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .pixelBarBackground()
-                        .padding(vertical = 8.dp, horizontal = 12.dp),
+                        .padding(
+                            vertical = (6.dp * uiScale).coerceIn(3.dp, 8.dp),
+                            horizontal = (8.dp * uiScale).coerceIn(4.dp, 12.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
+                    val iconSize = (20.dp * uiScale).coerceIn(14.dp, 24.dp)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        RenderBoardIcon(headerIcon)
-                        Spacer(modifier = Modifier.width(6.dp))
+                        RenderBoardIcon(headerIcon, modifier = Modifier.size(iconSize))
+                        Spacer(modifier = Modifier.width((5.dp * uiScale).coerceIn(2.dp, 6.dp)))
                         Text(
                             text = headerTitle,
                             fontFamily = AppFontFamily,
                             fontWeight = FontWeight.Black,
-                            fontSize = 18.sp,
+                            fontSize = (16f * uiScale).coerceIn(11f, 18f).sp,
                             color = PixelTextDark,
-                            letterSpacing = 1.sp
+                            letterSpacing = (0.5f * uiScale).coerceIn(0.2f, 1f).sp
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        RenderBoardIcon(headerIcon)
+                        Spacer(modifier = Modifier.width((5.dp * uiScale).coerceIn(2.dp, 6.dp)))
+                        RenderBoardIcon(headerIcon, modifier = Modifier.size(iconSize))
                     }
                 }
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
             }
             content()
         }
@@ -176,15 +182,37 @@ fun PixelButton(
     borderColor: Color = PixelGoldDark,
     enabled: Boolean = true,
     fontSize: TextUnit = 16.sp,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 7.dp),
+    maxLines: Int = 2,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 10.dp, vertical = 7.dp),
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
     repeating: Boolean = false,
     repeatInitialDelayMillis: Long = 350L,
     repeatIntervalMillis: Long = 100L
 ) {
+    val uiScale = LocalUiScale.current
     val actualBg = if (enabled) containerColor else Color(0xFFC0B098)
     val actualText = if (enabled) textColor else Color(0xFF7A6855)
+
+    // Адаптивное масштабирование внутренних отступов и иконок кнопки под плотность экрана (Density)
+    val scaledPadding = remember(contentPadding, uiScale) {
+        if (uiScale < 0.95f) {
+            PaddingValues(
+                start = (contentPadding.calculateStartPadding(LayoutDirection.Ltr) * uiScale).coerceAtLeast(3.dp),
+                top = (contentPadding.calculateTopPadding() * uiScale).coerceAtLeast(2.dp),
+                end = (contentPadding.calculateEndPadding(LayoutDirection.Ltr) * uiScale).coerceAtLeast(3.dp),
+                bottom = (contentPadding.calculateBottomPadding() * uiScale).coerceAtLeast(2.dp)
+            )
+        } else {
+            contentPadding
+        }
+    }
+    val iconSpacing = (6.dp * uiScale).coerceIn(2.dp, 6.dp)
+    val effectiveFontSize = if (uiScale < 0.95f) {
+        (fontSize.value * uiScale).coerceAtLeast(10f).sp
+    } else {
+        fontSize
+    }
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -245,7 +273,7 @@ fun PixelButton(
             }
             .pixelButtonBackground(containerColor = actualBg)
             .then(clickModifier)
-            .padding(contentPadding),
+            .padding(scaledPadding),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -254,18 +282,19 @@ fun PixelButton(
         ) {
             if (leadingIcon != null) {
                 leadingIcon()
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(iconSpacing))
             }
             Text(
                 text = text,
                 fontFamily = AppFontFamily,
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = fontSize,
+                fontSize = effectiveFontSize,
                 color = actualText,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                maxLines = maxLines
             )
             if (trailingIcon != null) {
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(iconSpacing))
                 trailingIcon()
             }
         }
@@ -289,38 +318,40 @@ fun PixelAlertDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        KeepScreenImmersive()
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.92f)
-                .wrapContentHeight(),
-            contentAlignment = Alignment.Center
-        ) {
-            StardewBoard(
-                headerTitle = title,
-                headerIcon = icon,
-                modifier = modifier
+        FinPetTheme {
+            KeepScreenImmersive()
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.92f)
+                    .wrapContentHeight(),
+                contentAlignment = Alignment.Center
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp, vertical = 4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                StardewBoard(
+                    headerTitle = title,
+                    headerIcon = icon,
+                    modifier = modifier
                 ) {
-                    content()
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp, vertical = 4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        if (dismissButton != null) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                dismissButton()
+                        content()
+                        Spacer(modifier = Modifier.height(14.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (dismissButton != null) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    dismissButton()
+                                }
                             }
-                        }
-                        Box(modifier = Modifier.weight(1f)) {
-                            confirmButton()
+                            Box(modifier = Modifier.weight(1f)) {
+                                confirmButton()
+                            }
                         }
                     }
                 }

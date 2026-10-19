@@ -3,9 +3,6 @@ package ru.finpet.kids.feature.map.sheets
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -17,14 +14,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -54,25 +47,21 @@ import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.HeartIcon
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.LightningIcon
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.LockIcon
 import ru.finpet.kids.core.designsystem.MoneyBagIcon
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
-import ru.finpet.kids.core.designsystem.PixelBar
 import ru.finpet.kids.core.designsystem.PixelButton
-import ru.finpet.kids.core.designsystem.PixelGoldBright
-import ru.finpet.kids.core.designsystem.PixelGreenCrop
 import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextDark
-import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.core.designsystem.TelezhkaIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.designsystem.pixelBarBackground
-import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.core.designsystem.whitePixelBoxBackground
 import ru.finpet.kids.feature.map.components.PixelDarkBrown
 import ru.finpet.kids.feature.map.components.PixelLocationModalSheet
@@ -126,6 +115,10 @@ fun ShopBottomSheet(
     }
     val showPlanButton = demoMode || isAdultPlus7 || preorderItemIds.isNotEmpty()
 
+    val plannedShopItems = remember(items, preorderItemIds) {
+        items.filter { preorderItemIds.contains(it.id) && it.id != "groceries_parents" && it.category != "GROCERIES" }
+    }
+
     // Скролл к целевому товару при переходе из задачи дня
     LaunchedEffect(targetItemId) {
         if (targetItemId != null) {
@@ -153,6 +146,8 @@ fun ShopBottomSheet(
         label = "shop_balance"
     )
 
+    val uiScale = LocalUiScale.current
+
     PixelLocationModalSheet(
         title = "Лавка товаров",
         subtitle = "Полезный корм, игрушки и поручения родителей",
@@ -164,13 +159,13 @@ fun ShopBottomSheet(
             ) {
                 Text(
                     text = "$animBalance",
-                    fontSize = 16.sp,
+                    fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = PixelDarkBrown,
                     fontFamily = AppFontFamily
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                CoinIcon(modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(3.dp))
+                CoinIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 18.dp)))
             }
         },
         onDismiss = onDismiss,
@@ -185,15 +180,15 @@ fun ShopBottomSheet(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { showPreorderDialog = true }
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = (8.dp * uiScale).coerceIn(4.dp, 12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        DocsIcon(modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(5.dp))
+                        DocsIcon(modifier = Modifier.size((14.dp * uiScale).coerceIn(11.dp, 16.dp)))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Список покупок",
-                            fontSize = 15.sp,
+                            text = if (uiScale < 0.85f) "План" else "Список покупок",
+                            fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
                             fontWeight = FontWeight.Bold,
                             color = PixelDarkBrown
                         )
@@ -205,9 +200,7 @@ fun ShopBottomSheet(
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // Быстрая покупка товаров из плана
             if (preorderItemIds.isNotEmpty()) {
-                val selectedItems = remember(items, preorderItemIds) {
-                    items.filter { preorderItemIds.contains(it.id) && it.id != "groceries_parents" && it.category != "GROCERIES" }
-                }
+                val selectedItems = plannedShopItems
                 val totalCost = selectedItems.sumOf { it.price }
 
                 Box(
@@ -261,10 +254,13 @@ fun ShopBottomSheet(
             }
 
             // Фильтры категорий
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CategoryChip("Все", selectedCategory == "ALL") { selectedCategory = "ALL" }
-                CategoryChip("Обязательное", selectedCategory == "MANDATORY") { selectedCategory = "MANDATORY" }
-                CategoryChip("Желаемое", selectedCategory == "OPTIONAL") { selectedCategory = "OPTIONAL" }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(3.dp, 8.dp))
+            ) {
+                CategoryChip("Все", selectedCategory == "ALL", modifier = Modifier.weight(0.7f)) { selectedCategory = "ALL" }
+                CategoryChip("Обязательное", selectedCategory == "MANDATORY", modifier = Modifier.weight(1.3f)) { selectedCategory = "MANDATORY" }
+                CategoryChip("Желаемое", selectedCategory == "OPTIONAL", modifier = Modifier.weight(1.0f)) { selectedCategory = "OPTIONAL" }
             }
 
             // Список товаров лавки
@@ -412,7 +408,6 @@ fun ShopBottomSheet(
                     }
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    val remaining = balance - item.price
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "В кошельке: $balance монет",
@@ -685,17 +680,14 @@ fun ShopBottomSheet(
 
     // Диалог подтверждения быстрой покупки прямо из лавки
     if (showQuickBuyConfirm) {
-        val selectedItems = remember(items, preorderItemIds) {
-            items.filter { preorderItemIds.contains(it.id) && it.id != "groceries_parents" && it.category != "GROCERIES" }
-        }
         QuickBuyConfirmDialog(
             balance = balance,
-            selectedItems = selectedItems,
+            selectedItems = plannedShopItems,
             currentPeriod = currentPeriod,
             profile = profile,
             onDismiss = { showQuickBuyConfirm = false },
             onConfirm = {
-                onQuickBuy(selectedItems)
+                onQuickBuy(plannedShopItems)
                 showQuickBuyConfirm = false
             }
         )

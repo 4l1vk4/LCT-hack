@@ -10,15 +10,20 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import ru.finpet.kids.core.designsystem.LifeJarIcon
+import ru.finpet.kids.core.designsystem.JoyJarIcon
+import ru.finpet.kids.core.designsystem.SavingJarIcon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,8 +46,12 @@ import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.changedToUp
+import androidx.compose.ui.input.pointer.pointerInput
+import kotlin.math.abs
 import androidx.compose.foundation.layout.PaddingValues
-import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.PixelButton
@@ -50,7 +59,6 @@ import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
-import ru.finpet.kids.core.designsystem.TextPrimary
 
 // положение головы кота
 private const val CAT_HEAD_CX = 0.50f
@@ -60,7 +68,6 @@ private const val CAT_WIDTH_RATIO = 0.45f
 // положение текста на экране
 private const val TEXT_CX = 0.50f
 private const val TEXT_CY = 0.55f
-private const val TEXT_WIDTH_RATIO = 0.75f
 
 @Composable
 fun TutorialScreen(
@@ -87,6 +94,10 @@ fun TutorialScreen(
         if (step < steps.lastIndex) step++ else onFinish()
     }
 
+    fun goPrevious() {
+        if (step > 0) step--
+    }
+
     // анимация облака при смене шага
     var pulseOn by remember { mutableStateOf(false) }
     LaunchedEffect(step) {
@@ -107,17 +118,42 @@ fun TutorialScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFFF9E6))
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            ) { goNext() }
+            .pointerInput(step) {
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    var totalDragX = 0f
+                    var isDrag = false
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val change = event.changes.firstOrNull() ?: break
+                        if (change.changedToUp()) {
+                            if (!isDrag) {
+                                // Тап в левой части экрана (первые 35%) — листает назад, в остальной части — вперед
+                                if (change.position.x < size.width * 0.35f) {
+                                    goPrevious()
+                                } else {
+                                    goNext()
+                                }
+                            } else {
+                                // Свайп вправо (палец двигается слева направо) — назад, влево — вперед
+                                if (totalDragX > 40f) {
+                                    goPrevious()
+                                } else if (totalDragX < -40f) {
+                                    goNext()
+                                }
+                            }
+                            break
+                        } else {
+                            val drag = change.position.x - change.previousPosition.x
+                            totalDragX += drag
+                            if (abs(totalDragX) > 20f) {
+                                isDrag = true
+                            }
+                        }
+                    }
+                }
+            }
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFFFF9E6))
-        )
-
         val w = maxWidth
         val h = maxHeight
 
@@ -155,16 +191,67 @@ fun TutorialScreen(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                Text(
-                    text = steps[step],
-                    fontFamily = AppFontFamily,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PixelTextDark,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 22.sp,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                if (step == 2) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Есть 3 типа решений (баночки):",
+                            fontFamily = AppFontFamily,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PixelTextDark,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            LifeJarIcon(modifier = Modifier.size(24.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Обязательное — еда, вода, уход",
+                                fontFamily = AppFontFamily,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PixelTextDark
+                            )
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            JoyJarIcon(modifier = Modifier.size(24.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Желаемое — игрушки, вкусняшки",
+                                fontFamily = AppFontFamily,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PixelTextDark
+                            )
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            SavingJarIcon(modifier = Modifier.size(24.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Отложить — в банку на мечту",
+                                fontFamily = AppFontFamily,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PixelTextDark
+                            )
+                        }
+                    }
+                } else {
+                    Text(
+                        text = steps[step],
+                        fontFamily = AppFontFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelTextDark,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 22.sp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
 

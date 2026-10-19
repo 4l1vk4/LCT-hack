@@ -31,8 +31,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.draw.clipToBounds
@@ -362,6 +360,28 @@ fun LampochkaIcon(
 }
 
 @Composable
+fun LifeJarIcon(
+    modifier: Modifier = Modifier.size(24.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.life_jar),
+        contentDescription = "Банка обязательных расходов",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun JoyJarIcon(
+    modifier: Modifier = Modifier.size(24.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.joy_jar),
+        contentDescription = "Банка желаний",
+        modifier = modifier
+    )
+}
+
+@Composable
 fun EmptyJarIcon(
     modifier: Modifier = Modifier.size(24.dp)
 ) {
@@ -584,35 +604,6 @@ fun FinCard(
             .padding(horizontal = 4.dp, vertical = 2.dp)
     ) {
         content()
-    }
-}
-
-/**
- * Текст с монеткой в конце: "150 🪙" → [150] [coin-icon]
- */
-@Composable
-fun CoinText(
-    fontSize: TextUnit = 16.sp,
-    color: Color = TextPrimary,
-    fontWeight: FontWeight = FontWeight.Bold,
-    fontFamily: FontFamily? = null,
-    prefix: String = "",
-    suffix: String = "",
-    modifier: Modifier = Modifier
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-    ) {
-        Text(
-            text = "$prefix$suffix",
-            fontSize = fontSize,
-            fontWeight = fontWeight,
-            fontFamily = fontFamily,
-            color = color
-        )
-        Spacer(modifier = Modifier.width(3.dp))
-        CoinIcon(modifier = Modifier.size((fontSize.value * 1.15f).dp.coerceIn(12.dp, 24.dp)))
     }
 }
 

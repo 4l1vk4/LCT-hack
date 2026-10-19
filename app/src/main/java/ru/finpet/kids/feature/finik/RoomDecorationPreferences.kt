@@ -29,8 +29,4 @@ object RoomDecorationPreferences {
         getPrefs(context).edit().putStringSet(KEY_HIDDEN_ITEMS, current).apply()
         return current
     }
-
-    fun isItemVisible(context: Context, itemId: String): Boolean {
-        return itemId !in getHiddenItems(context)
-    }
 }

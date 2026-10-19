@@ -18,8 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,8 +39,6 @@ import kotlin.math.roundToInt
 import ru.finpet.kids.R
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.fillMaxWidth
 
 data class TopBarHotspot(
     val id: String,
@@ -117,6 +113,7 @@ fun TopBarWithHotspots(
             label = "topbar_mood"
         )
 
+        val widthRatio = (w / 390.dp).coerceIn(0.5f, 2.5f)
         val moneyFontSize = when {
             animBalance > 9999 -> 12f
             animBalance > 999  -> 14f
@@ -124,11 +121,11 @@ fun TopBarWithHotspots(
         }
 
         val moneyOffsetX = when {
-            animBalance > 9999 -> 5.dp
-            animBalance > 999  -> 6.dp
-            animBalance > 99   -> 10.dp
-            animBalance > 9    -> 14.dp
-            else               -> 20.dp
+            animBalance > 9999 -> 5.dp * widthRatio
+            animBalance > 999  -> 6.dp * widthRatio
+            animBalance > 99   -> 10.dp * widthRatio
+            animBalance > 9    -> 14.dp * widthRatio
+            else               -> 20.dp * widthRatio
         }
 
         // текущий баланс
@@ -139,7 +136,7 @@ fun TopBarWithHotspots(
             color = Color(0xFF381F0E),
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(x = w * MONEY_CX + moneyOffsetX, y = h * MONEY_CY - 3.dp)
+                .offset(x = w * MONEY_CX + moneyOffsetX, y = h * MONEY_CY - (3.dp * widthRatio))
         )
 
         // ряд орбов настроения
@@ -176,8 +173,8 @@ fun TopBarWithHotspots(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .offset(
-                    x = w * PERCENT_CX + 10.dp,
-                    y = h * PERCENT_CY - 3.dp
+                    x = w * PERCENT_CX + (10.dp * widthRatio),
+                    y = h * PERCENT_CY - (3.dp * widthRatio)
                 )
         )
 
