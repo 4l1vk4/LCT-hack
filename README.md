@@ -2,9 +2,6 @@
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-purple.svg)](https://kotlinlang.org)
 [![Android](https://img.shields.io/badge/Android-8.0%2B%20(API%2026%2B)-green.svg)](https://developer.android.com)
-[![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-blue.svg)](https://developer.android.com/jetpack/compose)
-[![Tests](https://img.shields.io/badge/Unit%20Tests-45%20Passed-brightgreen.svg)]()
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 **Обучающее мобильное Android-приложение по финансовой грамотности для детей 7–11 лет.**  
 Разработано для конкурса **«Лидеры цифровой трансформации 2026»**  
