@@ -1,7 +1,10 @@
 package ru.finpet.kids.feature.finik.sheets
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.res.painterResource
+import ru.finpet.kids.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -108,18 +111,16 @@ fun FinikTasksSheet(
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .clip(CircleShape)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { onDismiss() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "✕",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Black,
-                        color = PixelTextDark
+                    Image(
+                        painter = painterResource(id = R.drawable.close_sign),
+                        contentDescription = "Закрыть",
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }

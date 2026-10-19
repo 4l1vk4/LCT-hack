@@ -164,9 +164,32 @@ fun FinikInArmchair(
 }
 
 /**
+ * Компонент питомца для размещения в шапках локаций (Школа, Лавка, Домик).
+ */
+@Composable
+fun LocationHeaderCat(
+    skinId: String = "cat_black",
+    stage: String = "BABY",
+    mood: String = "HAPPY",
+    modifier: Modifier = Modifier
+) {
+    val res = petDrawableFor(skinId, stage, mood)
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(res)
+            .decoderFactory(GifDecoder.Factory())
+            .crossfade(false)
+            .build(),
+        contentDescription = "Питомец",
+        contentScale = ContentScale.Fit,
+        modifier = modifier
+    )
+}
+
+/**
  * Выбор GIF по стадии и настроению.
  */
-private fun petDrawableFor(skinId: String, stage: String, mood: String): Int = when (skinId) {
+fun petDrawableFor(skinId: String, stage: String, mood: String): Int = when (skinId) {
     "cat_black" -> when(stage) {
         "BABY" -> when (mood) {
             "HAPPY" -> R.drawable.cat_black_happy

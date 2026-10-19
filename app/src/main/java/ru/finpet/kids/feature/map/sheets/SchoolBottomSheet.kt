@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -70,6 +71,7 @@ import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.feature.map.GlossaryDialog
+import ru.finpet.kids.feature.map.components.PixelDarkBrown
 import ru.finpet.kids.feature.map.components.PixelLocationModalSheet
 
 /**
@@ -94,6 +96,8 @@ fun SchoolBottomSheet(
     demoMode: Boolean = false,
     currentPeriodIndex: Int = 1,
     targetQuestId: String? = null,
+    skinId: String = "cat_black",
+    petMood: String = "HAPPY",
     onDismiss: () -> Unit,
     onSelectOption: (questId: String, optionId: String) -> Unit,
     onAnswerText: (questId: String, answer: String) -> Unit = { _, _ -> },
@@ -175,8 +179,17 @@ fun SchoolBottomSheet(
     PixelLocationModalSheet(
         title = "Школа финансовой грамотности",
         subtitle = "Интерактивные квесты • Растем и учимся вместе с $petName",
-        headerDrawableRes = R.drawable.location_school_header,
-        badgeText = if (demoMode) "$completedCount / ${quests.size} решено" else "Сегодня: $todaySolvedCount/2 • Всего: $completedCount/${quests.size}",
+        headerDrawableRes = R.drawable.school_background_empty,
+        badgeContent = {
+            Text(
+                text = if (demoMode) "$completedCount / ${quests.size}" else "$todaySolvedCount/2 • $completedCount/${quests.size}",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = PixelDarkBrown,
+                fontFamily = AppFontFamily,
+                maxLines = 1
+            )
+        },
         onDismiss = onDismiss,
         listState = listState
     ) {

@@ -1,5 +1,6 @@
 package ru.finpet.kids.feature.map.sheets
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,14 +11,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,6 +67,8 @@ import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.designsystem.pixelBarBackground
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
+import ru.finpet.kids.core.designsystem.whitePixelBoxBackground
+import ru.finpet.kids.feature.map.components.PixelDarkBrown
 import ru.finpet.kids.feature.map.components.PixelLocationModalSheet
 import ru.finpet.kids.feature.map.sheets.components.CategoryChip
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -87,6 +93,8 @@ fun ShopBottomSheet(
     profile: ProfileEntity? = null,
     demoMode: Boolean = false,
     adultStageStartDay: Int = 0,
+    skinId: String = "cat_black",
+    petMood: String = "HAPPY",
     onTogglePreorderItem: (String) -> Unit = {},
     onQuickBuy: (List<PurchaseItem>) -> Unit = {},
     onBuy: (PurchaseItem) -> Unit,
@@ -134,28 +142,45 @@ fun ShopBottomSheet(
     }
 
     PixelLocationModalSheet(
-        title = "🏪 Лавка товаров",
+        title = "Лавка товаров",
         subtitle = "Полезный корм, игрушки и поручения родителей",
-        headerDrawableRes = R.drawable.location_shop_header,
-        badgeText = "$balance монет",
+        headerDrawableRes = R.drawable.shop_food_background_empty,
+        badgeContent = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "$balance",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = PixelDarkBrown,
+                    fontFamily = AppFontFamily
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                CoinIcon(modifier = Modifier.size(18.dp))
+            }
+        },
         onDismiss = onDismiss,
         listState = listState,
         topStartExtra = if (showPlanButton) {
             {
                 Box(
                     modifier = Modifier
-                        .pixelBarBackground()
+                        .fillMaxHeight()
+                        .whitePixelBoxBackground()
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { showPreorderDialog = true }
-                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                        .padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "📋 Список покупок",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = PixelTextDark
+                        color = PixelDarkBrown
                     )
                 }
             }
@@ -217,24 +242,6 @@ fun ShopBottomSheet(
                         )
                     }
                 }
-            }
-
-            // Панель баланса кошелька в пиксельном стиле кнопочного 9-slice
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .pixelButtonBackground(containerColor = Color(0xFFFFF9EE))
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "В кошельке: $balance ",
-                    fontFamily = AppFontFamily,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF4A2810)
-                )
-                CoinIcon(modifier = Modifier.size(20.dp))
             }
 
             // Фильтры категорий

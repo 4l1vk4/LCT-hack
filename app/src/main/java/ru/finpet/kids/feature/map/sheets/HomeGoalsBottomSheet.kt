@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -57,6 +58,7 @@ import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.designsystem.WarningIcon
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
+import ru.finpet.kids.feature.map.components.PixelDarkBrown
 import ru.finpet.kids.feature.map.components.PixelLocationModalSheet
 import ru.finpet.kids.feature.map.minigames.DishesCleaningGameDialog
 import ru.finpet.kids.feature.map.minigames.FloorCleaningGameDialog
@@ -113,6 +115,9 @@ fun HomeGoalsBottomSheet(
     activeGoalId: String?,
     currentPeriodIndex: Int = 1,
     questProgress: List<QuestProgressEntity>,
+    growthStage: String = "BABY",
+    skinId: String = "cat_black",
+    petMood: String = "HAPPY",
     onSelectActiveGoal: (goalId: String) -> Unit,
     onCompleteHomeChore: (choreId: String, rewardCoins: Int) -> Unit,
     onDismiss: () -> Unit,
@@ -172,10 +177,25 @@ fun HomeGoalsBottomSheet(
     val completedChoresCount = DEFAULT_HOME_CHORES.count { chore -> checkChoreDone(chore.id) }
 
     PixelLocationModalSheet(
-        title = "🏡 Уютный домик и Копилка",
+        title = "Уютный домик и Копилка",
         subtitle = "Выполняй домашние дела, зарабатывай монеты и копи на мечту",
-        headerDrawableRes = R.drawable.location_home_header,
-        badgeText = "💰 $totalSaved накоплено",
+        headerDrawableRes = R.drawable.house_background_empty,
+        badgeContent = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "$totalSaved",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = PixelDarkBrown,
+                    fontFamily = AppFontFamily
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                CoinIcon(modifier = Modifier.size(18.dp))
+            }
+        },
         onDismiss = onDismiss,
         listState = listState
     ) {
@@ -285,22 +305,13 @@ fun HomeGoalsBottomSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "🧹", fontSize = 20.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "Задания и дела по дому",
-                            fontSize = 18.sp,
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = TextPrimary
                         )
                     }
-
-                    Text(
-                        text = "$completedChoresCount / ${DEFAULT_HOME_CHORES.size} сделано",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (completedChoresCount == DEFAULT_HOME_CHORES.size) FreshGreen else PixelTextDark
-                    )
                 }
 
                 Text(

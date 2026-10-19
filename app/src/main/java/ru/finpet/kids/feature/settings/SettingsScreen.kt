@@ -97,15 +97,13 @@ fun SettingsScreen(
                     Box(
                         modifier = Modifier
                             .size(36.dp)
-                            .clip(CircleShape)
                             .clickable(onClick = onClose),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "✕",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                        Image(
+                            painter = painterResource(id = R.drawable.close_sign),
+                            contentDescription = "Закрыть",
+                            modifier = Modifier.size(30.dp)
                         )
                     }
                 }

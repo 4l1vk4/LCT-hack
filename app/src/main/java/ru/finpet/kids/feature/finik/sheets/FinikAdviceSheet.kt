@@ -1,7 +1,10 @@
 package ru.finpet.kids.feature.finik.sheets
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.res.painterResource
+import ru.finpet.kids.R
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -86,7 +89,8 @@ fun FinikAdviceSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFFE8DAC2),
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        dragHandle = null
     ) {
         KeepScreenImmersive()
         Column(
@@ -94,19 +98,10 @@ fun FinikAdviceSheet(
                 .fillMaxWidth()
                 .fillMaxHeight(0.70f)
                 .padding(horizontal = 16.dp)
+                .padding(top = 16.dp)
                 .padding(bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // полоска сверху
-            Box(
-                modifier = Modifier
-                    .size(width = 40.dp, height = 4.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(Color(0xFFBCAAA4))
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
             // пиксельный заголовок с крестиком на основе PixelBar
             PixelBar(
                 modifier = Modifier.fillMaxWidth(),
@@ -124,18 +119,16 @@ fun FinikAdviceSheet(
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .clip(CircleShape)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { onDismiss() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "✕",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Black,
-                        color = PixelTextDark
+                    Image(
+                        painter = painterResource(id = R.drawable.close_sign),
+                        contentDescription = "Закрыть",
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }

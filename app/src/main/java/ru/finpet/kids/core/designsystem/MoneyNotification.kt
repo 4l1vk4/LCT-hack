@@ -6,9 +6,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.res.painterResource
+import ru.finpet.kids.R
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -132,12 +135,12 @@ fun MoneyNotification(
                 }
 
                 // Крестик закрыть
-                Text(
-                    text = "✕",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(start = 8.dp)
+                Image(
+                    painter = painterResource(id = R.drawable.close_sign),
+                    contentDescription = "Закрыть",
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .size(20.dp)
                 )
             }
         }

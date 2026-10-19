@@ -291,6 +291,7 @@ fun MainScreen(
                             isNight = isNightMode,
                             demoMode = demoMode,
                             adultStageStartDay = adultStageStartDay,
+                            selectedSkin = ready?.skinId ?: "cat_black",
                             preorderItemIds = preorderItemIds,
                             onTogglePreorderItem = { viewModel.togglePreorderItem(it) },
                             onQuickBuyItems = { viewModel.quickBuyItems(it) },

@@ -45,6 +45,7 @@ import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
 import ru.finpet.kids.feature.map.sheets.HomeGoalsBottomSheet
 import ru.finpet.kids.feature.map.sheets.SchoolBottomSheet
+import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
 import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.feature.map.sheets.ShopBottomSheet
 
@@ -68,6 +69,7 @@ fun MapScreen(
     isNight: Boolean = false,
     demoMode: Boolean = false,
     adultStageStartDay: Int = 0,
+    selectedSkin: String = "cat_black",
     preorderItemIds: Set<String> = emptySet(),
     onTogglePreorderItem: (String) -> Unit = {},
     onQuickBuyItems: (List<PurchaseItem>) -> Unit = {},
@@ -82,6 +84,14 @@ fun MapScreen(
     onCompleteHomeChore: (choreId: String, rewardCoins: Int) -> Unit = { _, _ -> },
     onNavigateToFinik: () -> Unit = {}
 ) {
+    val petMood = remember(profile?.mood, profile?.satiety, profile?.health) {
+        PetEconomyCalculator.resolveEmotion(
+            satiety = profile?.satiety ?: 100,
+            health = profile?.health ?: 100,
+            mood = profile?.mood ?: 70
+        ).name
+    }
+
     // какая локация сейчас открыта: "SHOP", "QUESTS" или "GOALS"
     var activeModal by remember(initialModal) { mutableStateOf<String?>(initialModal) }
     var focusOnHomeChores by remember { mutableStateOf(false) }
@@ -152,6 +162,8 @@ fun MapScreen(
             demoMode = demoMode,
             currentPeriodIndex = profile?.currentPeriodIndex ?: 1,
             targetQuestId = targetQuestId,
+            skinId = selectedSkin,
+            petMood = petMood,
             onDismiss = {
                 activeModal = null
                 onModalDismissed()
@@ -202,6 +214,8 @@ fun MapScreen(
             profile = profile,
             demoMode = demoMode,
             adultStageStartDay = adultStageStartDay,
+            skinId = selectedSkin,
+            petMood = petMood,
             onTogglePreorderItem = onTogglePreorderItem,
             onQuickBuy = onQuickBuyItems,
             onDismiss = {
@@ -229,6 +243,9 @@ fun MapScreen(
             activeGoalId = profile?.activeGoalId,
             currentPeriodIndex = todayNotes.firstOrNull()?.dayIndex ?: (profile?.currentPeriodIndex ?: 1),
             questProgress = questProgress,
+            growthStage = profile?.growthStage ?: "BABY",
+            skinId = selectedSkin,
+            petMood = petMood,
             onSelectActiveGoal = onSelectActiveGoal,
             onCompleteHomeChore = onCompleteHomeChore,
             initialPiggyBankExpanded = if (focusOnHomeChores) false else (initialModal == "GOALS"),

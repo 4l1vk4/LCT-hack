@@ -472,16 +472,13 @@ fun DishesCleaningGameDialog(
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .clip(CircleShape)
-                        .background(PixelWoodMedium.copy(alpha = 0.15f))
                         .clickable { onDismiss() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "✕",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PixelWoodDark
+                    Image(
+                        painter = painterResource(id = R.drawable.close_sign),
+                        contentDescription = "Закрыть",
+                        modifier = Modifier.size(30.dp)
                     )
                 }
             }

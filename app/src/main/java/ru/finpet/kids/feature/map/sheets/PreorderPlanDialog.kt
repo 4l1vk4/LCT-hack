@@ -1,9 +1,12 @@
 package ru.finpet.kids.feature.map.sheets
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.res.painterResource
+import ru.finpet.kids.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -161,16 +164,13 @@ fun PreorderPlanDialog(
                         Box(
                             modifier = Modifier
                                 .size(30.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(PixelWoodDark)
                                 .clickable { onDismiss() },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "✕",
-                                color = PixelGoldBright,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
+                            Image(
+                                painter = painterResource(id = R.drawable.close_sign),
+                                contentDescription = "Закрыть",
+                                modifier = Modifier.size(28.dp)
                             )
                         }
                     }

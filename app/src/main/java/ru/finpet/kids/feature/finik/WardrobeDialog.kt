@@ -98,7 +98,7 @@ fun WardrobeDialog(
         ) {
             StardewBoard(
                 headerTitle = "ГАРДЕРОБ",
-                headerIcon = "👔"
+                headerIcon = ""
             ) {
                 Column(
                     modifier = Modifier

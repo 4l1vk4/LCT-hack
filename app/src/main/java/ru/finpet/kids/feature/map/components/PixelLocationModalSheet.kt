@@ -1,37 +1,34 @@
 package ru.finpet.kids.feature.map.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -54,7 +51,8 @@ fun PixelLocationModalSheet(
     title: String,
     subtitle: String,
     headerDrawableRes: Int,
-    badgeText: String,
+    badgeText: String = "",
+    badgeContent: (@Composable () -> Unit)? = null,
     onDismiss: () -> Unit,
     listState: LazyListState = rememberLazyListState(),
     topStartExtra: (@Composable () -> Unit)? = null,
@@ -64,23 +62,23 @@ fun PixelLocationModalSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = PixelParchmentLight,
-        scrimColor = Color.Black.copy(alpha = 0.40f), // аккуратное затемнение карты сзади
+        scrimColor = Color.Black.copy(alpha = 0.40f),
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         dragHandle = null
     ) {
-        // сохраняем полноэкранный режим без вылезающих системных панелей
+        // сохранение полноэкранного режима без вылезающих системных панелей
         KeepScreenImmersive()
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.90f) // занимаем 90% экрана, чтобы влезало много контента
+                .fillMaxHeight(0.90f)
         ) {
             // шапка с пиксельной картинкой здания
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(210.dp)
+                    .aspectRatio(1073f / 493f)
             ) {
                 Image(
                     painter = painterResource(id = headerDrawableRes),
@@ -89,39 +87,41 @@ fun PixelLocationModalSheet(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // полоска drag-handle
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 10.dp)
-                        .size(width = 44.dp, height = 5.dp)
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(PixelWoodMedium.copy(alpha = 0.7f))
-                )
+                val boxLeft = maxWidth * (36f / 1073f)
+                val boxTop = maxHeight * (36f / 493f)
+                val boxWidth = maxWidth * (275f / 1073f)
+                val boxHeight = maxHeight * (77f / 493f)
 
-                // бейдж статуса слева (например "3/8 решено" или сумма в копилке)
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(start = 16.dp, top = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = Color.White.copy(alpha = 0.95f),
-                        border = BorderStroke(1.5.dp, PixelDarkBrown),
-                        shadowElevation = 2.dp
+                // бейдж статуса/монет прямо внутри аутентичного белого квадрата на картинке
+                if (badgeContent != null || badgeText.isNotBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .offset(x = boxLeft, y = boxTop)
+                            .size(width = boxWidth, height = boxHeight),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = badgeText,
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PixelDarkBrown,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                        )
+                        if (badgeContent != null) {
+                            badgeContent()
+                        } else {
+                            Text(
+                                text = badgeText,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PixelDarkBrown,
+                                maxLines = 1
+                            )
+                        }
                     }
+                }
 
-                    if (topStartExtra != null) {
+                // доп. кнопка слева (например, "Список покупок") правее белого квадрата на той же высоте
+                if (topStartExtra != null) {
+                    Box(
+                        modifier = Modifier
+                            .offset(x = boxLeft + boxWidth + 8.dp, y = boxTop)
+                            .height(boxHeight),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
                         topStartExtra()
                     }
                 }
@@ -131,29 +131,18 @@ fun PixelLocationModalSheet(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(end = 12.dp, top = 12.dp)
-                        .size(48.dp)
-                        .clip(CircleShape)
+                        .size(44.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { onDismiss() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.95f))
-                            .border(1.5.dp, PixelDarkBrown, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "✕",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Black,
-                            color = PixelDarkBrown
-                        )
-                    }
+                    Image(
+                        painter = painterResource(id = ru.finpet.kids.R.drawable.close_sign),
+                        contentDescription = "Закрыть",
+                        modifier = Modifier.size(34.dp)
+                    )
                 }
             }
 

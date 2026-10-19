@@ -455,3 +455,122 @@ fun PixelBar(
         content = content
     )
 }
+
+/**
+ * 9-slice рендеринг аутентичной белой пиксельной рамки (white_pixel_box.png).
+ * Точно повторяет белую плашку под монетки из хедера локаций.
+ */
+fun DrawScope.drawWhitePixelBox(
+    boxBmp: ImageBitmap
+) {
+    val dstW = size.width.roundToInt()
+    val dstH = size.height.roundToInt()
+    if (dstW <= 0 || dstH <= 0) return
+
+    val srcCornerW = 18
+    val srcCornerH = 18
+    val scale = dstH.toFloat() / boxBmp.height.toFloat()
+    val cornerW = (srcCornerW * scale).roundToInt().coerceAtMost(dstW / 2)
+    val cornerH = (srcCornerH * scale).roundToInt().coerceAtMost(dstH / 2)
+    val midW = (dstW - cornerW * 2).coerceAtLeast(0)
+    val midH = (dstH - cornerH * 2).coerceAtLeast(0)
+
+    val srcMidW = boxBmp.width - srcCornerW * 2
+    val srcMidH = boxBmp.height - srcCornerH * 2
+
+    // 1. Верхний ряд
+    drawImage(
+        image = boxBmp,
+        srcOffset = IntOffset(0, 0),
+        srcSize = IntSize(srcCornerW, srcCornerH),
+        dstOffset = IntOffset(0, 0),
+        dstSize = IntSize(cornerW, cornerH),
+        filterQuality = FilterQuality.None
+    )
+    if (midW > 0) {
+        drawImage(
+            image = boxBmp,
+            srcOffset = IntOffset(srcCornerW, 0),
+            srcSize = IntSize(srcMidW, srcCornerH),
+            dstOffset = IntOffset(cornerW, 0),
+            dstSize = IntSize(midW, cornerH),
+            filterQuality = FilterQuality.None
+        )
+    }
+    drawImage(
+        image = boxBmp,
+        srcOffset = IntOffset(boxBmp.width - srcCornerW, 0),
+        srcSize = IntSize(srcCornerW, srcCornerH),
+        dstOffset = IntOffset(dstW - cornerW, 0),
+        dstSize = IntSize(cornerW, cornerH),
+        filterQuality = FilterQuality.None
+    )
+
+    // 2. Средний ряд
+    if (midH > 0) {
+        drawImage(
+            image = boxBmp,
+            srcOffset = IntOffset(0, srcCornerH),
+            srcSize = IntSize(srcCornerW, srcMidH),
+            dstOffset = IntOffset(0, cornerH),
+            dstSize = IntSize(cornerW, midH),
+            filterQuality = FilterQuality.None
+        )
+        if (midW > 0) {
+            drawImage(
+                image = boxBmp,
+                srcOffset = IntOffset(srcCornerW, srcCornerH),
+                srcSize = IntSize(srcMidW, srcMidH),
+                dstOffset = IntOffset(cornerW, cornerH),
+                dstSize = IntSize(midW, midH),
+                filterQuality = FilterQuality.None
+            )
+        }
+        drawImage(
+            image = boxBmp,
+            srcOffset = IntOffset(boxBmp.width - srcCornerW, srcCornerH),
+            srcSize = IntSize(srcCornerW, srcMidH),
+            dstOffset = IntOffset(dstW - cornerW, cornerH),
+            dstSize = IntSize(cornerW, midH),
+            filterQuality = FilterQuality.None
+        )
+    }
+
+    // 3. Нижний ряд
+    drawImage(
+        image = boxBmp,
+        srcOffset = IntOffset(0, boxBmp.height - srcCornerH),
+        srcSize = IntSize(srcCornerW, srcCornerH),
+        dstOffset = IntOffset(0, dstH - cornerH),
+        dstSize = IntSize(cornerW, cornerH),
+        filterQuality = FilterQuality.None
+    )
+    if (midW > 0) {
+        drawImage(
+            image = boxBmp,
+            srcOffset = IntOffset(srcCornerW, boxBmp.height - srcCornerH),
+            srcSize = IntSize(srcMidW, srcCornerH),
+            dstOffset = IntOffset(cornerW, dstH - cornerH),
+            dstSize = IntSize(midW, cornerH),
+            filterQuality = FilterQuality.None
+        )
+    }
+    drawImage(
+        image = boxBmp,
+        srcOffset = IntOffset(boxBmp.width - srcCornerW, boxBmp.height - srcCornerH),
+        srcSize = IntSize(srcCornerW, srcCornerH),
+        dstOffset = IntOffset(dstW - cornerW, dstH - cornerH),
+        dstSize = IntSize(cornerW, cornerH),
+        filterQuality = FilterQuality.None
+    )
+}
+
+/**
+ * Модификатор для пиксельной белой рамки (на основе белого квадрата из хедера).
+ */
+fun Modifier.whitePixelBoxBackground(): Modifier = composed {
+    val boxBmp = ImageBitmap.imageResource(id = R.drawable.white_pixel_box)
+    drawBehind {
+        drawWhitePixelBox(boxBmp)
+    }
+}
