@@ -38,6 +38,7 @@ import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
@@ -77,6 +78,7 @@ fun DayDetailsDialog(
 ) {
     val completedCount = notes.count { it.isCompleted }
     val totalCount = notes.size
+    val uiScale = LocalUiScale.current
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -86,7 +88,7 @@ fun DayDetailsDialog(
             KeepScreenImmersive()
             Box(
             modifier = Modifier
-                .fillMaxWidth(0.95f)
+                .fillMaxWidth(0.96f)
                 .fillMaxHeight(0.92f)
                 .clip(RoundedCornerShape(8.dp))
         ) {
@@ -97,14 +99,17 @@ fun DayDetailsDialog(
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy((8.dp * uiScale).coerceIn(5.dp, 10.dp)),
                     contentPadding = PaddingValues(bottom = 8.dp)
                 ) {
                     // 1. Статус-строка дня и баланс
                     item {
                         PixelPanel(
                             modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                            contentPadding = PaddingValues(
+                                horizontal = (10.dp * uiScale).coerceIn(6.dp, 12.dp),
+                                vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp)
+                            )
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -114,19 +119,19 @@ fun DayDetailsDialog(
                                 Column {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         if (isToday) {
-                                            StarIcon(modifier = Modifier.size(20.dp))
-                                            Spacer(modifier = Modifier.width(6.dp))
+                                            StarIcon(modifier = Modifier.size((18.dp * uiScale).coerceIn(12.dp, 20.dp)))
+                                            Spacer(modifier = Modifier.width((5.dp * uiScale).coerceIn(2.dp, 6.dp)))
                                         }
                                         Text(
                                             text = if (isToday) "Сегодняшние задачи" else "Задачи на День $dayNumber",
-                                            fontSize = 18.sp,
+                                            fontSize = (16f * uiScale).coerceIn(12f, 18f).sp,
                                             fontWeight = FontWeight.Bold,
                                             color = if (isToday) PixelGoldDark else PixelTextDark
                                         )
                                     }
                                     Text(
                                         text = "Выполнено: $completedCount из $totalCount",
-                                        fontSize = 15.sp,
+                                        fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
                                         color = PixelTextMuted
                                     )
                                 }
@@ -139,12 +144,12 @@ fun DayDetailsDialog(
                         item {
                             PixelPanel(
                                 modifier = Modifier.fillMaxWidth(),
-                                contentPadding = PaddingValues(12.dp)
+                                contentPadding = PaddingValues((10.dp * uiScale).coerceIn(6.dp, 12.dp))
                             ) {
                                 Text(
                                     text = "На этот день нет задач. Нажмите кнопку ниже, чтобы добавить свою заметку!",
-                                    fontSize = 16.sp,
-                                    lineHeight = 21.sp,
+                                    fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
+                                    lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp,
                                     color = PixelTextMuted
                                 )
                             }
@@ -165,7 +170,12 @@ fun DayDetailsDialog(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .then(if (isNavigable && onNavigateToTask != null) Modifier.clickable { handleNavigate() } else Modifier),
-                                contentPadding = PaddingValues(start = 8.dp, end = 4.dp, top = 6.dp, bottom = 6.dp)
+                                contentPadding = PaddingValues(
+                                    start = (6.dp * uiScale).coerceIn(4.dp, 8.dp),
+                                    end = (4.dp * uiScale).coerceIn(2.dp, 4.dp),
+                                    top = (5.dp * uiScale).coerceIn(3.dp, 6.dp),
+                                    bottom = (5.dp * uiScale).coerceIn(3.dp, 6.dp)
+                                )
                             ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -181,12 +191,12 @@ fun DayDetailsDialog(
                                         checked = note.isCompleted,
                                         onCheckedChange = if (isSystemTask) null else { { onToggleNote(note) } },
                                         enabled = !isSystemTask,
-                                        modifier = Modifier.size(28.dp)
+                                        modifier = Modifier.size((24.dp * uiScale).coerceIn(18.dp, 28.dp))
                                     )
 
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    RenderBoardIcon(taskIcon, modifier = Modifier.size(18.dp))
-                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Spacer(modifier = Modifier.width((5.dp * uiScale).coerceIn(3.dp, 6.dp)))
+                                    RenderBoardIcon(taskIcon, modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 18.dp)))
+                                    Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
 
                                     val displayTitle = if (note.category == "PET_FOOD" && isPetRunaway) {
                                         "Купить корм для возвращения"
@@ -195,7 +205,7 @@ fun DayDetailsDialog(
                                     }
                                     Text(
                                         text = displayTitle,
-                                        fontSize = 16.sp,
+                                        fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (note.isCompleted) PixelTextMuted else PixelTextDark,
                                         textDecoration = if (note.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
@@ -203,7 +213,7 @@ fun DayDetailsDialog(
                                     )
                                 }
 
-                                Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width((4.dp * uiScale).coerceIn(2.dp, 6.dp)))
 
                                 // Статус-бейдж в пиксельном стиле (со смещением влево на 2px)
                                 if (note.isCompleted) {
@@ -211,24 +221,27 @@ fun DayDetailsDialog(
                                         modifier = Modifier
                                             .offset(x = (-2).dp)
                                             .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                            .padding(
+                                                horizontal = (6.dp * uiScale).coerceIn(4.dp, 8.dp),
+                                                vertical = (3.dp * uiScale).coerceIn(2.dp, 4.dp)
+                                            )
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             if (note.category == "GROCERIES" && note.cost > 0) {
                                                 Text(
                                                     text = "Сдача +${note.cost}",
                                                     fontFamily = AppFontFamily,
-                                                    fontSize = 14.sp,
+                                                    fontSize = (12f * uiScale).coerceIn(8f, 14f).sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGreenCrop
                                                 )
                                                 Spacer(modifier = Modifier.width(3.dp))
-                                                CoinIcon(modifier = Modifier.size(14.dp))
+                                                CoinIcon(modifier = Modifier.size((12.dp * uiScale).coerceIn(9.dp, 14.dp)))
                                             } else {
                                                 Text(
                                                     text = "Готово",
                                                     fontFamily = AppFontFamily,
-                                                    fontSize = 14.sp,
+                                                    fontSize = (12f * uiScale).coerceIn(8f, 14f).sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGreenCrop
                                                 )
@@ -241,30 +254,33 @@ fun DayDetailsDialog(
                                             .offset(x = (-2).dp)
                                             .pixelButtonBackground(containerColor = PixelWoodMedium)
                                             .then(if (isNavigable && onNavigateToTask != null) Modifier.clickable { handleNavigate() } else Modifier)
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                            .padding(
+                                                horizontal = (6.dp * uiScale).coerceIn(4.dp, 8.dp),
+                                                vertical = (3.dp * uiScale).coerceIn(2.dp, 4.dp)
+                                            )
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             if (note.cost > 0 && !isSystemTask) {
                                                 Text(
                                                     text = "${note.cost}",
                                                     fontFamily = AppFontFamily,
-                                                    fontSize = 14.sp,
+                                                    fontSize = (12f * uiScale).coerceIn(8f, 14f).sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGoldBright
                                                 )
                                                 Spacer(modifier = Modifier.width(3.dp))
-                                                CoinIcon(modifier = Modifier.size(14.dp))
+                                                CoinIcon(modifier = Modifier.size((12.dp * uiScale).coerceIn(9.dp, 14.dp)))
                                             } else if (note.category == "PET_FOOD") {
                                                 val badgeText = if (isPetRunaway) "Домой • 60" else "Лавка • 30"
                                                 Text(
                                                     text = badgeText,
                                                     fontFamily = AppFontFamily,
-                                                    fontSize = 14.sp,
+                                                    fontSize = (12f * uiScale).coerceIn(8f, 14f).sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGoldBright
                                                 )
                                                 Spacer(modifier = Modifier.width(3.dp))
-                                                CoinIcon(modifier = Modifier.size(14.dp))
+                                                CoinIcon(modifier = Modifier.size((12.dp * uiScale).coerceIn(9.dp, 14.dp)))
                                             } else {
                                                 val badgeLabel = when {
                                                     note.category == "GROCERIES" -> "Лавка • Сдача"
@@ -275,7 +291,7 @@ fun DayDetailsDialog(
                                                 Text(
                                                     text = badgeLabel,
                                                     fontFamily = AppFontFamily,
-                                                    fontSize = 14.sp,
+                                                    fontSize = (12f * uiScale).coerceIn(8f, 14f).sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PixelGoldBright
                                                 )
@@ -288,13 +304,13 @@ fun DayDetailsDialog(
                                 if (!isSystemTask) {
                                     IconButton(
                                         onClick = { onDeleteNote(note) },
-                                        modifier = Modifier.size(40.dp)
+                                        modifier = Modifier.size((32.dp * uiScale).coerceIn(24.dp, 40.dp))
                                     ) {
                                         Text(
                                             text = "✕",
                                             fontWeight = FontWeight.Bold,
                                             color = PixelRedBerry,
-                                            fontSize = 14.sp
+                                            fontSize = (13f * uiScale).coerceIn(10f, 14f).sp
                                         )
                                     }
                                 }
@@ -305,23 +321,24 @@ fun DayDetailsDialog(
 
                     // 4. Кнопка добавления своей заметки
                     item {
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height((4.dp * uiScale).coerceIn(2.dp, 4.dp)))
                         PixelButton(
                             text = "Добавить свою заметку",
                             onClick = onOpenAddNote,
                             containerColor = PixelGoldBright,
                             modifier = Modifier.fillMaxWidth(),
-                            fontSize = 16.sp
+                            fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
+                            contentPadding = PaddingValues(vertical = (8.dp * uiScale).coerceIn(5.dp, 10.dp), horizontal = 8.dp)
                         )
                     }
 
                     // 5. Завершение дня или периода (только если день — СЕГОДНЯ и включен демо-режим)
                     if (isToday && demoMode) {
                         item {
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height((4.dp * uiScale).coerceIn(2.dp, 4.dp)))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp))
                             ) {
                                 PixelButton(
                                     text = "⏩ Пропустить день",
@@ -330,7 +347,8 @@ fun DayDetailsDialog(
                                     textColor = Color.White,
                                     borderColor = Color(0xFF1B5E20),
                                     modifier = Modifier.weight(1f),
-                                    fontSize = 15.sp
+                                    fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
+                                    contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
                                 )
 
                                 PixelButton(
@@ -340,7 +358,8 @@ fun DayDetailsDialog(
                                     textColor = Color.White,
                                     borderColor = Color(0xFFBF360C),
                                     modifier = Modifier.weight(1f),
-                                    fontSize = 15.sp
+                                    fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
+                                    contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
                                 )
                             }
 
@@ -350,7 +369,7 @@ fun DayDetailsDialog(
                                 } else {
                                     "Пропустить 11 периодов (до «Взрослого»)"
                                 }
-                                Spacer(modifier = Modifier.height(6.dp))
+                                Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(3.dp, 6.dp)))
                                 PixelButton(
                                     text = nextStageText,
                                     onClick = onAdvanceToNextGrowthStage,
@@ -358,7 +377,8 @@ fun DayDetailsDialog(
                                     textColor = PixelTextDark,
                                     borderColor = PixelGoldDark,
                                     modifier = Modifier.fillMaxWidth(),
-                                    fontSize = 15.sp
+                                    fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
+                                    contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
                                 )
                             }
                         }
@@ -373,7 +393,8 @@ fun DayDetailsDialog(
                             textColor = PixelParchmentLight,
                             borderColor = PixelWoodDark,
                             modifier = Modifier.fillMaxWidth(),
-                            fontSize = 16.sp
+                            fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
+                            contentPadding = PaddingValues(vertical = (8.dp * uiScale).coerceIn(5.dp, 10.dp))
                         )
                     }
                 }

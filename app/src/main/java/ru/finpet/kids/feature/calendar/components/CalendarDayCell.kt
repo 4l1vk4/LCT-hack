@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PawsIcon
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
@@ -51,6 +52,7 @@ fun CalendarDayCell(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val uiScale = LocalUiScale.current
     val cellBg = when {
         isToday -> Color(0xFFFFF1C6)
         isSelected -> Color(0xFFFFECC7)
@@ -76,7 +78,7 @@ fun CalendarDayCell(
             .background(cellBg)
             .border(borderWidth, cellBorder, RoundedCornerShape(4.dp))
             .clickable(onClick = onClick)
-            .padding(3.dp)
+            .padding((2.5.dp * uiScale).coerceIn(1.5.dp, 3.dp))
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -93,22 +95,22 @@ fun CalendarDayCell(
                     text = "$dayNumber",
                     fontFamily = AppFontFamily,
                     fontWeight = if (isToday) FontWeight.Black else FontWeight.Bold,
-                    fontSize = 13.sp,
+                    fontSize = (12f * uiScale).coerceIn(8f, 13f).sp,
                     color = if (isToday) PixelGoldDark else if (isPast) PixelTextMuted else PixelTextDark
                 )
                 if (isToday) {
-                    PawsIcon(modifier = Modifier.size(12.dp))
+                    PawsIcon(modifier = Modifier.size((11.dp * uiScale).coerceIn(8.dp, 12.dp)))
                 } else if (allTasksCompleted) {
                     Text(
                         text = "✓",
-                        fontSize = 12.sp,
+                        fontSize = (11f * uiScale).coerceIn(8f, 12f).sp,
                         color = JoyOrange,
                         fontWeight = FontWeight.Black
                     )
                 } else if (isPast) {
                     Text(
                         text = "✓",
-                        fontSize = 12.sp,
+                        fontSize = (11f * uiScale).coerceIn(8f, 12f).sp,
                         color = PixelGreenCrop,
                         fontWeight = FontWeight.Bold
                     )
@@ -122,11 +124,11 @@ fun CalendarDayCell(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (isIncomeDay) {
-                    CoinIcon(modifier = Modifier.size(13.dp))
+                    CoinIcon(modifier = Modifier.size((12.dp * uiScale).coerceIn(8.dp, 13.dp)))
                 }
             }
 
-            Spacer(modifier = Modifier.height(3.dp))
+            Spacer(modifier = Modifier.height((2.dp * uiScale).coerceIn(1.dp, 3.dp)))
         }
     }
 }

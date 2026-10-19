@@ -33,6 +33,7 @@ import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
 import ru.finpet.kids.core.designsystem.ExclamationIcon
 import ru.finpet.kids.core.designsystem.LampochkaIcon
 import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PawsIcon
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
@@ -102,12 +103,14 @@ fun CalendarScreen(
     val isNextMonday = PetEconomyCalculator.isMonday(nextDayNumber, monthInfo.yearMonth)
     val isConfirmed = currentPeriod?.isBudgetConfirmed == true
 
+    val uiScale = LocalUiScale.current
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFE8DAC2)) // Тёплый фермерский фон земли Stardew
-            .padding(horizontal = 14.dp),
-        contentPadding = PaddingValues(top = 10.dp, bottom = LocalBottomBarHeight.current + 36.dp)
+            .padding(horizontal = (12.dp * uiScale).coerceIn(8.dp, 14.dp)),
+        contentPadding = PaddingValues(top = (8.dp * uiScale).coerceIn(6.dp, 10.dp), bottom = LocalBottomBarHeight.current + 36.dp)
     ) {
 
 
@@ -142,24 +145,24 @@ fun CalendarScreen(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            WarningIcon(modifier = Modifier.size(26.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
+                            WarningIcon(modifier = Modifier.size((22.dp * uiScale).coerceIn(16.dp, 26.dp)))
+                            Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "Бюджет на период не составлен!",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp,
+                                    fontSize = (16f * uiScale).coerceIn(12f, 18f).sp,
                                     color = PixelTextDark
                                 )
                                 Text(
                                     text = "Распредели монетки по 3 корзинам до начала покупок. План служит планкой трат: соблюдение плана и пополнение копилки обеспечат 100% точность бюджета!",
-                                    fontSize = 16.sp,
+                                    fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                                     color = PixelTextMuted,
-                                    lineHeight = 21.sp
+                                    lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
                         PixelButton(
                             text = "Спланировать бюджет ($balance монет)",
                             onClick = { activeDialog = CalendarDialog.BudgetPlanning },
@@ -167,8 +170,8 @@ fun CalendarScreen(
                             textColor = PixelTextDark,
                             borderColor = PixelGoldDark,
                             modifier = Modifier.fillMaxWidth(),
-                            fontSize = 16.sp,
-                            leadingIcon = { ExclamationIcon(modifier = Modifier.size(16.dp)) }
+                            fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
+                            leadingIcon = { ExclamationIcon(modifier = Modifier.size((14.dp * uiScale).coerceIn(10.dp, 16.dp))) }
                         )
                     }
                 }
@@ -209,10 +212,10 @@ fun CalendarScreen(
         // 4. кнопки скипа дня и периода (только в демо-моде)
         item(key = "next_day_action") {
             if (demoMode) {
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height((10.dp * uiScale).coerceIn(6.dp, 14.dp)))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp))
                 ) {
                     PixelButton(
                         text = "⏩ Пропустить день",
@@ -221,7 +224,8 @@ fun CalendarScreen(
                         textColor = Color.White,
                         borderColor = Color(0xFF1B5E20),
                         modifier = Modifier.weight(1f),
-                        fontSize = 15.sp
+                        fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
+                        contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
                     )
 
                     PixelButton(
@@ -231,7 +235,8 @@ fun CalendarScreen(
                         textColor = Color.White,
                         borderColor = Color(0xFFBF360C),
                         modifier = Modifier.weight(1f),
-                        fontSize = 15.sp
+                        fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
+                        contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
                     )
                 }
 
@@ -243,21 +248,22 @@ fun CalendarScreen(
                     } else {
                         "👑 Пропустить 11 периодов (до «Взрослого»)"
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
                     PixelButton(
                         text = nextStageText,
-                        leadingIcon = if (isBaby) { { PawsIcon(modifier = Modifier.size(16.dp)) } } else null,
+                        leadingIcon = if (isBaby) { { PawsIcon(modifier = Modifier.size((14.dp * uiScale).coerceIn(10.dp, 16.dp))) } } else null,
                         onClick = onAdvanceToNextGrowthStage,
                         containerColor = PixelGoldBright,
                         textColor = PixelTextDark,
                         borderColor = PixelGoldDark,
                         modifier = Modifier.fillMaxWidth(),
-                        fontSize = 15.sp
+                        fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
+                        contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(3.dp, 6.dp)))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -266,7 +272,7 @@ fun CalendarScreen(
                 Text(
                     text = if (isNextMonday) "Завтра понедельник: выплата 200 монет карманных денег!"
                     else "Карманные деньги (+200 монет) выдаются по понедельникам",
-                    fontSize = 15.sp,
+                    fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
                     color = PixelTextMuted,
                     textAlign = TextAlign.Center
                 )

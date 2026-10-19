@@ -29,6 +29,7 @@ import ru.finpet.kids.core.designsystem.PixelTextDark
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import ru.finpet.kids.core.designsystem.LocalUiScale
 
 /**
  * Аутентичный пиксельный диалог создания заметки / дела на выбранный день.
@@ -42,6 +43,7 @@ fun AddNoteDialog(
 ) {
     var noteTitle by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
+    val uiScale = LocalUiScale.current
 
     PixelAlertDialog(
         onDismissRequest = onDismiss,
@@ -58,7 +60,7 @@ fun AddNoteDialog(
                 enabled = noteTitle.isNotBlank(),
                 containerColor = PixelGoldBright,
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 16.sp
+                fontSize = (15f * uiScale).coerceIn(11f, 16f).sp
             )
         },
         dismissButton = {
@@ -68,7 +70,7 @@ fun AddNoteDialog(
                 containerColor = PixelParchmentMedium,
                 textColor = PixelTextDark,
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 16.sp
+                fontSize = (15f * uiScale).coerceIn(11f, 16f).sp
             )
         }
     ) {
@@ -82,18 +84,18 @@ fun AddNoteDialog(
             Text(
                 text = "Какое дело запланируем?",
                 fontFamily = AppFontFamily,
-                fontSize = 16.sp,
+                fontSize = (15f * uiScale).coerceIn(12f, 16f).sp,
                 fontWeight = FontWeight.Bold,
                 color = PixelTextDark
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 8.dp)))
 
             OutlinedTextField(
                 value = noteTitle,
                 onValueChange = { noteTitle = it },
-                label = { Text("Название дела", fontFamily = AppFontFamily, fontSize = 15.sp) },
-                placeholder = { Text("Например: Погулять с котиком или почитать книгу", fontFamily = AppFontFamily, fontSize = 14.sp) },
+                label = { Text("Название дела", fontFamily = AppFontFamily, fontSize = (14f * uiScale).coerceIn(10f, 15f).sp) },
+                placeholder = { Text("Например: Погулять с котиком или почитать книгу", fontFamily = AppFontFamily, fontSize = (13f * uiScale).coerceIn(10f, 14f).sp) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),

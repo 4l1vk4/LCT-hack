@@ -41,6 +41,7 @@ import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -67,6 +68,8 @@ fun RecurringExpensesDialog(
     onOpenAddRecurring: () -> Unit,
     onDeleteRecurring: (RecurringExpenseEntity) -> Unit
 ) {
+    val uiScale = LocalUiScale.current
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -75,8 +78,8 @@ fun RecurringExpensesDialog(
             KeepScreenImmersive()
             Box(
             modifier = Modifier
-                .fillMaxWidth(0.92f)
-                .fillMaxHeight(0.78f)
+                .fillMaxWidth(0.94f)
+                .fillMaxHeight(0.85f)
                 .clip(RoundedCornerShape(8.dp))
         ) {
             StardewBoard(
@@ -85,14 +88,14 @@ fun RecurringExpensesDialog(
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy((8.dp * uiScale).coerceIn(5.dp, 8.dp)),
                     contentPadding = PaddingValues(bottom = 6.dp)
                 ) {
                     item {
                         Text(
                             text = "Расходы, повторяющиеся регулярно в календаре питомца:",
-                            fontSize = 15.sp,
-                            lineHeight = 20.sp,
+                            fontSize = (14f * uiScale).coerceIn(11f, 15f).sp,
+                            lineHeight = (19f * uiScale).coerceIn(15f, 20f).sp,
                             color = PixelTextMuted
                         )
                     }
@@ -104,12 +107,12 @@ fun RecurringExpensesDialog(
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(4.dp))
                                     .background(PixelParchmentMedium)
-                                    .padding(12.dp)
+                                    .padding((10.dp * uiScale).coerceIn(6.dp, 12.dp))
                             ) {
                                 Text(
                                     text = "Пока нет регулярных трат. Добавь их кнопкой ниже!",
-                                    fontSize = 15.sp,
-                                    lineHeight = 20.sp,
+                                    fontSize = (14f * uiScale).coerceIn(11f, 15f).sp,
+                                    lineHeight = (19f * uiScale).coerceIn(15f, 20f).sp,
                                     color = PixelTextMuted
                                 )
                             }
@@ -122,17 +125,20 @@ fun RecurringExpensesDialog(
                                     .clip(RoundedCornerShape(4.dp))
                                     .background(PixelParchmentMedium)
                                     .border(1.dp, PixelParchmentBorder, RoundedCornerShape(4.dp))
-                                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                                    .padding(
+                                        horizontal = (8.dp * uiScale).coerceIn(5.dp, 8.dp),
+                                        vertical = (6.dp * uiScale).coerceIn(4.dp, 6.dp)
+                                    ),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                                    RenderBoardIcon(expense.icon, modifier = Modifier.size(20.dp))
-                                    Spacer(modifier = Modifier.width(8.dp))
+                                    RenderBoardIcon(expense.icon, modifier = Modifier.size((18.dp * uiScale).coerceIn(14.dp, 20.dp)))
+                                    Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
                                     Column {
                                         Text(
                                             text = expense.title,
-                                            fontSize = 16.sp,
+                                            fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                                             fontWeight = FontWeight.Bold,
                                             color = PixelTextDark
                                         )
@@ -143,32 +149,32 @@ fun RecurringExpensesDialog(
                                                 7 -> "Раз в неделю"
                                                 else -> "Каждые ${expense.frequencyDays} дн."
                                             },
-                                            fontSize = 14.sp,
+                                            fontSize = (13f * uiScale).coerceIn(9f, 14f).sp,
                                             color = PixelTextMuted
                                         )
                                     }
                                 }
 
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    CoinIcon(modifier = Modifier.size(16.dp))
+                                    CoinIcon(modifier = Modifier.size((14.dp * uiScale).coerceIn(10.dp, 16.dp)))
                                     Spacer(modifier = Modifier.width(3.dp))
                                     Text(
                                         text = "${expense.cost}",
                                         fontFamily = AppFontFamily,
                                         fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 16.sp,
+                                        fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                                         color = PixelGoldDark
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     IconButton(
                                         onClick = { onDeleteRecurring(expense) },
-                                        modifier = Modifier.size(36.dp)
+                                        modifier = Modifier.size((32.dp * uiScale).coerceIn(24.dp, 36.dp))
                                     ) {
                                         Text(
                                             text = "✕",
                                             fontWeight = FontWeight.Bold,
                                             color = PixelRedBerry,
-                                            fontSize = 14.sp
+                                            fontSize = (13f * uiScale).coerceIn(10f, 14f).sp
                                         )
                                     }
                                 }
@@ -177,15 +183,16 @@ fun RecurringExpensesDialog(
                     }
 
                     item {
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height((4.dp * uiScale).coerceIn(2.dp, 4.dp)))
                         PixelButton(
                             text = "Добавить цикличную трату",
                             onClick = onOpenAddRecurring,
                             containerColor = PixelGoldBright,
                             modifier = Modifier.fillMaxWidth(),
-                            fontSize = 16.sp
+                            fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
+                            contentPadding = PaddingValues(vertical = (8.dp * uiScale).coerceIn(5.dp, 10.dp), horizontal = 8.dp)
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height((4.dp * uiScale).coerceIn(2.dp, 4.dp)))
                         PixelButton(
                             text = "Закрыть",
                             onClick = onDismiss,
@@ -193,7 +200,8 @@ fun RecurringExpensesDialog(
                             textColor = PixelTextDark,
                             borderColor = PixelParchmentBorder,
                             modifier = Modifier.fillMaxWidth(),
-                            fontSize = 16.sp
+                            fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
+                            contentPadding = PaddingValues(vertical = (8.dp * uiScale).coerceIn(5.dp, 10.dp), horizontal = 8.dp)
                         )
                     }
                 }
@@ -215,6 +223,7 @@ fun AddRecurringExpenseDialog(
     var recCost by remember { mutableStateOf("20") }
     var recFrequency by remember { mutableIntStateOf(1) }
     var recIcon by remember { mutableStateOf("🍲") }
+    val uiScale = LocalUiScale.current
 
     val icons = listOf("🍲", "💧", "💊", "⚽", "📚", "🧼")
 
@@ -233,7 +242,7 @@ fun AddRecurringExpenseDialog(
                 },
                 containerColor = PixelGoldBright,
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 16.sp
+                fontSize = (15f * uiScale).coerceIn(11f, 16f).sp
             )
         },
         dismissButton = {
@@ -243,7 +252,7 @@ fun AddRecurringExpenseDialog(
                 containerColor = PixelParchmentMedium,
                 textColor = PixelTextDark,
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 16.sp
+                fontSize = (15f * uiScale).coerceIn(11f, 16f).sp
             )
         }
     ) {
@@ -251,8 +260,8 @@ fun AddRecurringExpenseDialog(
             OutlinedTextField(
                 value = recTitle,
                 onValueChange = { recTitle = it },
-                label = { Text("Название регулярного расхода", fontFamily = AppFontFamily, fontSize = 15.sp) },
-                placeholder = { Text("Например: Школьный обед", fontFamily = AppFontFamily, fontSize = 15.sp) },
+                label = { Text("Название регулярного расхода", fontFamily = AppFontFamily, fontSize = (14f * uiScale).coerceIn(10f, 15f).sp) },
+                placeholder = { Text("Например: Школьный обед", fontFamily = AppFontFamily, fontSize = (13f * uiScale).coerceIn(10f, 14f).sp) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
@@ -266,12 +275,12 @@ fun AddRecurringExpenseDialog(
                 )
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 8.dp)))
 
             OutlinedTextField(
                 value = recCost,
                 onValueChange = { recCost = it.filter { ch -> ch.isDigit() } },
-                label = { Text("Стоимость (монет)", fontFamily = AppFontFamily, fontSize = 15.sp) },
+                label = { Text("Стоимость (монет)", fontFamily = AppFontFamily, fontSize = (14f * uiScale).coerceIn(10f, 15f).sp) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
@@ -285,21 +294,21 @@ fun AddRecurringExpenseDialog(
                 )
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
 
             Text(
                 text = "Иконка:",
                 fontFamily = AppFontFamily,
-                fontSize = 16.sp,
+                fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                 fontWeight = FontWeight.Bold,
                 color = PixelTextDark
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height((5.dp * uiScale).coerceIn(3.dp, 6.dp)))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp))
             ) {
                 icons.forEach { icon ->
                     Box(
@@ -307,45 +316,45 @@ fun AddRecurringExpenseDialog(
                             .weight(1f)
                             .pixelButtonBackground(containerColor = if (recIcon == icon) PixelGoldBright else PixelParchmentLight)
                             .clickable { recIcon = icon }
-                            .padding(vertical = 6.dp),
+                            .padding(vertical = (5.dp * uiScale).coerceIn(3.dp, 6.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        RenderBoardIcon(icon, modifier = Modifier.size(18.dp))
+                        RenderBoardIcon(icon, modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 18.dp)))
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
 
             Text(
                 text = "Периодичность:",
                 fontFamily = AppFontFamily,
-                fontSize = 16.sp,
+                fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                 fontWeight = FontWeight.Bold,
                 color = PixelTextDark
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height((5.dp * uiScale).coerceIn(3.dp, 6.dp)))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp))
             ) {
                 PixelButton(
                     text = "Каждый день",
                     onClick = { recFrequency = 1 },
                     containerColor = if (recFrequency == 1) PixelGoldBright else PixelParchmentLight,
                     modifier = Modifier.weight(1f),
-                    fontSize = 15.sp,
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 7.dp)
+                    fontSize = (14f * uiScale).coerceIn(10f, 15f).sp,
+                    contentPadding = PaddingValues(horizontal = (4.dp * uiScale).coerceIn(2.dp, 6.dp), vertical = (6.dp * uiScale).coerceIn(4.dp, 7.dp))
                 )
                 PixelButton(
                     text = "Раз в 3 дня",
                     onClick = { recFrequency = 3 },
                     containerColor = if (recFrequency == 3) PixelGoldBright else PixelParchmentLight,
                     modifier = Modifier.weight(1f),
-                    fontSize = 15.sp,
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 7.dp)
+                    fontSize = (14f * uiScale).coerceIn(10f, 15f).sp,
+                    contentPadding = PaddingValues(horizontal = (4.dp * uiScale).coerceIn(2.dp, 6.dp), vertical = (6.dp * uiScale).coerceIn(4.dp, 7.dp))
                 )
             }
         }

@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelRedBerry
 import ru.finpet.kids.core.designsystem.PixelTextMuted
 import ru.finpet.kids.core.designsystem.StardewBoard
@@ -36,6 +37,7 @@ fun CalendarMonthGrid(
     onDayClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val uiScale = LocalUiScale.current
     val weekDays = listOf("ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС")
     val leadingEmpty = monthInfo.firstDayOfWeek - 1 // Дней до 1-го числа (1=ПН -> 0)
     val totalDays = monthInfo.daysInMonth
@@ -58,7 +60,7 @@ fun CalendarMonthGrid(
                     text = dayName,
                     fontFamily = AppFontFamily,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
+                    fontSize = (12f * uiScale).coerceIn(8f, 13f).sp,
                     color = if (dayName in listOf("СБ", "ВС")) PixelRedBerry else PixelTextMuted,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
@@ -66,7 +68,7 @@ fun CalendarMonthGrid(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height((5.dp * uiScale).coerceIn(3.dp, 6.dp)))
 
         // 2. Сетка недель месяца
         Column(

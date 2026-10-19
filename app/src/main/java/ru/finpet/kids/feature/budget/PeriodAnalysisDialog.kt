@@ -352,41 +352,6 @@ fun PeriodAnalysisDialog(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Подсказка: как поднять точность бюджета
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (compliance.overspendAmount > 0) Color(0xFFFFF3E0) else Color(0xFFE8F5E9))
-                            .border(1.dp, if (compliance.overspendAmount > 0) Color(0xFFFFB74D) else PixelGreenCrop, RoundedCornerShape(6.dp))
-                            .padding(8.dp)
-                    ) {
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                TargetIcon(modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Как поднять точность в следующем периоде:",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    color = PixelTextDark
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "• Забота о жизни на 1-м месте: обязательно накорми котика — экономить на еде ради копилки нельзя!\n" +
-                                        "• Баланс трат: не трать лишнего на хотелки («Сундучок радости») и не допускай перерасхода.\n" +
-                                        "• Честная копилка: откладывай запланированную сумму, когда обязательные нужды уже закрыты.\n" +
-                                        "• Экономить можно: неизрасходованные монеты остаются в кошельке и берегут точность!",
-                                fontSize = 15.sp,
-                                color = PixelTextDark,
-                                lineHeight = 17.sp
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
                     // 3. Блок наград и эволюции питомца
                     Row(
                         modifier = Modifier.fillMaxWidth(),
