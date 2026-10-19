@@ -69,7 +69,7 @@ val DEFAULT_SCRIPTED_ADVICES = listOf(
     ),
     ScriptedAdvice(
         title = "Правило 3 корзин: 50 / 30 / 20",
-        icon = "🍯",
+        icon = "🫙",
         response = "Половину монет тратим на важное (еда и уход), часть — на радости и игрушки, а 20% сразу прячем в копилку на большую цель!"
     ),
     ScriptedAdvice(

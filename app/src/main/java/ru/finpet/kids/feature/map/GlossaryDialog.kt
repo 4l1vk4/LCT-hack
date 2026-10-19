@@ -98,7 +98,7 @@ fun  financialGlossary(petName: String) = listOf(
     ),
     GlossaryTerm(
         term = "Накопления",
-        icon = "saving_jar",
+        icon = "piggy",
         definition = "Это деньги, которые ты откладываешь и не тратишь. Они копятся на мечту.",
         example = "50 монет каждый день — через неделю уже 350!"
     ),

@@ -384,6 +384,17 @@ fun SavingJarIcon(
 }
 
 @Composable
+fun PigIcon(
+    modifier: Modifier = Modifier.size(24.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.pig),
+        contentDescription = "Свинка",
+        modifier = modifier
+    )
+}
+
+@Composable
 fun MiskaIcon(
     modifier: Modifier = Modifier.size(18.dp)
 ) {
