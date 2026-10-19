@@ -2,10 +2,17 @@ package ru.finpet.kids.feature.map
 
 import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import ru.finpet.kids.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -112,6 +119,35 @@ fun MapWithHotspots(
             modifier = Modifier.fillMaxSize()
         )
 
+        val mapPlatesAnim = rememberInfiniteTransition(label = "map_plates_anim")
+        val schoolBobY by mapPlatesAnim.animateFloat(
+            initialValue = -3.5f,
+            targetValue = 3.5f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1900, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "school_bob"
+        )
+        val shopBobY by mapPlatesAnim.animateFloat(
+            initialValue = 3.5f,
+            targetValue = -3.5f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 2100, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "shop_bob"
+        )
+        val homeBobY by mapPlatesAnim.animateFloat(
+            initialValue = -3f,
+            targetValue = 3f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "home_bob"
+        )
+
         // 2. кликабельные зоны: масштабируются и позиционируются строго относительно картинки карты
         hotspots.forEach { spot ->
             val spotWidth  = renderedWidth * (spot.right - spot.left)
@@ -164,6 +200,73 @@ fun MapWithHotspots(
                 }
             }
         }
+
+        // 2.5. Анимированные парящие пиксельные вывески над зданиями (Школа, Лавка/Магазин, Домик)
+        val schoolW = renderedWidth * (185f / 1073f)
+        val schoolH = renderedHeight * (63f / 3248f)
+        val schoolLeft = leftOffset + renderedWidth * (198f / 1073f)
+        val schoolTop = topOffset + renderedHeight * (1844f / 3248f)
+        val questsSpot = hotspots.firstOrNull { it.id == "quests" }
+
+        Image(
+            painter = painterResource(id = if (isNight) R.drawable.label_school_night else R.drawable.label_school),
+            contentDescription = "Школа",
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = schoolLeft, y = schoolTop)
+                .size(width = schoolW, height = schoolH)
+                .graphicsLayer {
+                    translationY = schoolBobY.dp.toPx()
+                }
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { questsSpot?.let(onClickHotspot) }
+        )
+
+        val shopW = renderedWidth * (179f / 1073f)
+        val shopH = renderedHeight * (63f / 3248f)
+        val shopLeft = leftOffset + renderedWidth * (816f / 1073f)
+        val shopTop = topOffset + renderedHeight * (2140f / 3248f)
+        val shopSpot = hotspots.firstOrNull { it.id == "shop" }
+
+        Image(
+            painter = painterResource(id = if (isNight) R.drawable.label_shop_night else R.drawable.label_shop),
+            contentDescription = "Лавка",
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = shopLeft, y = shopTop)
+                .size(width = shopW, height = shopH)
+                .graphicsLayer {
+                    translationY = shopBobY.dp.toPx()
+                }
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { shopSpot?.let(onClickHotspot) }
+        )
+
+        val homeW = renderedWidth * (145f / 1073f)
+        val homeH = renderedHeight * (63f / 3248f)
+        val homeLeft = leftOffset + renderedWidth * (740f / 1073f)
+        val homeTop = topOffset + renderedHeight * (2482f / 3248f)
+        val homeSpot = hotspots.firstOrNull { it.id == "home" }
+
+        Image(
+            painter = painterResource(id = if (isNight) R.drawable.label_home_night else R.drawable.label_home),
+            contentDescription = "Дом",
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = homeLeft, y = homeTop)
+                .size(width = homeW, height = homeH)
+                .graphicsLayer {
+                    translationY = homeBobY.dp.toPx()
+                }
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { homeSpot?.let(onClickHotspot) }
+        )
 
         // 3. отладочный слой для проверки тапов и калибровки координат
         if (debug) {

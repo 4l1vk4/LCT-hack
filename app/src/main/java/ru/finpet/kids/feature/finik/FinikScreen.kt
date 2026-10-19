@@ -111,6 +111,11 @@ fun FinikScreen(
     var showBudgetPlanningDialog by remember { mutableStateOf(false) }
     var showPlanVsFactDialog by remember { mutableStateOf(false) }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var hiddenRoomItems by remember {
+        mutableStateOf(RoomDecorationPreferences.getHiddenItems(context))
+    }
+
     val satiety = profile?.satiety ?: 80
     val health = profile?.health ?: 90
     val isPetRunaway = profile?.isPetRunaway == true
@@ -151,23 +156,9 @@ fun FinikScreen(
         ) {
             // Облачко мыслей котика в аутентичном 9-slice пиксельном стиле
             item(key = "speech_bubble") {
-                val infiniteTransition = rememberInfiniteTransition(label = "bubble_anim")
-                val floatOffset by infiniteTransition.animateFloat(
-                    initialValue = -2.5f,
-                    targetValue = 2.5f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(durationMillis = 1800, easing = FastOutSlowInEasing),
-                        repeatMode = RepeatMode.Reverse
-                    ),
-                    label = "bubble_float"
-                )
-
                 PixelPanel(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .graphicsLayer {
-                            translationY = floatOffset.dp.toPx()
-                        }
                         .padding(bottom = 8.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
                 ) {
@@ -259,10 +250,46 @@ fun FinikScreen(
                             }
                     )
 
-                    // Предметы накоплений, купленные пользователем при достижении цели
-                    val isBallPurchased = goals.any { it.id == "goal_ball" && (it.isReached || it.savedAmount >= it.targetCost) }
-                    val isHeadphonesPurchased = goals.any { it.id == "goal_headphones" && (it.isReached || it.savedAmount >= it.targetCost) }
-                    val isScooterPurchased = goals.any { it.id == "goal_scooter" && (it.isReached || it.savedAmount >= it.targetCost) }
+                    // Анимированная парящая пиксельная вывеска «ГАРДЕРОБ» над шкафом
+                    val wardrobePlateW = containerWidth * (237f / 1073f)
+                    val wardrobePlateH = containerHeight * (63f / 406f)
+                    val wardrobePlateLeft = containerWidth * (819f / 1073f)
+                    val wardrobePlateTop = containerHeight * (18f / 406f)
+
+                    val wardrobePlateAnim = rememberInfiniteTransition(label = "wardrobe_plate_anim")
+                    val wardrobeBobY by wardrobePlateAnim.animateFloat(
+                        initialValue = -3f,
+                        targetValue = 3f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 1800, easing = FastOutSlowInEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "wardrobe_bob"
+                    )
+
+                    Image(
+                        painter = painterResource(id = if (isNight) R.drawable.label_wardrobe_night else R.drawable.label_wardrobe),
+                        contentDescription = "Гардероб",
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .offset(x = wardrobePlateLeft, y = wardrobePlateTop)
+                            .size(width = wardrobePlateW, height = wardrobePlateH)
+                            .graphicsLayer {
+                                translationY = wardrobeBobY.dp.toPx()
+                            }
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                showWardrobe = true
+                            }
+                    )
+
+                    // Предметы накоплений, купленные пользователем при достижении цели (с возможностью спрятать/показать через гардероб)
+                    val isDemo = profile?.isDemoMode == true
+                    val isBallPurchased = (isDemo || goals.any { it.id == "goal_ball" && (it.isReached || it.savedAmount >= it.targetCost) }) && ("goal_ball" !in hiddenRoomItems)
+                    val isHeadphonesPurchased = (isDemo || goals.any { it.id == "goal_headphones" && (it.isReached || it.savedAmount >= it.targetCost) }) && ("goal_headphones" !in hiddenRoomItems)
+                    val isScooterPurchased = (isDemo || goals.any { it.id == "goal_scooter" && (it.isReached || it.savedAmount >= it.targetCost) }) && ("goal_scooter" !in hiddenRoomItems)
 
                     // Самокат рядом с окном
                     if (isScooterPurchased) {
@@ -493,12 +520,18 @@ fun FinikScreen(
             )
         }
 
-        // Диалог гардероба питомца
+        // Диалог гардероба питомца и расстановки предметов комнаты
         if (showWardrobe) {
             WardrobeDialog(
                 currentAccessoryIds = parseAccessories(accessoryId).map { it.id }.toSet(),
                 petName = displayName,
-                onToggle = { accId -> onToggleAccessory(accId) },
+                goals = goals,
+                hiddenRoomItems = hiddenRoomItems,
+                isDemoMode = profile?.isDemoMode == true,
+                onToggleAccessory = { accId -> onToggleAccessory(accId) },
+                onToggleRoomItem = { itemId ->
+                    hiddenRoomItems = RoomDecorationPreferences.toggleItemVisibility(context, itemId)
+                },
                 onDismiss = { showWardrobe = false }
             )
         }
