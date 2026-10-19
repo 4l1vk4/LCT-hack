@@ -1,5 +1,11 @@
 package ru.finpet.kids.feature.finik
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import ru.finpet.kids.R
@@ -144,9 +151,23 @@ fun FinikScreen(
         ) {
             // Облачко мыслей котика в аутентичном 9-slice пиксельном стиле
             item(key = "speech_bubble") {
+                val infiniteTransition = rememberInfiniteTransition(label = "bubble_anim")
+                val floatOffset by infiniteTransition.animateFloat(
+                    initialValue = -2.5f,
+                    targetValue = 2.5f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(durationMillis = 1800, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "bubble_float"
+                )
+
                 PixelPanel(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .graphicsLayer {
+                            translationY = floatOffset.dp.toPx()
+                        }
                         .padding(bottom = 8.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
                 ) {

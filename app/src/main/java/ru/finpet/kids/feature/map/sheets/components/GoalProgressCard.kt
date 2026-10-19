@@ -1,5 +1,10 @@
 package ru.finpet.kids.feature.map.sheets.components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,11 +25,13 @@ import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,6 +105,18 @@ fun GoalProgressCard(
     val percent = (progress * 100).toInt()
     val remaining = (goal.targetCost - goal.savedAmount).coerceAtLeast(0)
 
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+        label = "goal_card_progress"
+    )
+
+    val checkboxScale by animateFloatAsState(
+        targetValue = if (isSelected) 1.05f else 1.0f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "checkbox_scale"
+    )
+
     FinCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -122,6 +141,10 @@ fun GoalProgressCard(
                 ) {
                     Box(
                         modifier = Modifier
+                            .graphicsLayer {
+                                scaleX = checkboxScale
+                                scaleY = checkboxScale
+                            }
                             .size(28.dp)
                             .clip(RoundedCornerShape(4.dp))
                             .background(if (isSelected) JoyOrange else Color(0xFFD7C4A5))
@@ -188,7 +211,7 @@ fun GoalProgressCard(
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(progress)
+                        .fillMaxWidth(animatedProgress)
                         .clip(RoundedCornerShape(6.dp))
                         .background(FreshGreen)
                 )

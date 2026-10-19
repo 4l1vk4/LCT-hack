@@ -2,6 +2,9 @@ package ru.finpet.kids.feature.main
 
 import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -176,18 +179,28 @@ private fun NavSelectionFrame(
     if (selectedTab !in 0..3) return
     val ramkaBitmap = ImageBitmap.imageResource(id = R.drawable.ramka_for_menu)
 
+    val targetBaseX = when (selectedTab) {
+        0 -> 87f    // карта
+        1 -> 325f   // календарь
+        2 -> 568f   // финни
+        3 -> 810f   // семья (сдвинуто чуть правее для ровного обрамления)
+        else -> 87f
+    }
+
+    val animatedBaseX by animateFloatAsState(
+        targetValue = targetBaseX,
+        animationSpec = spring(
+            dampingRatio = 0.8f,
+            stiffness = 380f
+        ),
+        label = "nav_selection_x"
+    )
+
     Canvas(modifier = modifier.fillMaxSize()) {
         val scaleX = size.width / 1073f
         val h = size.height.roundToInt()
         val dstWidth = (174f * scaleX).roundToInt()
-
-        val dstLeft = when (selectedTab) {
-            0 -> (87f * scaleX).roundToInt()    // карта
-            1 -> (325f * scaleX).roundToInt()   // календарь
-            2 -> (568f * scaleX).roundToInt()   // финни
-            3 -> (810f * scaleX).roundToInt()   // семья (сдвинуто чуть правее для ровного обрамления)
-            else -> return@Canvas
-        }
+        val dstLeft = (animatedBaseX * scaleX).roundToInt()
 
         drawImage(
             image = ramkaBitmap,

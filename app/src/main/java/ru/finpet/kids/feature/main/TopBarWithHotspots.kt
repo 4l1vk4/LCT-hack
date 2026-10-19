@@ -2,6 +2,9 @@ package ru.finpet.kids.feature.main
 
 import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -103,23 +106,34 @@ fun TopBarWithHotspots(
             modifier = Modifier.fillMaxSize()
         )
 
+        val animBalance by animateIntAsState(
+            targetValue = balance,
+            animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+            label = "topbar_balance"
+        )
+        val animMoodPercent by animateIntAsState(
+            targetValue = moodPercent.coerceIn(0, 100),
+            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+            label = "topbar_mood"
+        )
+
         val moneyFontSize = when {
-            balance > 9999 -> 12f
-            balance > 999  -> 14f
-            else           -> MONEY_FONT_SIZE
+            animBalance > 9999 -> 12f
+            animBalance > 999  -> 14f
+            else               -> MONEY_FONT_SIZE
         }
 
         val moneyOffsetX = when {
-            balance > 9999 -> 5.dp
-            balance > 999  -> 6.dp
-            balance > 99   -> 10.dp
-            balance > 9    -> 14.dp
-            else           -> 20.dp
+            animBalance > 9999 -> 5.dp
+            animBalance > 999  -> 6.dp
+            animBalance > 99   -> 10.dp
+            animBalance > 9    -> 14.dp
+            else               -> 20.dp
         }
 
         // текущий баланс
         Text(
-            text = "$balance",
+            text = "$animBalance",
             fontSize = moneyFontSize.sp,
             fontWeight = FontWeight.Black,
             color = Color(0xFF381F0E),
@@ -129,13 +143,13 @@ fun TopBarWithHotspots(
         )
 
         // ряд орбов настроения
-        val orbCount = (moodPercent / ORB_PERCENT_STEP).coerceIn(0, 100 / ORB_PERCENT_STEP)
+        val orbCount = (animMoodPercent / ORB_PERCENT_STEP).coerceIn(0, 100 / ORB_PERCENT_STEP)
 
         val orbSizeDp = h * ORB_SIZE_RATIO
         val stepDp = orbSizeDp * ORB_STEP_RATIO
         val startXDp = w * ORB_BAR_LEFT
         val yDp = h * ORB_BAR_CENTER_Y - orbSizeDp / 2
-        val tint = moodColor(moodPercent)
+        val tint = moodColor(animMoodPercent)
 
         if (orbCount > 0) {
             for (i in 0 until orbCount) {
@@ -155,7 +169,7 @@ fun TopBarWithHotspots(
 
         // процентное значение настроения
         Text(
-            text = "$moodPercent%",
+            text = "$animMoodPercent%",
             fontSize = PERCENT_FONT_SIZE.sp,
             fontWeight = FontWeight.Black,
             color = Color.Black,

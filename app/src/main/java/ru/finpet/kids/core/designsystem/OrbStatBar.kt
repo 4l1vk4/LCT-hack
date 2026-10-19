@@ -1,5 +1,8 @@
 package ru.finpet.kids.core.designsystem
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
@@ -41,7 +45,12 @@ fun OrbStatBar(
     showWarning: Boolean = true
 ) {
     val safeValue = value.coerceIn(0, 100)
-    val filledCount = ((safeValue / 100f) * orbCount).roundToInt().coerceIn(0, orbCount)
+    val animatedValue by animateIntAsState(
+        targetValue = safeValue,
+        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+        label = "orb_stat_anim"
+    )
+    val filledCount = ((animatedValue / 100f) * orbCount).roundToInt().coerceIn(0, orbCount)
 
     Column(modifier = modifier) {
         // Заголовок: иконка + название + процент
@@ -79,7 +88,7 @@ fun OrbStatBar(
                     Spacer(modifier = Modifier.width(4.dp))
                 }
                 Text(
-                    text = "$safeValue%",
+                    text = "$animatedValue%",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (safeValue <= 30 && showWarning) Color(0xFFD32F2F) else tintColor

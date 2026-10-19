@@ -1,5 +1,12 @@
 package ru.finpet.kids.core.designsystem
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -14,12 +21,16 @@ import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
@@ -69,6 +80,11 @@ fun PixelJar(
     modifier: Modifier = Modifier.size(64.dp)
 ) {
     val clamped = fillDivisions.coerceIn(0, 10)
+    val animFill by animateFloatAsState(
+        targetValue = clamped.toFloat(),
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+        label = "pixel_jar_anim"
+    )
     Box(
         modifier = modifier.aspectRatio(1f),
         contentAlignment = Alignment.Center
@@ -76,11 +92,11 @@ fun PixelJar(
         Canvas(modifier = Modifier.fillMaxSize()) {
             val scaleX = size.width / 64f
             val scaleY = size.height / 64f
-            if (clamped > 0) {
+            if (animFill > 0f) {
                 val fillLeft = 11f * scaleX
                 val fillWidth = 42f * scaleX
-                val fillHeight = (clamped * 4f) * scaleY
-                val fillTop = (57f - clamped * 4f) * scaleY
+                val fillHeight = (animFill * 4f) * scaleY
+                val fillTop = (57f - animFill * 4f) * scaleY
                 drawRect(
                     color = Color(0xFFD95763),
                     topLeft = Offset(fillLeft, fillTop),
@@ -131,12 +147,31 @@ fun HeartIcon(
 
 @Composable
 fun WarningIcon(
-    modifier: Modifier = Modifier.size(18.dp)
+    modifier: Modifier = Modifier.size(18.dp),
+    animate: Boolean = true
 ) {
+    val infiniteTransition = rememberInfiniteTransition(label = "warning_anim")
+    val scale by if (animate) {
+        infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.10f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "warning_scale"
+        )
+    } else {
+        remember { mutableFloatStateOf(1f) }
+    }
+
     Image(
         painter = painterResource(id = R.drawable.warning_sign_emodji),
         contentDescription = "Внимание",
-        modifier = modifier
+        modifier = modifier.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
     )
 }
 
@@ -164,12 +199,45 @@ fun DiagramIcon(
 
 @Composable
 fun ExclamationIcon(
-    modifier: Modifier = Modifier.size(18.dp)
+    modifier: Modifier = Modifier.size(18.dp),
+    animate: Boolean = true
 ) {
+    val infiniteTransition = rememberInfiniteTransition(label = "exclamation_anim")
+    val bounceY by if (animate) {
+        infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = -3f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 350, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "bounceY"
+        )
+    } else {
+        remember { mutableFloatStateOf(0f) }
+    }
+    val scale by if (animate) {
+        infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.15f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 350, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "scale"
+        )
+    } else {
+        remember { mutableFloatStateOf(1f) }
+    }
+
     Image(
         painter = painterResource(id = R.drawable.exclimation_sign_emodji),
         contentDescription = "Важно",
-        modifier = modifier
+        modifier = modifier.graphicsLayer {
+            translationY = bounceY.dp.toPx()
+            scaleX = scale
+            scaleY = scale
+        }
     )
 }
 
