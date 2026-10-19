@@ -33,30 +33,24 @@ fun CalendarLegend(
     val textFontSize = (11f * uiScale).coerceIn(8f, 13f).sp
     val spacerWidth = (2.dp * uiScale).coerceIn(1.dp, 3.dp)
 
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            PawsIcon(modifier = Modifier.size(iconSize))
-            Spacer(modifier = Modifier.width(spacerWidth))
-            Text("Сегодня", fontSize = textFontSize, fontFamily = AppFontFamily, color = PixelTextDark, maxLines = 1)
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("✓", fontSize = textFontSize, fontWeight = FontWeight.Bold, color = PixelGreenCrop)
-            Spacer(modifier = Modifier.width(spacerWidth))
-            Text("Прошедшие", fontSize = textFontSize, fontFamily = AppFontFamily, color = PixelTextDark, maxLines = 1)
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("✓", fontSize = textFontSize, fontWeight = FontWeight.Black, color = JoyOrange)
-            Spacer(modifier = Modifier.width(spacerWidth))
-            Text("Все задачи", fontSize = textFontSize, fontFamily = AppFontFamily, color = PixelTextDark, maxLines = 1)
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            CoinIcon(modifier = Modifier.size(iconSize))
-            Spacer(modifier = Modifier.width(spacerWidth))
-            Text("Карманные", fontSize = textFontSize, fontFamily = AppFontFamily, color = PixelTextDark, maxLines = 1)
-        }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        PawsIcon(modifier = Modifier.size(iconSize))
+        Spacer(modifier = Modifier.width(spacerWidth))
+        Text("Сегодня", fontSize = textFontSize, fontFamily = AppFontFamily, color = PixelTextDark, maxLines = 1)
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("✓", fontSize = textFontSize, fontWeight = FontWeight.Bold, color = PixelGreenCrop)
+        Spacer(modifier = Modifier.width(spacerWidth))
+        Text("Прошедшие", fontSize = textFontSize, fontFamily = AppFontFamily, color = PixelTextDark, maxLines = 1)
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("✓", fontSize = textFontSize, fontWeight = FontWeight.Black, color = JoyOrange)
+        Spacer(modifier = Modifier.width(spacerWidth))
+        Text("Все задачи", fontSize = textFontSize, fontFamily = AppFontFamily, color = PixelTextDark, maxLines = 1)
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        CoinIcon(modifier = Modifier.size(iconSize))
+        Spacer(modifier = Modifier.width(spacerWidth))
+        Text("Карманные", fontSize = textFontSize, fontFamily = AppFontFamily, color = PixelTextDark, maxLines = 1)
     }
 }
