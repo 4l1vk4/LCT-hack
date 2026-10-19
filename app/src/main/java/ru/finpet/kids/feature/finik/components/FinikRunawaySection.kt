@@ -77,7 +77,7 @@ fun FinikRunawaySection(
                     ExclamationIcon(modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "$petName убежал!",
+                        text = "$petName загрустил и ушел погулять...",
                         fontFamily = AppFontFamily,
                         fontSize = 19.sp,
                         fontWeight = FontWeight.Black,
@@ -90,7 +90,7 @@ fun FinikRunawaySection(
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Настроение упало до 0%. Поставь миску корма у двери (цена x2 от обычного корма: 60 монет). Питомец вернётся через 1–3 дня, если ставить миску каждый день!",
+                    text = "Настроение упало до 0%. Поставь миску его любимых вкусняшек у двери (цена x2 от обычного корма: 60 монет). Питомец вернётся через 1–3 дня, если ставить миску каждый день!",
                     fontFamily = AppFontFamily,
                     fontSize = 14.sp,
                     color = PixelTextDark,
@@ -143,7 +143,7 @@ fun FinikRunawaySection(
                     .padding(horizontal = 4.dp, vertical = 4.dp)
             ) {
                 PixelButton(
-                    text = "Купить корм для питомца",
+                    text = "Купить вкусняшек для питомца",
                     onClick = { showConfirmDialog = true },
                     enabled = canAffordBowl,
                     containerColor = JoyOrange,
@@ -240,7 +240,7 @@ fun FinikRunawaySection(
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "$petName убежал и сейчас прячется. Если купить и поставить миску корма у двери, он почувствует заботу и вернется домой через 1–3 дня!",
+                    text = "$petName сейчас гуляет. Если купить и поставить миску корма у двери, он почувствует будет довольным и вернется домой через 1–3 дня!",
                     fontFamily = AppFontFamily,
                     fontSize = 16.sp,
                     lineHeight = 21.sp,

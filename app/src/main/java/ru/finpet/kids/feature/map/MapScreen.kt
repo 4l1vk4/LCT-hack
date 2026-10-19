@@ -253,12 +253,12 @@ fun MapScreen(
     }
 
 
-    // предупреждение: питомец убежал
+    // предупреждение: питомец пошел погулять
     if (showNoPetDialog) {
         PixelAlertDialog(
             onDismissRequest = { showNoPetDialog = false },
-            title = "$petName сбежал",
-            icon = "!",
+            title = "$petName пошел погулять",
+            icon = "🐾",
             confirmButton = {
                 PixelButton(
                     text = "Понятно",
@@ -270,7 +270,7 @@ fun MapScreen(
             }
         ) {
             Text(
-                text = "$petName убежал, и сейчас его нет дома. Продукты некому кушать.\n\nПоставь миску корма у двери в разделе питомца — и он скоро вернётся!",
+                text = "$petName пошел погулять, и сейчас его нет дома. Продукты некому кушать.\n\nПоставь миску корма у двери в разделе питомца — и он скоро вернётся!",
                 fontFamily = AppFontFamily,
                 fontSize = 16.sp,
                 lineHeight = 22.sp,

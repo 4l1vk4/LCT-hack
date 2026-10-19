@@ -137,6 +137,7 @@ fun HomeGoalsBottomSheet(
     var completedChoreRewardInfo by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var activeMinigameChore by remember { mutableStateOf<HomeChoreItem?>(null) }
     var completedGoalCelebration by remember { mutableStateOf<GoalEntity?>(null) }
+    var showPetAwayDialog by remember { mutableStateOf(false) }
     var isPiggyBankExpanded by remember(initialPiggyBankExpanded) { mutableStateOf(initialPiggyBankExpanded) }
     val listState = rememberLazyListState()
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
@@ -344,7 +345,13 @@ fun HomeGoalsBottomSheet(
                     HomeChoreCard(
                         chore = chore,
                         isDone = checkChoreDone(chore.id),
-                        onPlayMinigame = { activeMinigameChore = it }
+                        onPlayMinigame = {
+                            if (profile?.isPetRunaway == true) {
+                                showPetAwayDialog = true
+                            } else {
+                                activeMinigameChore = it
+                            }
+                        }
                     )
                 }
             }
@@ -519,6 +526,34 @@ fun HomeGoalsBottomSheet(
                     onDismiss = { activeMinigameChore = null }
                 )
             }
+        }
+    }
+
+    // Предупреждение: питомец пошел погулять, мини-игры временно недоступны
+    if (showPetAwayDialog) {
+        val petName = profile?.petName ?: "Финни"
+        PixelAlertDialog(
+            onDismissRequest = { showPetAwayDialog = false },
+            title = "$petName пошел погулять",
+            icon = "🐾",
+            confirmButton = {
+                PixelButton(
+                    text = "Понятно",
+                    onClick = { showPetAwayDialog = false },
+                    containerColor = JoyOrange,
+                    textColor = PixelTextDark,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        ) {
+            Text(
+                text = "$petName пошел погулять, поэтому ты пока не можешь поиграть. Позови своего питомца и приходи снова!",
+                fontFamily = AppFontFamily,
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                color = PixelTextDark,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
         }
     }
 }
