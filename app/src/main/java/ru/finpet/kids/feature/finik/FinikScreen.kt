@@ -370,6 +370,21 @@ fun FinikScreen(
                                 .size(ballSize)
                         )
                     }
+
+                    // Миска с едой на полу комнаты, если питомец сбежал и миска сегодня поставлена
+                    if (isPetRunaway && profile?.bowlPlacedToday == true) {
+                        val miskaSize = 44.dp
+                        val miskaLeft = 50.dp
+                        val miskaTop = containerHeight * (270f / 406f)
+                        Image(
+                            painter = painterResource(id = R.drawable.miska),
+                            contentDescription = "Миска с кормом",
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(x = miskaLeft, y = miskaTop)
+                                .size(miskaSize)
+                        )
+                    }
                 }
 
 

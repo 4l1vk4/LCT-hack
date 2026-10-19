@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.PawsIcon
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelGreenCrop
@@ -96,7 +97,7 @@ fun CalendarDayCell(
                     color = if (isToday) PixelGoldDark else if (isPast) PixelTextMuted else PixelTextDark
                 )
                 if (isToday) {
-                    Text(text = "🐾", fontSize = 13.sp)
+                    PawsIcon(modifier = Modifier.size(13.dp))
                 } else if (isPast) {
                     Text(text = "✓", fontSize = 13.sp, color = PixelGreenCrop, fontWeight = FontWeight.Bold)
                 }

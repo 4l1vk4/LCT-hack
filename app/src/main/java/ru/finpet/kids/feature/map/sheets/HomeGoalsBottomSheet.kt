@@ -1,6 +1,9 @@
 package ru.finpet.kids.feature.map.sheets
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -39,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import ru.finpet.kids.R
 import ru.finpet.kids.core.data.local.entity.GoalEntity
+import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
@@ -125,7 +129,8 @@ fun HomeGoalsBottomSheet(
     onWithdraw: (goalId: String, amount: Int) -> Unit,
     initialPiggyBankExpanded: Boolean = false,
     focusOnChores: Boolean = false,
-    targetGoalId: String? = null
+    targetGoalId: String? = null,
+    profile: ProfileEntity? = null
 ) {
     var withdrawWarningGoal by remember { mutableStateOf<GoalEntity?>(null) }
     var completedChoreRewardInfo by remember { mutableStateOf<Pair<String, Int>?>(null) }
@@ -176,6 +181,12 @@ fun HomeGoalsBottomSheet(
 
     val completedChoresCount = DEFAULT_HOME_CHORES.count { chore -> checkChoreDone(chore.id) }
 
+    val animTotalSaved by animateIntAsState(
+        targetValue = totalSaved,
+        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+        label = "home_total_saved"
+    )
+
     PixelLocationModalSheet(
         title = "Уютный домик и Копилка",
         subtitle = "Выполняй домашние дела, зарабатывай монеты и копи на мечту",
@@ -186,7 +197,7 @@ fun HomeGoalsBottomSheet(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "$totalSaved",
+                    text = "$animTotalSaved",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = PixelDarkBrown,

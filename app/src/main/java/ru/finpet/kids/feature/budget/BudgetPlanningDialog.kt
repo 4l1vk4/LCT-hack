@@ -43,7 +43,12 @@ import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.CoinText
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
+import ru.finpet.kids.core.designsystem.KoshelekIcon
 import ru.finpet.kids.core.designsystem.LockIcon
+import ru.finpet.kids.core.designsystem.PawsIcon
+import ru.finpet.kids.core.designsystem.RenderBoardIcon
+import ru.finpet.kids.core.designsystem.StarIcon
+import ru.finpet.kids.core.designsystem.VesiIcon
 import ru.finpet.kids.core.designsystem.PixelBlueWater
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
@@ -96,35 +101,6 @@ fun BudgetPlanningDialog(
     val isOverBudget = remainder < 0
     val isValid = !isOverBudget && (totalPlanned > 0 || balance == 0)
 
-    // живая реакция питомца на текущее распределение монет
-    val (finnieEmoji, finnieMoodTitle, finnieSpeech) = when {
-        isOverBudget -> Triple(
-            "🙀",
-            "Ой-ой, перерасход!",
-            "В кошельке не хватает ${-remainder} монет! Давай пересыпем немного назад из баночек."
-        )
-        mandatory < 30 && balance >= 30 -> Triple(
-            "🥣",
-            "Животик урчит...",
-            "Положи хотя бы 30 монет в «Миску жизни» на вкусный обед, иначе я останусь голодным!"
-        )
-        savings > 0 && remainder >= 0 -> Triple(
-            "😻",
-            "Ура, мечта всё ближе!",
-            "В «Копилку мечты» добавлено $savings монет! Каждый шаг приближает заветную цель!"
-        )
-        totalPlanned > 0 && remainder >= 0 -> Triple(
-            "😺",
-            "Отличный план заботы!",
-            "Все баночки наполнены правильно! Финни будет сыт, здоров и счастлив."
-        )
-        else -> Triple(
-            "🐾",
-            "Привет, хозяин!",
-            "Давай распределим монетки по 3 волшебным баночкам до начала покупок!"
-        )
-    }
-
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -137,53 +113,14 @@ fun BudgetPlanningDialog(
                 .clip(RoundedCornerShape(8.dp))
         ) {
             StardewBoard(
-                headerTitle = "ВОЛШЕБНЫЕ БАНОЧКИ • ПЕРИОД $currentDay",
-                headerIcon = "🍯"
+                headerTitle = "ВОЛШЕБНЫЕ БАНОЧКИ",
+                headerIcon = "empty_jar"
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(bottom = 8.dp)
                 ) {
-                    // реакция питомца на наполнение баночек ("Животик урчит...")
-                    item {
-                        PixelPanel(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(42.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFFFFF9EE))
-                                        .border(1.5.dp, PixelWoodLight, CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(text = finnieEmoji, fontSize = 24.sp)
-                                }
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = finnieMoodTitle,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 18.sp,
-                                        color = PixelTextDark
-                                    )
-                                    Text(
-                                        text = finnieSpeech,
-                                        fontSize = 16.sp,
-                                        color = PixelTextDark,
-                                        lineHeight = 21.sp
-                                    )
-                                }
-                            }
-                        }
-                    }
-
                     if (isConfirmed) {
                         item {
                             Box(
@@ -229,8 +166,6 @@ fun BudgetPlanningDialog(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        CoinIcon(modifier = Modifier.size(16.dp))
-                                        Spacer(modifier = Modifier.width(4.dp))
                                         Text(
                                             text = "В кошельке: $balance",
                                             fontWeight = FontWeight.Bold,
@@ -238,6 +173,8 @@ fun BudgetPlanningDialog(
                                             color = PixelTextDark,
                                             fontFamily = AppFontFamily
                                         )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        CoinIcon(modifier = Modifier.size(19.dp))
                                     }
                                     CoinText(
                                         prefix = "В баночках: $totalPlanned",
@@ -270,13 +207,19 @@ fun BudgetPlanningDialog(
                                             )
                                         }
                                     } else {
-                                        Text(
-                                             text = "👛 Свободно в кошельке: $remainder монет останется на руках.",
-                                             fontFamily = AppFontFamily,
-                                             fontSize = 16.sp,
-                                             fontWeight = FontWeight.Bold,
-                                             color = PixelGreenCrop
-                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            KoshelekIcon(modifier = Modifier.size(20.dp))
+                                            Text(
+                                                text = "Свободно в кошельке: $remainder монет останется на руках.",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = PixelGreenCrop
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -288,7 +231,7 @@ fun BudgetPlanningDialog(
                         item {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
-                                    text = "✨ БЫСТРЫЕ ПРЕСЕТЫ:",
+                                    text = "БЫСТРЫЕ ПРЕСЕТЫ:",
                                     fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 15.sp,
@@ -542,10 +485,10 @@ private fun PresetCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                if (icon == "🎯") {
-                    TargetIcon(modifier = Modifier.size(16.dp))
+                if (icon == "↺") {
+                    RenderBoardIcon(icon = icon, modifier = Modifier.size(14.dp))
                 } else {
-                    Text(text = icon, fontSize = 16.sp)
+                    RenderBoardIcon(icon = icon, modifier = Modifier.size(20.dp))
                 }
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
@@ -652,14 +595,6 @@ private fun MagicJarCard(
                         fontWeight = FontWeight.ExtraBold,
                         color = color,
                         fontSize = 17.sp,
-                        fontFamily = AppFontFamily
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = categoryLabel,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PixelTextMuted,
                         fontFamily = AppFontFamily
                     )
                 }

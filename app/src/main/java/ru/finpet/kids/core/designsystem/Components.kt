@@ -29,8 +29,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
@@ -41,6 +46,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import ru.finpet.kids.R
 
 @Composable
@@ -136,11 +143,13 @@ fun CalendarIcon(
 
 @Composable
 fun HeartIcon(
-    modifier: Modifier = Modifier.size(18.dp)
+    modifier: Modifier = Modifier.size(18.dp),
+    tint: Color? = null
 ) {
     Image(
         painter = painterResource(id = R.drawable.heart_emodji),
         contentDescription = "Здоровье",
+        colorFilter = tint?.let { ColorFilter.tint(it, BlendMode.SrcIn) },
         modifier = modifier
     )
 }
@@ -261,6 +270,146 @@ fun AppleIcon(
         contentDescription = "Сытость",
         modifier = modifier
     )
+}
+
+@Composable
+fun StarIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.star_emodji),
+        contentDescription = "Звезда",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun DocsIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.docs_emodji),
+        contentDescription = "Документ",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun KoshelekIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.koshelek),
+        contentDescription = "Кошелек",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun PawsIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.paws),
+        contentDescription = "Лапки",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun VesiIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.vesi),
+        contentDescription = "Весы",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun LampochkaIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.lampochka),
+        contentDescription = "Лампочка",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun EmptyJarIcon(
+    modifier: Modifier = Modifier.size(24.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.empty_jar),
+        contentDescription = "Банка",
+        modifier = modifier
+    )
+}
+
+/**
+ * Аутентичный пиксельный чекбокс на основе checkbox.png и check.png
+ */
+@Composable
+fun PixelCheckbox(
+    checked: Boolean,
+    onCheckedChange: ((Boolean) -> Unit)?,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    val imageRes = if (checked) R.drawable.check else R.drawable.checkbox
+    val clickableModifier = if (onCheckedChange != null && enabled) {
+        Modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null
+        ) { onCheckedChange(!checked) }
+    } else Modifier
+
+    Image(
+        painter = painterResource(id = imageRes),
+        contentDescription = if (checked) "Выбрано" else "Не выбрано",
+        modifier = modifier
+            .size(28.dp)
+            .then(clickableModifier)
+    )
+}
+
+/**
+ * Аутентичный пиксельный переключатель на основе on_.png и off_.png
+ */
+@Composable
+fun PixelSwitch(
+    checked: Boolean,
+    onCheckedChange: ((Boolean) -> Unit)?,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    val imageRes = if (checked) R.drawable.on_ else R.drawable.off_
+    val clickableModifier = if (onCheckedChange != null && enabled) {
+        Modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null
+        ) { onCheckedChange(!checked) }
+    } else Modifier
+
+    Box(
+        modifier = modifier
+            .size(width = 56.dp, height = 32.dp)
+            .clipToBounds()
+            .then(clickableModifier),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = imageRes),
+            contentDescription = if (checked) "Включено" else "Выключено",
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+        )
+    }
 }
 
 

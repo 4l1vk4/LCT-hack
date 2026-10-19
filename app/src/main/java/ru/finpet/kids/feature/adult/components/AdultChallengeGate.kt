@@ -169,7 +169,7 @@ fun AdultChallengeGate(
                 Spacer(modifier = Modifier.height(8.dp))
                 // если попался слишком душный вопрос, можно скипнуть на другой
                 PixelButton(
-                    text = "🔄 Другой вопрос",
+                    text = "Другой вопрос",
                     onClick = onRequestNewChallenge,
                     containerColor = PixelParchmentMedium,
                     textColor = PixelTextDark,

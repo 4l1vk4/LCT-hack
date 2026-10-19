@@ -1,5 +1,8 @@
 package ru.finpet.kids.feature.map.sheets
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,6 +49,7 @@ import ru.finpet.kids.core.data.repository.PurchaseItem
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.AppleIcon
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.DocsIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.HeartIcon
 import ru.finpet.kids.core.designsystem.JoyOrange
@@ -141,6 +145,12 @@ fun ShopBottomSheet(
         }
     }
 
+    val animBalance by animateIntAsState(
+        targetValue = balance,
+        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+        label = "shop_balance"
+    )
+
     PixelLocationModalSheet(
         title = "Лавка товаров",
         subtitle = "Полезный корм, игрушки и поручения родителей",
@@ -151,7 +161,7 @@ fun ShopBottomSheet(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "$balance",
+                    text = "$animBalance",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = PixelDarkBrown,
@@ -176,12 +186,16 @@ fun ShopBottomSheet(
                         .padding(horizontal = 12.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "📋 Список покупок",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PixelDarkBrown
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        DocsIcon(modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = "Список покупок",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PixelDarkBrown
+                        )
+                    }
                 }
             }
         } else null

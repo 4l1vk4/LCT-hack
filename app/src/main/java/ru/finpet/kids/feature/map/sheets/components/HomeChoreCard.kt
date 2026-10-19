@@ -79,6 +79,11 @@ fun HomeChoreCard(
                             contentDescription = chore.title,
                             modifier = Modifier.size(34.dp)
                         )
+                        "chore_trash" -> Image(
+                            painter = painterResource(id = R.drawable.bin),
+                            contentDescription = chore.title,
+                            modifier = Modifier.size(34.dp)
+                        )
                         else -> Text(text = chore.icon, fontSize = 26.sp)
                     }
                 }

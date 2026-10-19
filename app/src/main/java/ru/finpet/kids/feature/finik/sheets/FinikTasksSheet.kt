@@ -22,8 +22,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
+import ru.finpet.kids.core.designsystem.PixelCheckbox
+import ru.finpet.kids.core.designsystem.DocsIcon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -93,7 +93,7 @@ fun FinikTasksSheet(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
             ) {
-                Text(text = "📋", fontSize = 22.sp)
+                DocsIcon(modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -181,17 +181,11 @@ fun FinikTasksSheet(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Checkbox(
+                                PixelCheckbox(
                                     checked = note.isCompleted,
                                     onCheckedChange = if (isSystemTask) null else { { onToggleNote(note) } },
                                     enabled = !isSystemTask,
-                                    colors = CheckboxDefaults.colors(
-                                        checkedColor = FreshGreen,
-                                        uncheckedColor = TextSecondary,
-                                        disabledCheckedColor = FreshGreen,
-                                        disabledUncheckedColor = Color(0xFFBDBDBD)
-                                    ),
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(26.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 if (taskIcon == "📊") {

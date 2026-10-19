@@ -17,12 +17,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.ui.layout.ContentScale
+import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -93,28 +97,79 @@ fun WardrobeDialog(
         KeepScreenImmersive()
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.94f)
-                .fillMaxHeight(0.85f)
+                .fillMaxSize()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { /* no-op */ }
         ) {
-            StardewBoard(
-                headerTitle = "ГАРДЕРОБ",
-                headerIcon = ""
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "Надень одежду на $petName или расставь вещи в комнате",
-                        fontFamily = AppFontFamily,
-                        fontSize = 15.sp,
-                        color = PixelTextMuted,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+            // Фон гардероба на весь экран
+            Image(
+                painter = painterResource(R.drawable.wardrobe),
+                contentDescription = "Гардероб",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize()
+            )
 
-                    Spacer(modifier = Modifier.height(6.dp))
+            Column(
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .fillMaxSize()
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
+            ) {
+                // Шапка с заголовком и крестиком закрытия
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(PixelParchmentLight.copy(alpha = 0.94f))
+                        .border(2.dp, PixelParchmentBorder, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "ГАРДЕРОБ",
+                            fontFamily = AppFontFamily,
+                            fontSize = 19.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = PixelTextDark
+                        )
+                        Text(
+                            text = "Надень одежду на $petName или расставь вещи",
+                            fontFamily = AppFontFamily,
+                            fontSize = 13.sp,
+                            color = PixelTextMuted
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clickable { onDismiss() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.close_sign),
+                            contentDescription = "Закрыть",
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Внутренний контейнер для сетки
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(PixelParchmentLight.copy(alpha = 0.92f))
+                        .border(2.dp, PixelParchmentBorder, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 8.dp, vertical = 8.dp)
+                ) {
+                    Column(modifier = Modifier.fillMaxSize()) {
 
                     // Единая сетка аксессуаров и предметов комнаты
                     LazyVerticalGrid(
@@ -129,9 +184,9 @@ fun WardrobeDialog(
                         // Заголовок секции аксессуаров
                         item(span = { GridItemSpan(3) }, key = "header_accessories") {
                             Text(
-                                text = "🐱 Одежда для $petName",
+                                text = "Одежда для $petName",
                                 fontFamily = AppFontFamily,
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PixelTextDark,
                                 modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
@@ -153,6 +208,17 @@ fun WardrobeDialog(
                                     .padding(horizontal = 6.dp, vertical = 6.dp),
                                 contentAlignment = Alignment.Center
                             ) {
+                                // Галочка "надето"
+                                if (isOn) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.galochka),
+                                        contentDescription = "Надето",
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(22.dp)
+                                    )
+                                }
+
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center
@@ -166,25 +232,6 @@ fun WardrobeDialog(
                                             contentDescription = acc.title,
                                             modifier = Modifier.size(42.dp)
                                         )
-
-                                        // Галочка "надето"
-                                        if (isOn) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .align(Alignment.TopEnd)
-                                                    .size(20.dp)
-                                                    .clip(CircleShape)
-                                                    .background(Color(0xFF2E7D32)),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(
-                                                    text = "✓",
-                                                    fontSize = 13.sp,
-                                                    fontWeight = FontWeight.Black,
-                                                    color = Color.White
-                                                )
-                                            }
-                                        }
                                     }
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
@@ -199,7 +246,7 @@ fun WardrobeDialog(
                                     Text(
                                         text = if (isOn) "надето" else "снято",
                                         fontFamily = AppFontFamily,
-                                        fontSize = 10.sp,
+                                        fontSize = 14.sp,
                                         color = if (isOn) Color(0xFF2E7D32) else PixelTextMuted,
                                         textAlign = TextAlign.Center,
                                         maxLines = 1
@@ -211,9 +258,9 @@ fun WardrobeDialog(
                         // Заголовок секции предметов комнаты
                         item(span = { GridItemSpan(3) }, key = "header_room") {
                             Text(
-                                text = "🏠 Предметы в комнате",
+                                text = "Предметы в комнате",
                                 fontFamily = AppFontFamily,
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PixelTextDark,
                                 modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
@@ -241,6 +288,32 @@ fun WardrobeDialog(
                                     .padding(horizontal = 6.dp, vertical = 6.dp),
                                 contentAlignment = Alignment.Center
                             ) {
+                                if (isEquipped) {
+                                    // Галочка "в комнате"
+                                    Image(
+                                        painter = painterResource(id = R.drawable.galochka),
+                                        contentDescription = "В комнате",
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(22.dp)
+                                    )
+                                } else if (!isPurchased) {
+                                    // Замочек "не накоплено"
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(20.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFF757575)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "🔒",
+                                            fontSize = 11.sp
+                                        )
+                                    }
+                                }
+
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center
@@ -258,40 +331,6 @@ fun WardrobeDialog(
                                                     alpha = if (isPurchased) 1f else 0.45f
                                                 }
                                         )
-
-                                        if (isEquipped) {
-                                            // Галочка "в комнате"
-                                            Box(
-                                                modifier = Modifier
-                                                    .align(Alignment.TopEnd)
-                                                    .size(20.dp)
-                                                    .clip(CircleShape)
-                                                    .background(Color(0xFF2E7D32)),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(
-                                                    text = "✓",
-                                                    fontSize = 13.sp,
-                                                    fontWeight = FontWeight.Black,
-                                                    color = Color.White
-                                                )
-                                            }
-                                        } else if (!isPurchased) {
-                                            // Замочек "не накоплено"
-                                            Box(
-                                                modifier = Modifier
-                                                    .align(Alignment.TopEnd)
-                                                    .size(20.dp)
-                                                    .clip(CircleShape)
-                                                    .background(Color(0xFF757575)),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(
-                                                    text = "🔒",
-                                                    fontSize = 11.sp
-                                                )
-                                            }
-                                        }
                                     }
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
@@ -310,7 +349,7 @@ fun WardrobeDialog(
                                             else -> "убрано"
                                         },
                                         fontFamily = AppFontFamily,
-                                        fontSize = 10.sp,
+                                        fontSize = 14.sp,
                                         color = if (isEquipped) Color(0xFF2E7D32) else PixelTextMuted,
                                         textAlign = TextAlign.Center,
                                         maxLines = 1
@@ -319,34 +358,35 @@ fun WardrobeDialog(
                             }
                         }
                     }
+                }
+            }
 
-                    Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (currentAccessoryIds.isNotEmpty()) {
-                            PixelButton(
-                                text = "🚫 Снять одежду",
-                                onClick = { onToggleAccessory("none") },
-                                containerColor = Color(0xFFFFCDD2),
-                                textColor = PixelRedBerry,
-                                modifier = Modifier.weight(1f),
-                                fontSize = 14.sp,
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
-                            )
-                        }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (currentAccessoryIds.isNotEmpty()) {
                         PixelButton(
-                            text = "Готово",
-                            onClick = onDismiss,
-                            containerColor = PixelGoldBright,
+                            text = "🚫 Снять одежду",
+                            onClick = { onToggleAccessory("none") },
+                            containerColor = Color(0xFFFFCDD2),
+                            textColor = PixelRedBerry,
                             modifier = Modifier.weight(1f),
-                            fontSize = 15.sp,
+                            fontSize = 14.sp,
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
                         )
                     }
+                    PixelButton(
+                        text = "Готово",
+                        onClick = onDismiss,
+                        containerColor = PixelGoldBright,
+                        modifier = Modifier.weight(1f),
+                        fontSize = 15.sp,
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+                    )
                 }
             }
         }

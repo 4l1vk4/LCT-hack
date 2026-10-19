@@ -40,6 +40,7 @@ import ru.finpet.kids.core.designsystem.CoinText
 import ru.finpet.kids.core.designsystem.DiagramIcon
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.LockIcon
+import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.PixelBlueWater
 import ru.finpet.kids.core.designsystem.PixelButton
@@ -554,13 +555,17 @@ private fun CategoryComparisonRow(
                             Spacer(modifier = Modifier.width(2.dp))
                             CoinIcon(modifier = Modifier.size(14.dp))
                         } else if (isCompleted && actual > planned) {
-                            Text(
-                                text = "⭐ +${actual - planned}",
-                                fontSize = 14.sp,
-                                fontFamily = AppFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                color = statusTextColor
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                StarIcon(modifier = Modifier.size(13.dp))
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text(
+                                    text = "+${actual - planned}",
+                                    fontSize = 14.sp,
+                                    fontFamily = AppFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = statusTextColor
+                                )
+                            }
                             Spacer(modifier = Modifier.width(2.dp))
                             CoinIcon(modifier = Modifier.size(14.dp))
                         } else if (isCompleted) {

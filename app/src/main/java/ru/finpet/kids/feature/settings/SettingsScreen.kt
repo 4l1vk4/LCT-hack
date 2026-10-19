@@ -22,8 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
+import ru.finpet.kids.core.designsystem.PixelSwitch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -310,13 +309,9 @@ fun SettingsScreen(
                                     color = TextSecondary
                                 )
                             }
-                            Switch(
+                            PixelSwitch(
                                 checked = isNightMode,
-                                onCheckedChange = { onToggleNightMode(it) },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = JoyOrange
-                                )
+                                onCheckedChange = { onToggleNightMode(it) }
                             )
                         }
 
@@ -421,13 +416,9 @@ fun SettingSwitchRow(
             color = TextPrimary,
             modifier = Modifier.weight(1f)
         )
-        Switch(
+        PixelSwitch(
             checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = JoyOrange
-            )
+            onCheckedChange = onCheckedChange
         )
     }
 }

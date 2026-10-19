@@ -251,6 +251,7 @@ fun MapScreen(
             initialPiggyBankExpanded = if (focusOnHomeChores) false else (initialModal == "GOALS"),
             focusOnChores = focusOnHomeChores,
             targetGoalId = targetGoalId,
+            profile = profile,
             onDismiss = {
                 activeModal = null
                 focusOnHomeChores = false
@@ -272,7 +273,7 @@ fun MapScreen(
     if (showNoPetDialog) {
         PixelAlertDialog(
             onDismissRequest = { showNoPetDialog = false },
-            title = "Финик сбежал",
+            title = "$petName сбежал",
             icon = "!",
             confirmButton = {
                 PixelButton(

@@ -31,6 +31,9 @@ import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
+import ru.finpet.kids.core.designsystem.LampochkaIcon
+import ru.finpet.kids.core.designsystem.PawsIcon
+import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.PixelBlueWater
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldDark
@@ -410,12 +413,16 @@ fun PeriodAnalysisDialog(
                                     effectiveMood >= 40 -> PixelGoldDark
                                     else -> PixelRedBerry
                                 }
-                                Text(
-                                    text = "$effectiveMood% 🐾",
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 17.sp,
-                                    color = moodColor
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "$effectiveMood%",
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 17.sp,
+                                        color = moodColor
+                                    )
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    PawsIcon(modifier = Modifier.size(15.dp))
+                                }
                                 Text(
                                     text = "Настроение",
                                     fontSize = 14.sp,
@@ -435,12 +442,16 @@ fun PeriodAnalysisDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "+${resolution.carePointsEarned} ⭐",
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 17.sp,
-                                    color = if (resolution.carePointsEarned > 0) PixelGoldDark else PixelTextMuted
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "+${resolution.carePointsEarned}",
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 17.sp,
+                                        color = if (resolution.carePointsEarned > 0) PixelGoldDark else PixelTextMuted
+                                    )
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    StarIcon(modifier = Modifier.size(15.dp))
+                                }
                                 Text(
                                     text = "Очки заботы",
                                     fontSize = 14.sp,
@@ -485,7 +496,7 @@ fun PeriodAnalysisDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(text = "🌟", fontSize = 16.sp)
+                                    StarIcon(modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "Стадия: $stageTitle",
@@ -494,12 +505,16 @@ fun PeriodAnalysisDialog(
                                         color = PixelTextDark
                                     )
                                 }
-                                Text(
-                                    text = if (stage == GrowthStage.ADULT) "${newStats.carePoints} ⭐" else "${newStats.carePoints} / $targetPoints ⭐",
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 15.sp,
-                                    color = PixelGoldDark
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = if (stage == GrowthStage.ADULT) "${newStats.carePoints}" else "${newStats.carePoints} / $targetPoints",
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 15.sp,
+                                        color = PixelGoldDark
+                                    )
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    StarIcon(modifier = Modifier.size(14.dp))
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(6.dp))
@@ -524,8 +539,8 @@ fun PeriodAnalysisDialog(
                             Spacer(modifier = Modifier.height(6.dp))
 
                             val remainingMsg = when (stage) {
-                                GrowthStage.BABY -> "До «Подростка» осталось: ${maxOf(0, 28 - newStats.carePoints)} ⭐ (порог 28 ⭐)"
-                                GrowthStage.TEEN -> "До «Взрослого» осталось: ${maxOf(0, 70 - newStats.carePoints)} ⭐ (порог 70 ⭐)"
+                                GrowthStage.BABY -> "До «Подростка» осталось: ${maxOf(0, 28 - newStats.carePoints)} очков (порог 28)"
+                                GrowthStage.TEEN -> "До «Взрослого» осталось: ${maxOf(0, 70 - newStats.carePoints)} очков (порог 70)"
                                 GrowthStage.ADULT -> "Максимальная стадия роста достигнута!"
                             }
                             Text(
@@ -536,12 +551,16 @@ fun PeriodAnalysisDialog(
 
                             if (resolution.carePointsEarned == 0) {
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "💡 Чтобы получать очки заботы: накорми питомца (сытость ≥60%, здоровье ≥80%), пополни копилку и держи точность бюджета от 75%.",
-                                    fontSize = 13.sp,
-                                    color = Color(0xFFC62828),
-                                    lineHeight = 17.sp
-                                )
+                                Row(verticalAlignment = Alignment.Top) {
+                                    LampochkaIcon(modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Чтобы получать очки заботы: накорми питомца (сытость ≥60%, здоровье ≥80%), пополни копилку и держи точность бюджета от 75%.",
+                                        fontSize = 13.sp,
+                                        color = Color(0xFFC62828),
+                                        lineHeight = 17.sp
+                                    )
+                                }
                             }
                         }
                     }

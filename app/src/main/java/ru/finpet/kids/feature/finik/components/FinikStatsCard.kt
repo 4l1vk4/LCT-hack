@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -20,6 +22,7 @@ import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.OrbStatBar
+import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.SkyBlue
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
@@ -140,21 +143,29 @@ fun FinikStatsCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "🌟 Стадия: $stageName",
-                        fontFamily = AppFontFamily,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = PixelTextDark,
-                        letterSpacing = 0.5.sp
-                    )
-                    Text(
-                        text = if (stageEnum == GrowthStage.ADULT) "$carePoints ⭐" else "$carePoints / $targetPts ⭐",
-                        fontFamily = AppFontFamily,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PixelGoldDark
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        StarIcon(modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = "Стадия: $stageName",
+                            fontFamily = AppFontFamily,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = PixelTextDark,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = if (stageEnum == GrowthStage.ADULT) "$carePoints" else "$carePoints / $targetPts",
+                            fontFamily = AppFontFamily,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PixelGoldDark
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        StarIcon(modifier = Modifier.size(14.dp))
+                    }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(

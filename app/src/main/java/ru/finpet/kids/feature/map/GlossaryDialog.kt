@@ -40,7 +40,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
+import ru.finpet.kids.core.designsystem.LampochkaIcon
 import ru.finpet.kids.core.designsystem.LightningIcon
+import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
@@ -159,7 +161,7 @@ fun GlossaryDialog(
             StardewBoard(
                 modifier = Modifier.fillMaxSize(),
                 headerTitle = "СЛОВАРИК ${petName.uppercase()}",
-                headerIcon = "📖"
+                headerIcon = ""
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
 
@@ -169,7 +171,7 @@ fun GlossaryDialog(
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "💡", fontSize = 16.sp)
+                            LampochkaIcon(modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "Нажми на слово, чтобы узнать его значение!",
@@ -265,8 +267,8 @@ fun GlossaryDialog(
                                                     .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
                                                     .padding(horizontal = 12.dp, vertical = 8.dp)
                                             ) {
-                                                Row(verticalAlignment = Alignment.Top) {
-                                                    Text(text = "🌟", fontSize = 15.sp)
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    StarIcon(modifier = Modifier.size(20.dp))
                                                     Spacer(modifier = Modifier.width(6.dp))
                                                     Text(
                                                         text = term.example,

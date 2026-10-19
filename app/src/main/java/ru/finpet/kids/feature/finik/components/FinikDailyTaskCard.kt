@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.DocsIcon
+import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
@@ -87,7 +89,11 @@ fun FinikDailyTaskCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = if (pendingTask == null) "🌟" else "📋", fontSize = 17.sp)
+                    if (pendingTask == null) {
+                        StarIcon(modifier = Modifier.size(18.dp))
+                    } else {
+                        DocsIcon(modifier = Modifier.size(18.dp))
+                    }
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = if (pendingTask == null) "Все задачи выполнены!" else "Задача дня",

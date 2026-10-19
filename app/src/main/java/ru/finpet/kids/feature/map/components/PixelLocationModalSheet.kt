@@ -56,6 +56,7 @@ fun PixelLocationModalSheet(
     onDismiss: () -> Unit,
     listState: LazyListState = rememberLazyListState(),
     topStartExtra: (@Composable () -> Unit)? = null,
+    headerOverlay: (@Composable androidx.compose.foundation.layout.BoxWithConstraintsScope.() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     ModalBottomSheet(
@@ -86,6 +87,8 @@ fun PixelLocationModalSheet(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
+
+                headerOverlay?.invoke(this)
 
                 val boxLeft = maxWidth * (36f / 1073f)
                 val boxTop = maxHeight * (36f / 493f)

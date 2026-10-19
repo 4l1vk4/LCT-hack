@@ -1,12 +1,14 @@
 package ru.finpet.kids.feature.map.minigames
 
-import android.graphics.Paint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,16 +17,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import ru.finpet.kids.core.designsystem.PixelPanel
-import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,20 +39,26 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import ru.finpet.kids.R
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
+import ru.finpet.kids.core.designsystem.HeartIcon
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.PixelButton
@@ -59,33 +66,27 @@ import ru.finpet.kids.core.designsystem.PixelParchmentBorder
 import ru.finpet.kids.core.designsystem.PixelParchmentLight
 import ru.finpet.kids.core.designsystem.PixelWoodDark
 import ru.finpet.kids.core.designsystem.PixelWoodMedium
-import ru.finpet.kids.core.designsystem.StardewBoard
+import ru.finpet.kids.core.designsystem.pixelButtonBackground
+import ru.finpet.kids.core.designsystem.pixelPanelBackground
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 private class GameTrash(
     val id: Long,
-    var xPercent: Float, // 0.08f .. 0.88f
-    var yPercent: Float, // 0f .. 1f
-    val speed: Float,    // процент в секунду
-    val emoji: String,
+    var xPercent: Float,
+    var yPercent: Float,
+    val speed: Float,
+    val typeIndex: Int,
     var isCollected: Boolean = false,
     var isMissed: Boolean = false
 )
 
-private val TRASH_EMOJIS = listOf("🍌", "🥫", "📦", "🥤", "🧃", "📄", "🍎", "🧴", "🍬")
-
 /**
- * Миниигра 2: «Вынос мусора» (Высокопроизводительная реализация на Canvas 60-120 FPS).
- *
- * Оптимизации против лагов:
- * 1. Игровой цикл привязан к аппаратному тику экрана через `withFrameNanos`, с точным deltaTime.
- *    Никаких перегрузок корутин и таймеров `delay(20)`.
- * 2. Полный рендеринг падающих предметов и корзины выполняется в едином аппаратно-ускоренном
- *    `Canvas` через `nativeCanvas.drawText(...)`.
- *    Это исключает создание и уничтожение сотен Compose-узлов `Box` и `Text`, из-за которых происходили лаги и просадки FPS.
- * 3. Логика координат и проверка коллизий считаются в памяти без рекомпозиций внешнего UI.
- *    Внешний UI (счетчик и жизни) обновляется только при реальном изменении очков/жизней.
+ * Миниигра: «Вынос мусора».
+ * На весь экран отображается musor_drop.
+ * Падают предметы: korobka_musor, bottle_musor, literally_musor.
+ * Корзина игрока: во время игры bin_opened, по завершении/паузе — bin.
  */
 @Composable
 fun TrashCollectionGameDialog(
@@ -98,39 +99,21 @@ fun TrashCollectionGameDialog(
     var livesLeft by remember { mutableIntStateOf(3) }
     var isGameOver by remember { mutableStateOf(false) }
 
-    // Внутренний счетчик кадров для триггера перерисовки Canvas
     var gameRenderTick by remember { mutableLongStateOf(0L) }
-
-    // Список объектов в чистой памяти без реактивных накладных расходов Compose на каждый элемент
     val activeTrash = remember { ArrayList<GameTrash>() }
 
-    // Paint для отрисовки эмодзи на Canvas
-    val density = LocalDensity.current
-    val trashTextPaint = remember(density) {
-        Paint().apply {
-            textSize = with(density) { 32.sp.toPx() }
-            textAlign = Paint.Align.CENTER
-            isAntiAlias = true
-        }
-    }
-    val basketTextPaint = remember(density) {
-        Paint().apply {
-            textSize = with(density) { 52.sp.toPx() }
-            textAlign = Paint.Align.CENTER
-            isAntiAlias = true
-        }
-    }
-    val labelTextPaint = remember(density) {
-        Paint().apply {
-            textSize = with(density) { 10.sp.toPx() }
-            textAlign = Paint.Align.CENTER
-            isAntiAlias = true
-            isFakeBoldText = true
-            color = android.graphics.Color.WHITE
-        }
-    }
+    // Загрузка пиксельных спрайтов
+    val trashBitmaps = listOf(
+        ImageBitmap.imageResource(id = R.drawable.korobka_musor),
+        ImageBitmap.imageResource(id = R.drawable.bottle_musor),
+        ImageBitmap.imageResource(id = R.drawable.literally_musor)
+    )
+    val binOpenedBitmap = ImageBitmap.imageResource(id = R.drawable.bin_opened)
+    val binClosedBitmap = ImageBitmap.imageResource(id = R.drawable.bin)
 
-    // Игровой цикл на VSYNC (withFrameNanos)
+    val density = LocalDensity.current
+
+    // Игровой цикл на VSYNC
     LaunchedEffect(isGameOver) {
         if (isGameOver) return@LaunchedEffect
 
@@ -149,29 +132,28 @@ fun TrashCollectionGameDialog(
                 val dt = ((nowNanos - lastFrameNanos) / 1_000_000_000f).coerceIn(0.001f, 0.05f)
                 lastFrameNanos = nowNanos
 
-                // Увеличение сложности от количества собранного мусора
                 val difficulty = 1f + (collectedCount / 10f) * 0.35f
                 val baseSpeed = (0.35f + rand.nextFloat() * 0.15f) * difficulty
-                val spawnInterval = (1.1f / difficulty).coerceAtLeast(0.42f)
+                val spawnInterval = (1.1f / difficulty).coerceAtLeast(0.40f)
 
                 spawnTimer += dt
                 if (spawnTimer >= spawnInterval) {
                     spawnTimer = 0f
-                    val emoji = TRASH_EMOJIS[rand.nextInt(TRASH_EMOJIS.size)]
-                    val x = 0.1f + rand.nextFloat() * 0.8f
+                    val typeIdx = rand.nextInt(trashBitmaps.size)
+                    val x = 0.10f + rand.nextFloat() * 0.80f
                     activeTrash.add(
                         GameTrash(
                             id = nextId++,
                             xPercent = x,
-                            yPercent = -0.05f,
+                            yPercent = -0.06f,
                             speed = baseSpeed,
-                            emoji = emoji
+                            typeIndex = typeIdx
                         )
                     )
                 }
 
-                // Обновление позиций и коллизии
-                val basketY = 0.85f
+                // Проверка ловли корзиной
+                val basketY = 0.84f
                 val hitDistanceX = 0.14f
 
                 var newlyCollected = 0
@@ -182,7 +164,6 @@ fun TrashCollectionGameDialog(
                     val trash = iterator.next()
                     trash.yPercent += trash.speed * dt
 
-                    // Проверка ловли в корзину
                     if (trash.yPercent in (basketY - 0.06f)..(basketY + 0.05f)) {
                         val distanceX = abs(trash.xPercent - basketXPercent)
                         if (distanceX <= hitDistanceX) {
@@ -193,8 +174,7 @@ fun TrashCollectionGameDialog(
                         }
                     }
 
-                    // Проверка промаха
-                    if (trash.yPercent > 0.98f) {
+                    if (trash.yPercent > 0.96f) {
                         trash.isMissed = true
                         newlyMissed++
                         iterator.remove()
@@ -203,6 +183,9 @@ fun TrashCollectionGameDialog(
 
                 if (newlyCollected > 0) {
                     collectedCount += newlyCollected
+                    if (collectedCount >= 20) {
+                        isGameOver = true
+                    }
                 }
 
                 if (newlyMissed > 0) {
@@ -212,7 +195,6 @@ fun TrashCollectionGameDialog(
                     }
                 }
 
-                // Сигнал на перерисовку Canvas
                 gameRenderTick = nowNanos
             }
         }
@@ -228,250 +210,284 @@ fun TrashCollectionGameDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.75f))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
-                ) { /* no-op */ },
-            contentAlignment = Alignment.Center
+                ) { /* no-op */ }
         ) {
-            StardewBoard(
+            // 1. Полноэкранный фон musor_drop на весь экран
+            Image(
+                painter = painterResource(R.drawable.musor_drop),
+                contentDescription = "Фон сбора мусора",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // 2. Игровая арена Canvas с падающими предметами и корзиной
+            BoxWithConstraints(
                 modifier = Modifier
-                    .fillMaxWidth(0.95f)
-                    .fillMaxHeight(0.88f),
-                headerTitle = "СБОР МУСОРА",
-                headerIcon = "🗑️"
+                    .fillMaxSize()
+                    .pointerInput(isGameOver) {
+                        if (!isGameOver) {
+                            detectDragGestures(
+                                onDragStart = { offset ->
+                                    val newPercent = (offset.x / size.width.toFloat())
+                                        .coerceIn(0.12f, 0.88f)
+                                    basketXPercent = newPercent
+                                },
+                                onDrag = { change, _ ->
+                                    change.consume()
+                                    val newPercent = (change.position.x / size.width.toFloat())
+                                        .coerceIn(0.12f, 0.88f)
+                                    basketXPercent = newPercent
+                                }
+                            )
+                        }
+                    }
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // Информационная панель со счетчиком, жизнями и целью
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(PixelParchmentLight)
-                            .border(1.5.dp, PixelParchmentBorder, RoundedCornerShape(8.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Жизни
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "Жизни: ",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = PixelWoodDark
-                            )
-                            repeat(3) { i ->
-                                val hasLife = i < livesLeft
-                                Text(
-                                    text = if (hasLife) "❤️" else "🖤",
-                                    fontSize = 16.sp
-                                )
-                            }
-                        }
+                val trashItemSizePx = with(density) { 44.dp.roundToPx() }
+                val basketSizePx = with(density) { 68.dp.roundToPx() }
 
-                        // Счетчик мусора и цель 20
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "Собрано: ",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = PixelWoodDark
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .pixelButtonBackground(containerColor = if (collectedCount >= 20) FreshGreen else JoyOrange)
-                                    .padding(horizontal = 8.dp, vertical = 3.dp)
-                            ) {
-                                Text(
-                                    text = "$collectedCount / 20",
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 15.sp,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    }
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    @Suppress("UNUSED_VARIABLE")
+                    val tick = gameRenderTick
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    val canvasW = size.width
+                    val canvasH = size.height
 
-                    // Аппаратно-ускоренная игровая арена
-                    BoxWithConstraints(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                Brush.verticalGradient(
-                                    listOf(
-                                        Color(0xFFE8EAF6),
-                                        Color(0xFFC5CAE9),
-                                        Color(0xFF9FA8DA)
-                                    )
-                                )
-                            )
-                            .border(2.dp, Color(0xFF3F51B5), RoundedCornerShape(12.dp))
-                            .pointerInput(isGameOver) {
-                                if (!isGameOver) {
-                                    detectDragGestures(
-                                        onDragStart = { offset ->
-                                            val newPercent = (offset.x / size.width.toFloat())
-                                                .coerceIn(0.12f, 0.88f)
-                                            basketXPercent = newPercent
-                                        },
-                                        onDrag = { change, _ ->
-                                            change.consume()
-                                            val newPercent = (change.position.x / size.width.toFloat())
-                                                .coerceIn(0.12f, 0.88f)
-                                            basketXPercent = newPercent
-                                        }
-                                    )
-                                }
-                            }
-                    ) {
-                        // Единый производительный Canvas для рендера всех игровых объектов
-                        Canvas(modifier = Modifier.fillMaxSize()) {
-                            // Чтение renderTick заставляет Canvas перерисовываться каждый кадр анимации
-                            @Suppress("UNUSED_VARIABLE")
-                            val tick = gameRenderTick
+                    // Отрисовка падающего мусора
+                    for (i in 0 until activeTrash.size) {
+                        val item = activeTrash.getOrNull(i) ?: continue
+                        val px = item.xPercent * canvasW
+                        val py = item.yPercent * canvasH
+                        val bmp = trashBitmaps[item.typeIndex % trashBitmaps.size]
 
-                            val canvasW = size.width
-                            val canvasH = size.height
-                            val native = drawContext.canvas.nativeCanvas
-
-                            // 1. Отрисовка падающего мусора
-                            for (i in 0 until activeTrash.size) {
-                                val item = activeTrash.getOrNull(i) ?: continue
-                                val px = item.xPercent * canvasW
-                                val py = item.yPercent * canvasH
-                                native.drawText(item.emoji, px, py, trashTextPaint)
-                            }
-
-                            // 2. Отрисовка мусорной корзины игрока
-                            val basketPx = basketXPercent * canvasW
-                            val basketPy = 0.87f * canvasH
-                            native.drawText("🗑️", basketPx, basketPy, basketTextPaint)
-                        }
-
-                        // Подсказка управления в первые секунды
-                        if (collectedCount < 3 && !isGameOver) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .background(Color(0x99000000), RoundedCornerShape(8.dp))
-                                    .padding(horizontal = 12.dp, vertical = 6.dp)
-                            ) {
-                                Text(
-                                    text = "👆 Удерживай палец и веди корзину влево-вправо!",
-                                    color = Color.White,
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Завершение игры: результат
-                    if (isGameOver) {
-                        val isSuccess = collectedCount >= 20
-                        PixelPanel(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(12.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                if (isSuccess) {
-                                    Text(
-                                        text = "🎉 Отличная работа! Мусор собран ($collectedCount шт.)",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 17.sp,
-                                        color = FreshGreen
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "Награда за дело: +$rewardCoins ",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 16.sp,
-                                            color = PixelWoodDark
-                                        )
-                                        CoinIcon(modifier = Modifier.size(18.dp))
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    PixelButton(
-                                        text = "Забрать монеты ➔",
-                                        onClick = onCompleteGame,
-                                        containerColor = FreshGreen,
-                                        textColor = Color.White,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        fontSize = 16.sp
-                                    )
-                                } else {
-                                    Text(
-                                        text = "💔 Не хватило до цели! Собрано: $collectedCount из 20",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 17.sp,
-                                        color = Color(0xFFD32F2F)
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "Нужно поймать минимум 20 предметов мусора, чтобы заработать монеты.",
-                                        fontSize = 15.sp,
-                                        lineHeight = 20.sp,
-                                        color = Color(0xFF555555),
-                                        textAlign = TextAlign.Center
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        PixelButton(
-                                            text = "Выйти",
-                                            onClick = onDismiss,
-                                            containerColor = PixelWoodMedium,
-                                            textColor = PixelParchmentLight,
-                                            fontSize = 15.sp,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        PixelButton(
-                                            text = "Попробовать снова",
-                                            onClick = {
-                                                collectedCount = 0
-                                                livesLeft = 3
-                                                activeTrash.clear()
-                                                basketXPercent = 0.5f
-                                                isGameOver = false
-                                            },
-                                            containerColor = JoyOrange,
-                                            textColor = Color.White,
-                                            fontSize = 15.sp,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        PixelButton(
-                            text = "Закончить позже",
-                            onClick = onDismiss,
-                            containerColor = PixelWoodMedium,
-                            textColor = PixelParchmentLight,
-                            fontSize = 15.sp,
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                        drawImage(
+                            image = bmp,
+                            dstOffset = IntOffset(
+                                (px - trashItemSizePx / 2f).roundToInt(),
+                                (py - trashItemSizePx / 2f).roundToInt()
+                            ),
+                            dstSize = IntSize(trashItemSizePx, trashItemSizePx)
                         )
+                    }
+
+                    // Отрисовка корзины (bin_opened во время игры, bin при завершении)
+                    val basketBitmap = if (isGameOver) binClosedBitmap else binOpenedBitmap
+                    val basketPx = basketXPercent * canvasW
+                    val basketPy = 0.85f * canvasH
+
+                    drawImage(
+                        image = basketBitmap,
+                        dstOffset = IntOffset(
+                            (basketPx - basketSizePx / 2f).roundToInt(),
+                            (basketPy - basketSizePx / 2f).roundToInt()
+                        ),
+                        dstSize = IntSize(basketSizePx, basketSizePx)
+                    )
+                }
+
+                // Подсказка управления в начале
+                if (collectedCount < 3 && !isGameOver) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .background(Color(0xBB000000), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "👆 Удерживай палец и веди корзину влево-вправо!",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+
+            // 3. Верхняя плашка со статусом, жизнями и кнопкой закрытия
+            Row(
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(PixelParchmentLight.copy(alpha = 0.94f))
+                    .border(2.dp, PixelParchmentBorder, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Жизни
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Жизни: ",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = PixelWoodDark
+                    )
+                    repeat(3) { i ->
+                        val hasLife = i < livesLeft
+                        HeartIcon(
+                            modifier = Modifier
+                                .padding(horizontal = 2.dp)
+                                .size(20.dp),
+                            tint = if (hasLife) null else Color(0xFF222222)
+                        )
+                    }
+                }
+
+                // Счетчик мусора и цель 20
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Собрано: ",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = PixelWoodDark
+                    )
+                    Box(
+                        modifier = Modifier
+                            .pixelButtonBackground(containerColor = if (collectedCount >= 20) FreshGreen else JoyOrange)
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = "$collectedCount / 20",
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 15.sp,
+                            color = Color.White
+                        )
+                    }
+                }
+
+                // Кнопка выхода (крестик)
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clickable { onDismiss() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.close_sign),
+                        contentDescription = "Закрыть",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+
+            // 4. Кнопка "Закончить позже" во время игры
+            if (!isGameOver) {
+                PixelButton(
+                    text = "Закончить позже",
+                    onClick = onDismiss,
+                    containerColor = PixelWoodMedium.copy(alpha = 0.92f),
+                    textColor = PixelParchmentLight,
+                    fontSize = 14.sp,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 24.dp)
+                )
+            }
+
+            // 5. Оверлей завершения игры
+            AnimatedVisibility(
+                visible = isGameOver,
+                enter = fadeIn() + scaleIn(),
+                modifier = Modifier.align(Alignment.Center)
+            ) {
+                val isSuccess = collectedCount >= 20
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.92f)
+                        .pixelPanelBackground()
+                        .padding(18.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (isSuccess) {
+                            Text(
+                                text = "🎉 Отличная работа!",
+                                fontFamily = AppFontFamily,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 20.sp,
+                                color = FreshGreen,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Весь мусор собран в бак ($collectedCount шт.)",
+                                fontSize = 15.sp,
+                                color = PixelWoodDark,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Награда за дело: +$rewardCoins ",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = PixelWoodDark
+                                )
+                                CoinIcon(modifier = Modifier.size(18.dp))
+                            }
+                            Spacer(modifier = Modifier.height(14.dp))
+                            PixelButton(
+                                text = "Забрать монеты ➔",
+                                onClick = onCompleteGame,
+                                containerColor = FreshGreen,
+                                textColor = Color.White,
+                                modifier = Modifier.fillMaxWidth(),
+                                fontSize = 16.sp
+                            )
+                        } else {
+                            Text(
+                                text = "💔 Мусор улетел мимо!",
+                                fontFamily = AppFontFamily,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 18.sp,
+                                color = Color(0xFFD32F2F),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Собрано: $collectedCount из 20 предметов.\nНужно поймать минимум 20 предметов в мусорку.",
+                                fontSize = 15.sp,
+                                lineHeight = 20.sp,
+                                color = PixelWoodDark,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                PixelButton(
+                                    text = "Выйти",
+                                    onClick = onDismiss,
+                                    containerColor = PixelWoodMedium,
+                                    textColor = PixelParchmentLight,
+                                    fontSize = 15.sp,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                PixelButton(
+                                    text = "Ещё раз",
+                                    onClick = {
+                                        collectedCount = 0
+                                        livesLeft = 3
+                                        activeTrash.clear()
+                                        basketXPercent = 0.5f
+                                        isGameOver = false
+                                    },
+                                    containerColor = JoyOrange,
+                                    textColor = Color.White,
+                                    fontSize = 15.sp,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
                     }
                 }
             }

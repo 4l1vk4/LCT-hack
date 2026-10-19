@@ -24,6 +24,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.LampochkaIcon
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.layout.aspectRatio
+import kotlin.math.roundToInt
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
@@ -257,7 +265,8 @@ fun SchoolBottomSheet(
                             fontFamily = AppFontFamily,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = PixelTextDark
+                            color = PixelTextDark,
+                            textAlign = TextAlign.Center
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
@@ -592,47 +601,39 @@ private fun StageTabChip(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val bg = if (isSelected) Color(0xFFFFD54F) else if (isUnlocked) Color(0xFFF3E5AB) else Color(0xFFE0D7C6)
+    val bg = if (isSelected) PixelGoldBright else if (isUnlocked) Color(0xFFF3E5AB) else Color(0xFFDED0B6)
     val textColor = if (isSelected) PixelTextDark else if (isUnlocked) PixelWoodMedium else Color(0xFF8D7B68)
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(bg)
-            .border(
-                width = if (isSelected) 2.dp else 1.dp,
-                color = if (isSelected) PixelWoodMedium else PixelParchmentBorder,
-                shape = RoundedCornerShape(8.dp)
-            )
+            .pixelButtonBackground(containerColor = bg)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) { onClick() }
-            .padding(vertical = 8.dp, horizontal = 4.dp),
+            .padding(vertical = 7.dp, horizontal = 4.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!isUnlocked) {
                     Text(
-                        text = "[X] ",
-                        fontFamily = AppFontFamily,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF8D7B68)
+                        text = "🔒 ",
+                        fontSize = 11.sp
                     )
                 }
                 Text(
                     text = title,
                     fontFamily = AppFontFamily,
                     fontSize = 13.sp,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
                     color = textColor
                 )
             }
             if (totalCount > 0) {
                 Text(
                     text = "$countDone/$totalCount",
+                    fontFamily = AppFontFamily,
                     fontSize = 11.sp,
                     color = if (isSelected) PixelGreenCrop else PixelTextMuted,
                     fontWeight = FontWeight.Bold
@@ -648,16 +649,15 @@ private fun StageTabChip(
 @Composable
 private fun TopicChip(topic: String, topicTitle: String) {
     val bg = when (topic) {
-        "SAVINGS" -> Color(0xFFFFE082)
+        "SAVINGS" -> Color(0xFFFFD54F)
         "PURCHASES" -> Color(0xFFC8E6C9)
         else -> Color(0xFFBBDEFB)
     }
 
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(bg)
-            .padding(horizontal = 7.dp, vertical = 3.dp),
+            .pixelButtonBackground(containerColor = bg)
+            .padding(horizontal = 9.dp, vertical = 5.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -680,12 +680,16 @@ private fun StageBadge(stage: String) {
         "TEEN" -> "2 стадия"
         else -> "1 стадия"
     }
+    val bg = when (stage) {
+        "ADULT" -> Color(0xFFFFCC80)
+        "TEEN" -> Color(0xFFFFF9C4)
+        else -> Color(0xFFEFEBE9)
+    }
 
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(Color(0xFFEDE0D4))
-            .padding(horizontal = 6.dp, vertical = 3.dp),
+            .pixelButtonBackground(containerColor = bg)
+            .padding(horizontal = 8.dp, vertical = 5.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -693,7 +697,7 @@ private fun StageBadge(stage: String) {
             fontFamily = AppFontFamily,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            color = PixelWoodMedium
+            color = PixelTextDark
         )
     }
 }
@@ -752,7 +756,8 @@ private fun TextInputQuestSection(
             // Подсказка, если ребенок хочет проверить себя (в пиксельном стиле кнопок)
             if (quest.hint.isNotBlank()) {
                 PixelButton(
-                    text = if (isHintRevealed) "💡 Скрыть подсказку" else "💡 Нужна подсказка",
+                    text = if (isHintRevealed) "Скрыть подсказку" else "Нужна подсказка",
+                    leadingIcon = { LampochkaIcon(modifier = Modifier.size(16.dp)) },
                     onClick = onToggleHint,
                     containerColor = if (isHintRevealed) PixelGoldBright else Color(0xFFFFD54F),
                     textColor = PixelTextDark,
@@ -905,10 +910,10 @@ private fun MoneyAllocationQuestSection(
                 // Кнопка уменьшения на 10
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFFDED0B6))
+                        .size(40.dp)
+                        .pixelButtonBackground(containerColor = if (allocation > 0) PixelGoldBright else Color(0xFFDED0B6))
                         .clickable(
+                            enabled = allocation > 0,
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
@@ -916,7 +921,14 @@ private fun MoneyAllocationQuestSection(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "-", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PixelTextDark)
+                    Text(
+                        text = "-",
+                        fontFamily = AppFontFamily,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = if (allocation > 0) PixelTextDark else PixelTextMuted,
+                        textAlign = TextAlign.Center
+                    )
                 }
 
                 Slider(
@@ -927,20 +939,20 @@ private fun MoneyAllocationQuestSection(
                     colors = SliderDefaults.colors(
                         thumbColor = JoyOrange,
                         activeTrackColor = JoyOrange,
-                        inactiveTrackColor = Color(0xFFC8E6C9)
+                        inactiveTrackColor = Color(0xFF66BB6A)
                     ),
                     modifier = Modifier
                         .weight(1f)
-                        .padding(horizontal = 10.dp)
+                        .padding(horizontal = 8.dp)
                 )
 
                 // Кнопка увеличения на 10
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFFDED0B6))
+                        .size(40.dp)
+                        .pixelButtonBackground(containerColor = if (allocation < total) PixelGoldBright else Color(0xFFDED0B6))
                         .clickable(
+                            enabled = allocation < total,
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
@@ -948,61 +960,100 @@ private fun MoneyAllocationQuestSection(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "+", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = PixelTextDark)
+                    Text(
+                        text = "+",
+                        fontFamily = AppFontFamily,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = if (allocation < total) PixelTextDark else PixelTextMuted,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
 
-            // Наглядная шкала распределения двух направлений
+            // Наглядная шкала распределения двух направлений с орбами
+            val totalOrbs = (total / 10).coerceIn(1, 20)
+            val allocatedOrbs = ((allocation.toFloat() / total) * totalOrbs).roundToInt()
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFF5EFEB))
+                    .background(PixelParchmentLight)
+                    .border(1.5.dp, PixelParchmentBorder, RoundedCornerShape(8.dp))
                     .padding(10.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "${quest.allocationTarget.ifEmpty { "В копилку" }}: $allocation монет ($percent%)",
-                        fontFamily = AppFontFamily,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFE65100)
-                    )
-                    Text(
-                        text = "На радости: $remaining монет",
-                        fontFamily = AppFontFamily,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PixelGreenCrop
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.orb),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(JoyOrange, BlendMode.SrcIn),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${quest.allocationTarget.ifEmpty { "В копилку" }}: $allocation ($percent%)",
+                            fontFamily = AppFontFamily,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFE65100)
+                        )
+                    }
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "На радости: $remaining",
+                            fontFamily = AppFontFamily,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PixelGreenCrop
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Image(
+                            painter = painterResource(id = R.drawable.orb),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(Color(0xFF66BB6A), BlendMode.SrcIn),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
 
-                // Двухцветная визуальная полоска
+                // Ряд пиксельных орбов распределения
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(12.dp)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFFC8E6C9))
+                        .background(Color(0xFFEBE0D0))
+                        .padding(horizontal = 6.dp, vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (percent > 0) {
-                        Box(
+                    repeat(totalOrbs) { index ->
+                        val isTarget = index < allocatedOrbs
+                        Image(
+                            painter = painterResource(id = R.drawable.orb),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            colorFilter = ColorFilter.tint(
+                                color = if (isTarget) JoyOrange else Color(0xFF66BB6A),
+                                blendMode = BlendMode.SrcIn
+                            ),
                             modifier = Modifier
-                                .weight(percent.toFloat().coerceAtLeast(1f))
-                                .height(12.dp)
-                                .background(JoyOrange)
-                        )
-                    }
-                    if (100 - percent > 0) {
-                        Box(
-                            modifier = Modifier
-                                .weight((100 - percent).toFloat().coerceAtLeast(1f))
-                                .height(12.dp)
-                                .background(Color(0xFF81C784))
+                                .weight(1f)
+                                .aspectRatio(1f)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) {
+                                    val newAlloc = ((index + 1) * (total / totalOrbs)).coerceIn(0, total)
+                                    onAllocationChange(newAlloc)
+                                }
                         )
                     }
                 }

@@ -125,8 +125,6 @@ fun FinikRunawaySection(
                         .padding(horizontal = 14.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "🥣", fontSize = 28.sp)
-                    Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
                             text = "Миска с кормом стоит у двери!",

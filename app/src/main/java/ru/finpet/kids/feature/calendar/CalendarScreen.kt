@@ -31,7 +31,9 @@ import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
 import ru.finpet.kids.core.designsystem.ExclamationIcon
+import ru.finpet.kids.core.designsystem.LampochkaIcon
 import ru.finpet.kids.core.designsystem.LocalBottomBarHeight
+import ru.finpet.kids.core.designsystem.PawsIcon
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
@@ -237,14 +239,16 @@ fun CalendarScreen(
 
                 val currentStage = profile?.growthStage ?: "BABY"
                 if (currentStage != "ADULT") {
-                    val nextStageText = if (currentStage == "BABY") {
-                        "🐾 Пропустить 7 периодов (до «Подростка»)"
+                    val isBaby = currentStage == "BABY"
+                    val nextStageText = if (isBaby) {
+                        "Пропустить 7 периодов (до «Подростка»)"
                     } else {
                         "👑 Пропустить 11 периодов (до «Взрослого»)"
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     PixelButton(
                         text = nextStageText,
+                        leadingIcon = if (isBaby) { { PawsIcon(modifier = Modifier.size(16.dp)) } } else null,
                         onClick = onAdvanceToNextGrowthStage,
                         containerColor = PixelGoldBright,
                         textColor = PixelTextDark,
@@ -256,14 +260,23 @@ fun CalendarScreen(
             }
 
             Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = if (isNextMonday) "🎉 Завтра понедельник: выплата 200 монет карманных денег!"
-                else "💡 Карманные деньги (+200 монет) выдаются по понедельникам",
-                fontSize = 15.sp,
-                color = PixelTextMuted,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (!isNextMonday) {
+                    LampochkaIcon(modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                }
+                Text(
+                    text = if (isNextMonday) "🎉 Завтра понедельник: выплата 200 монет карманных денег!"
+                    else "Карманные деньги (+200 монет) выдаются по понедельникам",
+                    fontSize = 15.sp,
+                    color = PixelTextMuted,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 

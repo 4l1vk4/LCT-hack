@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.data.local.entity.GoalEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
@@ -176,12 +177,16 @@ fun GoalProgressCard(
                             color = TextPrimary
                         )
                         if (isSelected) {
-                            Text(
-                                text = "⭐ Главная цель",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = JoyOrange
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                StarIcon(modifier = Modifier.size(14.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Главная цель",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = JoyOrange
+                                )
+                            }
                         }
                     }
                 }

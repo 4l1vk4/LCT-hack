@@ -20,10 +20,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import ru.finpet.kids.core.designsystem.PixelCheckbox
+import ru.finpet.kids.core.designsystem.StarIcon
+import ru.finpet.kids.core.designsystem.DocsIcon
+import ru.finpet.kids.core.designsystem.PawsIcon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -121,49 +123,25 @@ fun DayDetailsDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column {
-                                    Text(
-                                        text = if (isToday) "🌟 Сегодняшние задачи" else "🗓️ Задачи на День $dayNumber",
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isToday) PixelGoldDark else PixelTextDark
-                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (isToday) {
+                                            StarIcon(modifier = Modifier.size(20.dp))
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                        }
+                                        Text(
+                                            text = if (isToday) "Сегодняшние задачи" else "🗓️ Задачи на День $dayNumber",
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isToday) PixelGoldDark else PixelTextDark
+                                        )
+                                    }
                                     Text(
                                         text = "Выполнено: $completedCount из $totalCount",
                                         fontSize = 15.sp,
                                         color = PixelTextMuted
                                     )
                                 }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    CoinIcon(modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = "$balance",
-                                        fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 16.sp,
-                                        color = PixelGoldDark,
-                                        fontFamily = AppFontFamily
-                                    )
-                                }
                             }
-                        }
-
-                        Spacer(modifier = Modifier.height(6.dp))
-                        // Шкала прогресса выполнения чек-листа дня (без точек на конце)
-                        val progressFraction = if (totalCount > 0) (completedCount.toFloat() / totalCount).coerceIn(0f, 1f) else 0f
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(PixelParchmentBorder)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .fillMaxWidth(progressFraction)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(PixelGreenCrop)
-                            )
                         }
                     }
 
@@ -210,17 +188,11 @@ fun DayDetailsDialog(
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     // Чекбокс: системные задачи выполняются через реальные действия в игре
-                                    Checkbox(
+                                    PixelCheckbox(
                                         checked = note.isCompleted,
                                         onCheckedChange = if (isSystemTask) null else { { onToggleNote(note) } },
                                         enabled = !isSystemTask,
-                                        colors = CheckboxDefaults.colors(
-                                            checkedColor = PixelGreenCrop,
-                                            uncheckedColor = PixelTextMuted,
-                                            disabledCheckedColor = PixelGreenCrop,
-                                            disabledUncheckedColor = PixelParchmentBorder
-                                        ),
-                                        modifier = Modifier.size(32.dp)
+                                        modifier = Modifier.size(28.dp)
                                     )
 
                                     Spacer(modifier = Modifier.width(6.dp))
