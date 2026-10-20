@@ -95,8 +95,16 @@ fun TargetIcon(
 fun PixelJar(
     jarRes: Int,
     fillDivisions: Int,
-    modifier: Modifier = Modifier.size(64.dp)
+    modifier: Modifier = Modifier.size(64.dp),
+    fillColor: Color? = null
 ) {
+    val defaultFillColor = when (jarRes) {
+        R.drawable.life_jar -> PixelGreenCrop
+        R.drawable.joy_jar -> PixelGoldDark
+        R.drawable.saving_jar -> PixelBlueWater
+        else -> Color(0xFFD95763)
+    }
+    val effectiveColor = fillColor ?: defaultFillColor
     val clamped = fillDivisions.coerceIn(0, 10)
     val animFill by animateFloatAsState(
         targetValue = clamped.toFloat(),
@@ -116,7 +124,7 @@ fun PixelJar(
                 val fillHeight = (animFill * 4f) * scaleY
                 val fillTop = (57f - animFill * 4f) * scaleY
                 drawRect(
-                    color = Color(0xFFD95763),
+                    color = effectiveColor,
                     topLeft = Offset(fillLeft, fillTop),
                     size = Size(fillWidth, fillHeight)
                 )

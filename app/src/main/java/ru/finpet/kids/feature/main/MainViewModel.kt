@@ -19,6 +19,7 @@ import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.data.local.entity.GoalEntity
 import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
+import ru.finpet.kids.core.data.local.entity.PurchaseEntity
 import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.data.local.entity.RecurringExpenseEntity
 import ru.finpet.kids.core.data.repository.ContentRepository
@@ -111,6 +112,14 @@ class MainViewModel @Inject constructor(
             else repository.getPeriod(prof.currentPeriodIndex)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentPeriodPurchases: StateFlow<List<PurchaseEntity>> = repository.getProfile()
+        .flatMapLatest { prof ->
+            if (prof == null) flowOf(emptyList())
+            else repository.getPurchasesForPeriod(prof.currentPeriodIndex)
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _virtualDate = MutableStateFlow<LocalDate>(LocalDate.now())
     val virtualDate: StateFlow<LocalDate> = _virtualDate.asStateFlow()
@@ -566,8 +575,7 @@ class MainViewModel @Inject constructor(
         val schoolQuestIds = (_quests.value.ifEmpty { contentRepository.getQuests() }).map { it.id }.toSet()
         return repository.getAllQuestProgressSync().count {
             it.questId in schoolQuestIds &&
-            it.completedInPeriod == currentDay &&
-            it.isCompleted
+            it.completedInPeriod == currentDay
         }
     }
 

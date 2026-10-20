@@ -79,12 +79,19 @@ class MakePurchaseUseCase @Inject constructor(
 
         val newBalance = profile.balance - price
 
+        val prevStat = if (category == "MANDATORY") profile.satiety else profile.mood
+        val calculatedSatiety = if (profile.isPetRunaway) profile.satiety else (profile.satiety + satietyBonus).coerceIn(0, 100)
+        val calculatedMood = if (profile.isPetRunaway) 0 else (profile.mood + moodBonus).coerceIn(0, 100)
+        val newStat = if (category == "MANDATORY") calculatedSatiety else calculatedMood
+
         val purchase = PurchaseEntity(
             periodIndex = profile.currentPeriodIndex,
             itemId = itemId,
             itemName = itemName,
             category = category,
-            price = price
+            price = price,
+            prevStat = prevStat,
+            newStat = newStat
         )
         repository.recordPurchase(purchase)
 

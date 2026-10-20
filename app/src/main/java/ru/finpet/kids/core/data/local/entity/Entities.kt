@@ -62,7 +62,9 @@ data class PurchaseEntity(
     val itemName: String,
     val category: String,                   // MANDATORY, OPTIONAL
     val price: Int,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val prevStat: Int = 0,
+    val newStat: Int = 0
 )
 
 @Entity(tableName = "goals")

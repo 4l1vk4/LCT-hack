@@ -26,6 +26,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.finpet.kids.core.data.local.entity.GoalEntity
+import ru.finpet.kids.core.data.local.entity.PurchaseEntity
+import ru.finpet.kids.core.data.repository.PurchaseItem
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
 import ru.finpet.kids.core.data.local.entity.PeriodEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
@@ -78,7 +81,10 @@ fun CalendarScreen(
     onNavigateToTask: ((CalendarNoteEntity) -> Unit)? = null,
     onAddRecurring: (title: String, cost: Int, frequencyDays: Int, icon: String) -> Unit = { _, _, _, _ -> },
     onDeleteRecurring: (RecurringExpenseEntity) -> Unit = {},
-    demoMode: Boolean = false
+    demoMode: Boolean = false,
+    periodPurchases: List<PurchaseEntity> = emptyList(),
+    catalogPurchases: List<PurchaseItem> = emptyList(),
+    goals: List<GoalEntity> = emptyList()
 ) {
     val balance = profile?.balance ?: 50
 
@@ -190,7 +196,11 @@ fun CalendarScreen(
                     currentDay = currentPeriod?.periodIndex ?: 1,
                     plan = plan,
                     actual = actual,
-                    compliance = compliance
+                    compliance = compliance,
+                    profile = profile,
+                    periodPurchases = periodPurchases,
+                    catalogPurchases = catalogPurchases,
+                    goals = goals
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))

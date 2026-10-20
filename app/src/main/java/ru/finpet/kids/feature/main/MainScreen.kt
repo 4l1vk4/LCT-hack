@@ -103,6 +103,7 @@ fun MainScreen(
     // единые подписки на данные профиля и состояния
     val profile by viewModel.profile.collectAsStateWithLifecycle()
     val purchases by viewModel.purchases.collectAsStateWithLifecycle()
+    val periodPurchases by viewModel.currentPeriodPurchases.collectAsStateWithLifecycle()
     val quests by viewModel.quests.collectAsStateWithLifecycle()
     val questProgress by viewModel.questProgress.collectAsStateWithLifecycle()
     val goals by viewModel.goals.collectAsStateWithLifecycle()
@@ -370,7 +371,10 @@ fun MainScreen(
                                 )
                             },
                             onDeleteRecurring = { exp -> viewModel.deleteRecurringExpense(exp) },
-                            demoMode = demoMode
+                            demoMode = demoMode,
+                            periodPurchases = periodPurchases,
+                            catalogPurchases = purchases,
+                            goals = goals
                         )
                     }
                     KeepAliveTab(

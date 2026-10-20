@@ -116,9 +116,9 @@ fun SchoolBottomSheet(
     val completedCount = quests.count { q ->
         progressList.any { p -> p.questId == q.id && p.isCompleted }
     }
-    // Количество школьных задач, решенных именно сегодня (игры в домике не учитываются)
+    // Количество школьных задач, пройденных сегодня (включая задачи с ошибками)
     val todaySolvedCount = progressList.count { p ->
-        p.isCompleted && p.completedInPeriod == currentPeriodIndex && p.questId in schoolQuestIds
+        p.completedInPeriod == currentPeriodIndex && p.questId in schoolQuestIds
     }
     val displayTodaySolved = todaySolvedCount.coerceIn(0, 2)
     val displayCompleted = completedCount.coerceIn(0, quests.size)
@@ -286,7 +286,7 @@ fun SchoolBottomSheet(
                                 color = Color(0xFF1B5E20)
                             )
                             Text(
-                                text = "Ты решил 2 задачи за сегодня ($displayTodaySolved/2). Новые уроки откроются в следующий день!",
+                                text = "Ты прошёл 2 урока за сегодня ($displayTodaySolved/2). Новые уроки откроются в следующий день!",
                                 fontFamily = AppFontFamily,
                                 fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
                                 color = TextSecondary,
