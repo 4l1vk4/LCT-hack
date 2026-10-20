@@ -451,36 +451,12 @@ fun SchoolBottomSheet(
 
                             Spacer(modifier = Modifier.height((5.dp * uiScale).coerceIn(3.dp, 7.dp)))
 
-                            // Статус квеста / Награда (размещены аккуратно под тегами со скейлами)
+                            // Статус квеста / Награда
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy((4.dp * uiScale).coerceIn(2.dp, 6.dp))
                             ) {
-                                if (isDone) {
-                                    Box(
-                                        modifier = Modifier
-                                            .pixelButtonBackground(containerColor = Color(0xFFE8F5E9))
-                                            .padding(
-                                                horizontal = (8.dp * uiScale).coerceIn(5.dp, 10.dp),
-                                                vertical = (3.5.dp * uiScale).coerceIn(2.dp, 5.dp)
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy((4.dp * uiScale).coerceIn(2.dp, 5.dp))
-                                        ) {
-                                            GalochkaIcon(modifier = Modifier.size((13.dp * uiScale).coerceIn(10.dp, 16.dp)))
-                                            Text(
-                                                text = "Пройдено",
-                                                fontFamily = AppFontFamily,
-                                                fontSize = (13.5f * uiScale).coerceIn(10f, 16f).sp,
-                                                color = FreshGreen,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
-                                    }
-                                } else if (isFailedToday) {
+                                if (isFailedToday) {
                                     Box(
                                         modifier = Modifier
                                             .pixelButtonBackground(containerColor = Color(0xFFFFF3E0))
@@ -508,7 +484,7 @@ fun SchoolBottomSheet(
                                             )
                                         }
                                     }
-                                } else {
+                                } else if (!isDone) {
                                     Box(
                                         modifier = Modifier
                                             .pixelButtonBackground(containerColor = Color(0xFFFFF8E1))

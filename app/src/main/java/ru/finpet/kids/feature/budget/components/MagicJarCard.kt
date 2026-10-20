@@ -118,40 +118,64 @@ fun MagicJarCard(
                     text = title,
                     fontWeight = FontWeight.Bold,
                     fontSize = (17f * uiScale).coerceIn(13f, 18f).sp,
-                    color = PixelTextDark
+                    color = PixelTextDark,
+                    maxLines = 1
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                     color = PixelTextMuted,
-                    lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
+                    lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp,
+                    maxLines = 2
                 )
             }
             Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 6.dp)))
-            // текущая сумма в баночке в пиксельном бейдже (клик открывает ввод своей суммы)
+            // текущая сумма в баночке: фиксированный размер квадратика (не раздувается), шрифт масштабируется от длины числа
+            val digitsCount = "$amount".length
+            val amountFontSize = when {
+                digitsCount <= 2 -> (16f * uiScale).coerceIn(12f, 17f).sp
+                digitsCount == 3 -> (13.5f * uiScale).coerceIn(10.5f, 14.5f).sp
+                digitsCount == 4 -> (11.5f * uiScale).coerceIn(9f, 12.5f).sp
+                else -> (9.5f * uiScale).coerceIn(8f, 10.5f).sp
+            }
+            val badgeCoinSize = when {
+                digitsCount <= 2 -> (15.dp * uiScale).coerceIn(12.dp, 17.dp)
+                digitsCount == 3 -> (14.dp * uiScale).coerceIn(11.dp, 15.dp)
+                digitsCount == 4 -> (13.dp * uiScale).coerceIn(10.dp, 14.dp)
+                else -> (12.dp * uiScale).coerceIn(9.dp, 13.dp)
+            }
+            val badgeWidth = (56.dp * uiScale).coerceIn(48.dp, 64.dp)
+            val badgeHeight = (34.dp * uiScale).coerceIn(28.dp, 38.dp)
+
             Box(
                 modifier = Modifier
+                    .size(width = badgeWidth, height = badgeHeight)
                     .pixelButtonBackground(containerColor = PixelParchmentLight)
                     .clickable(enabled = !isReadOnly) {
                         showCustomDialog = true
                     }
                     .padding(
-                        horizontal = (8.dp * uiScale).coerceIn(4.dp, 10.dp),
-                        vertical = (4.dp * uiScale).coerceIn(3.dp, 5.dp)
+                        horizontal = (3.dp * uiScale).coerceIn(2.dp, 5.dp),
+                        vertical = (3.dp * uiScale).coerceIn(2.dp, 5.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
                     Text(
                         text = "$amount",
                         fontWeight = FontWeight.ExtraBold,
                         color = color,
-                        fontSize = (16f * uiScale).coerceIn(12f, 17f).sp,
-                        fontFamily = AppFontFamily
+                        fontSize = amountFontSize,
+                        fontFamily = AppFontFamily,
+                        maxLines = 1,
+                        softWrap = false
                     )
-                    Spacer(modifier = Modifier.width(2.dp))
-                    CoinIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 18.dp)))
+                    Spacer(modifier = Modifier.width((2.dp * uiScale).coerceIn(1.dp, 3.dp)))
+                    CoinIcon(modifier = Modifier.size(badgeCoinSize))
                 }
             }
         }

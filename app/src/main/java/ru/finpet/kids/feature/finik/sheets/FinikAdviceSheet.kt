@@ -2,8 +2,6 @@ package ru.finpet.kids.feature.finik.sheets
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.res.painterResource
-import ru.finpet.kids.R
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,22 +22,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import ru.finpet.kids.core.designsystem.FinPetTheme
-import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.finpet.kids.R
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.CloudIcon
 import ru.finpet.kids.core.designsystem.FinCard
+import ru.finpet.kids.core.designsystem.FinPetTheme
+import ru.finpet.kids.core.designsystem.KeepScreenImmersive
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelBar
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.RenderBoardIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
+import ru.finpet.kids.feature.finik.components.PetGrowthStageCard
 
 // карточка вопроса для котика
 data class ScriptedAdvice(
@@ -81,10 +84,13 @@ val DEFAULT_SCRIPTED_ADVICES = listOf(
 @Composable
 fun FinikAdviceSheet(
     displayName: String,
+    growthStage: String = "BABY",
+    carePoints: Int = 0,
     advices: List<ScriptedAdvice> = DEFAULT_SCRIPTED_ADVICES,
     onSelectAdvice: (response: String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val uiScale = LocalUiScale.current
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFFE8DAC2),
@@ -93,85 +99,115 @@ fun FinikAdviceSheet(
     ) {
         FinPetTheme {
             KeepScreenImmersive()
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.70f)
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp)
-                .padding(bottom = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // пиксельный заголовок с крестиком на основе PixelBar
-            PixelBar(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.78f)
+                    .padding(horizontal = (16.dp * uiScale).coerceIn(12.dp, 18.dp))
+                    .padding(top = (16.dp * uiScale).coerceIn(12.dp, 18.dp))
+                    .padding(bottom = (24.dp * uiScale).coerceIn(16.dp, 28.dp)),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                CloudIcon(modifier = Modifier.size(22.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Спроси у $displayName",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PixelTextDark,
-                    modifier = Modifier.weight(1f)
-                )
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { onDismiss() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.close_sign),
-                        contentDescription = "Закрыть",
-                        modifier = Modifier.size(28.dp)
+                // пиксельный заголовок с крестиком на основе PixelBar
+                PixelBar(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(
+                        horizontal = (14.dp * uiScale).coerceIn(10.dp, 16.dp),
+                        vertical = (8.dp * uiScale).coerceIn(6.dp, 10.dp)
                     )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // скроллируемый список тем для разговора
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                items(advices, key = { it.title }) { advice ->
-                    FinCard(
+                ) {
+                    CloudIcon(modifier = Modifier.size((22.dp * uiScale).coerceIn(16.dp, 24.dp)))
+                    Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
+                    Text(
+                        text = "Спроси у $displayName",
+                        fontSize = (17f * uiScale).coerceIn(13f, 19f).sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PixelTextDark,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .size((32.dp * uiScale).coerceIn(26.dp, 36.dp))
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
-                            ) { onSelectAdvice(advice.response) },
-                        backgroundColor = Color(0xFFFFF9EE),
-                        borderColor = Color(0xFFDFC490)
+                            ) { onDismiss() },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Row(
+                        Image(
+                            painter = painterResource(id = R.drawable.close_sign),
+                            contentDescription = "Закрыть",
+                            modifier = Modifier.size((28.dp * uiScale).coerceIn(22.dp, 32.dp))
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height((12.dp * uiScale).coerceIn(8.dp, 14.dp)))
+
+                // скроллируемый список: стадия развития питомца перед списком вопросов
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy((8.dp * uiScale).coerceIn(6.dp, 10.dp)),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    // Стадия развития котика с орбами прогресса
+                    item(key = "growth_stage_section") {
+                        PetGrowthStageCard(
+                            growthStage = growthStage,
+                            carePoints = carePoints,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    // Подзаголовок перед списком вопросов
+                    item(key = "questions_section_title") {
+                        Text(
+                            text = "Выбери вопрос для котика:",
+                            fontFamily = AppFontFamily,
+                            fontSize = (15.5f * uiScale).coerceIn(12f, 17f).sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PixelTextDark,
+                            modifier = Modifier.padding(top = (6.dp * uiScale).coerceIn(3.dp, 8.dp), bottom = 2.dp)
+                        )
+                    }
+
+                    items(advices, key = { it.title }) { advice ->
+                        FinCard(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 14.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) { onSelectAdvice(advice.response) },
+                            backgroundColor = Color(0xFFFFF9EE),
+                            borderColor = Color(0xFFDFC490)
                         ) {
-                            RenderBoardIcon(advice.icon, modifier = Modifier.size(22.dp))
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = advice.title,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = TextPrimary,
-                                modifier = Modifier.weight(1f)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        horizontal = (14.dp * uiScale).coerceIn(10.dp, 16.dp),
+                                        vertical = (14.dp * uiScale).coerceIn(10.dp, 16.dp)
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RenderBoardIcon(
+                                    advice.icon,
+                                    modifier = Modifier.size((22.dp * uiScale).coerceIn(16.dp, 24.dp))
+                                )
+                                Spacer(modifier = Modifier.width((12.dp * uiScale).coerceIn(8.dp, 14.dp)))
+                                Text(
+                                    text = advice.title,
+                                    fontSize = (15f * uiScale).coerceIn(12f, 17f).sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextPrimary,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
         }
     }
 }

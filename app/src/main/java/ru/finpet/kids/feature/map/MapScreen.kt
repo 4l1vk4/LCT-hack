@@ -311,7 +311,7 @@ fun MapScreen(
         PixelAlertDialog(
             onDismissRequest = { questFeedback = null },
             title = if (isCorrect) "Отличный ответ!" else "Совет питомца",
-            icon = catDrawable,
+            icon = "",
             confirmButton = {
                 PixelButton(
                     text = if (isCorrect) "Ура, понятно!" else "Спасибо, понятно!",

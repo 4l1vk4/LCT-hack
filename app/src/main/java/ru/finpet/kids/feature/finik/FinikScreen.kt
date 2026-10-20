@@ -414,7 +414,7 @@ fun FinikScreen(
                 }
             }
 
-            // Карточка характеристик питомца
+            // Карточка характеристик питомца (стадия развития вынесена в диалог вопросов)
             item(key = "stats_panel") {
                 FinikStatsCard(
                     displayName = displayName,
@@ -422,9 +422,7 @@ fun FinikScreen(
                     satiety = satiety,
                     mood = mood,
                     health = health,
-                    isPetRunaway = isPetRunaway,
-                    carePoints = profile?.carePoints ?: 0,
-                    growthStage = profile?.growthStage ?: "BABY"
+                    isPetRunaway = isPetRunaway
                 )
             }
 
@@ -451,10 +449,12 @@ fun FinikScreen(
             }
         }
 
-        // Шторка диалогов и вопросов
+        // Шторка диалогов и вопросов (со стадией развития перед вопросами)
         if (panelOpen) {
             FinikAdviceSheet(
                 displayName = displayName,
+                growthStage = profile?.growthStage ?: "BABY",
+                carePoints = profile?.carePoints ?: 0,
                 advices = DEFAULT_SCRIPTED_ADVICES,
                 onSelectAdvice = { response ->
                     onAskQuestion()
