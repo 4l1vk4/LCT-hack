@@ -601,6 +601,94 @@ fun BallIcon(
     )
 }
 
+@Composable
+fun HeadphonesIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.headphones),
+        contentDescription = "Наушники",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun ScooterIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.samokat),
+        contentDescription = "Самокат",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun BinIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.bin),
+        contentDescription = "Корзина",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun DishesIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.washing_dishes),
+        contentDescription = "Посуда",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun OrbIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.orb),
+        contentDescription = "Орб",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun AutumnIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.autumn_game),
+        contentDescription = "Осень",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun CatRunawayIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.cat_runaway),
+        contentDescription = "Питомец убежал",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun WaterIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.blue_ball),
+        contentDescription = "Вода",
+        modifier = modifier
+    )
+}
+
 /**
  * Аутентичный пиксельный чекбокс на основе checkbox.png и check.png
  */

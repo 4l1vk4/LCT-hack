@@ -294,10 +294,11 @@ fun SchoolBottomSheet(
             }
 
             // Переключатель стадий взросления питомца
-            Column(verticalArrangement = Arrangement.spacedBy((5.dp * uiScale).coerceIn(3.dp, 6.dp))) {
+            Column(verticalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp))) {
                 Text(
                     text = "Стадии обучения и взросления:",
-                    fontSize = (14f * uiScale).coerceIn(11f, 15f).sp,
+                    fontFamily = AppFontFamily,
+                    fontSize = (17f * uiScale).coerceIn(13f, 20f).sp,
                     fontWeight = FontWeight.Bold,
                     color = PixelTextDark
                 )
@@ -369,40 +370,43 @@ fun SchoolBottomSheet(
 
                 FinCard(modifier = Modifier.fillMaxWidth()) {
                     Column(
-                        modifier = Modifier.padding(18.dp),
+                        modifier = Modifier.padding((18.dp * uiScale).coerceIn(12.dp, 20.dp)),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(Color(0xFFD7CCC8))
-                                .padding(horizontal = 14.dp, vertical = 6.dp)
+                                .padding(
+                                    horizontal = (14.dp * uiScale).coerceIn(8.dp, 16.dp),
+                                    vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp)
+                                )
                         ) {
                             Text(
                                 text = "Уровень заблокирован",
                                 fontFamily = AppFontFamily,
-                                fontSize = 14.sp,
+                                fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PixelWoodMedium
                             )
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
                         Text(
                             text = "Уроки уровня «$stageTitle» пока закрыты",
                             fontFamily = AppFontFamily,
-                            fontSize = 17.sp,
+                            fontSize = (17f * uiScale).coerceIn(13f, 20f).sp,
                             fontWeight = FontWeight.Bold,
                             color = PixelTextDark,
                             textAlign = TextAlign.Center
                         )
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
                         Text(
                             text = "Твой питомец $petName сейчас на стадии «$currentStageTitle».\nЗаботься о котике, планируй бюджет и переходи к следующим игровым дням, чтобы он вырос и открыл этот уровень!\n\n(В Настройках можно включить Демо-режим для доступа ко всем квестам сразу)",
                             fontFamily = AppFontFamily,
-                            fontSize = 16.sp,
+                            fontSize = (15f * uiScale).coerceIn(11f, 17f).sp,
                             color = PixelTextMuted,
                             textAlign = TextAlign.Center,
-                            lineHeight = 19.sp
+                            lineHeight = (19f * uiScale).coerceIn(14f, 22f).sp
                         )
                     }
                 }
@@ -451,7 +455,7 @@ fun SchoolBottomSheet(
                                     Text(
                                         text = "[Пройдено]",
                                         fontFamily = AppFontFamily,
-                                        fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
+                                        fontSize = (14.5f * uiScale).coerceIn(11f, 16.5f).sp,
                                         color = FreshGreen,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -459,7 +463,7 @@ fun SchoolBottomSheet(
                                     Text(
                                         text = "[Вернись завтра]",
                                         fontFamily = AppFontFamily,
-                                        fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
+                                        fontSize = (14.5f * uiScale).coerceIn(11f, 16.5f).sp,
                                         color = JoyOrange,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -467,7 +471,7 @@ fun SchoolBottomSheet(
                                     Text(
                                         text = "+${quest.rewardCoins} монет",
                                         fontFamily = AppFontFamily,
-                                        fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
+                                        fontSize = (14.5f * uiScale).coerceIn(11f, 16.5f).sp,
                                         fontWeight = FontWeight.Bold,
                                         color = PixelGoldDark
                                     )
@@ -496,21 +500,24 @@ fun SchoolBottomSheet(
 
                             // Кнопка вариативности рандома (если есть альтернативные тексты ситуации)
                             if (quest.dynamicVariants.size > 1 && !isDone && !isFailedToday && !isDailyLimitReached) {
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 8.dp)))
                                 PixelButton(
                                     text = "Другая ситуация",
                                     onClick = {
                                         variantIndices[quest.id] = currentVariantIdx + 1
                                     },
-                                    leadingIcon = { KubikIcon(modifier = Modifier.size(16.dp)) },
+                                    leadingIcon = { KubikIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 18.dp))) },
                                     containerColor = Color(0xFF6D4C41),
                                     textColor = PixelParchmentLight,
-                                    fontSize = 14.sp,
-                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
+                                    fontSize = (14f * uiScale).coerceIn(11f, 16f).sp,
+                                    contentPadding = PaddingValues(
+                                        horizontal = (14.dp * uiScale).coerceIn(9.dp, 16.dp),
+                                        vertical = (7.dp * uiScale).coerceIn(4.dp, 8.dp)
+                                    )
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height((10.dp * uiScale).coerceIn(6.dp, 12.dp)))
 
                             if (isFailedToday) {
                                 Box(
@@ -553,7 +560,7 @@ fun SchoolBottomSheet(
                                     Text(
                                         text = "На сегодня лимит задач исчерпан ($displayTodaySolved/2). Переходи к следующему дню, чтобы решать новые задания!",
                                         fontFamily = AppFontFamily,
-                                        fontSize = 14.sp,
+                                        fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                                         color = Color(0xFFE65100),
                                         fontWeight = FontWeight.SemiBold
                                     )
@@ -654,21 +661,21 @@ private fun StageTabChip(
                 indication = null
             ) { onClick() }
             .padding(
-                vertical = (6.dp * uiScale).coerceIn(3.dp, 7.dp),
-                horizontal = (3.dp * uiScale).coerceIn(1.dp, 4.dp)
+                vertical = (7.dp * uiScale).coerceIn(4.dp, 8.dp),
+                horizontal = (4.dp * uiScale).coerceIn(2.dp, 6.dp)
             ),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!isUnlocked) {
-                    LockIcon(modifier = Modifier.size((11.dp * uiScale).coerceIn(8.dp, 12.dp)))
+                    LockIcon(modifier = Modifier.size((13.dp * uiScale).coerceIn(9.dp, 15.dp)))
                     Spacer(modifier = Modifier.width((2.dp * uiScale).coerceIn(1.dp, 3.dp)))
                 }
                 Text(
                     text = title,
                     fontFamily = AppFontFamily,
-                    fontSize = (12f * uiScale).coerceIn(8f, 13f).sp,
+                    fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                     fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
                     color = textColor,
                     maxLines = 1
@@ -678,7 +685,7 @@ private fun StageTabChip(
                 Text(
                     text = "$countDone/$totalCount",
                     fontFamily = AppFontFamily,
-                    fontSize = (10f * uiScale).coerceIn(7f, 11f).sp,
+                    fontSize = (12f * uiScale).coerceIn(8f, 13f).sp,
                     color = if (isSelected) PixelGreenCrop else PixelTextMuted,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1
@@ -689,7 +696,7 @@ private fun StageTabChip(
 }
 
 /**
- * Значок темы задания
+ * Значок темы задания ("Личный бюджет" и др.)
  */
 @Composable
 private fun TopicChip(topic: String, topicTitle: String) {
@@ -704,15 +711,15 @@ private fun TopicChip(topic: String, topicTitle: String) {
         modifier = Modifier
             .pixelButtonBackground(containerColor = bg)
             .padding(
-                horizontal = (7.dp * uiScale).coerceIn(4.dp, 9.dp),
-                vertical = (4.dp * uiScale).coerceIn(2.dp, 5.dp)
+                horizontal = (8.dp * uiScale).coerceIn(5.dp, 10.dp),
+                vertical = (4.dp * uiScale).coerceIn(2.dp, 6.dp)
             ),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = topicTitle,
             fontFamily = AppFontFamily,
-            fontSize = (11f * uiScale).coerceIn(8f, 12f).sp,
+            fontSize = (13.5f * uiScale).coerceIn(10f, 15f).sp,
             fontWeight = FontWeight.Bold,
             color = PixelTextDark,
             maxLines = 1
@@ -721,7 +728,7 @@ private fun TopicChip(topic: String, topicTitle: String) {
 }
 
 /**
- * Значок стадии задания
+ * Значок стадии задания ("1 стадия", "2 стадия", "3 стадия")
  */
 @Composable
 private fun StageBadge(stage: String) {
@@ -741,15 +748,15 @@ private fun StageBadge(stage: String) {
         modifier = Modifier
             .pixelButtonBackground(containerColor = bg)
             .padding(
-                horizontal = (7.dp * uiScale).coerceIn(4.dp, 8.dp),
-                vertical = (4.dp * uiScale).coerceIn(2.dp, 5.dp)
+                horizontal = (8.dp * uiScale).coerceIn(5.dp, 10.dp),
+                vertical = (4.dp * uiScale).coerceIn(2.dp, 6.dp)
             ),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
             fontFamily = AppFontFamily,
-            fontSize = (10f * uiScale).coerceIn(7f, 11f).sp,
+            fontSize = (12.5f * uiScale).coerceIn(9f, 14f).sp,
             fontWeight = FontWeight.Bold,
             color = PixelTextDark,
             maxLines = 1
@@ -771,6 +778,7 @@ private fun TextInputQuestSection(
     onSubmit: () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
+    val uiScale = LocalUiScale.current
 
     if (isDone) {
         Box(
@@ -778,12 +786,12 @@ private fun TextInputQuestSection(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color(0xFFE8F5E9))
-                .padding(12.dp)
+                .padding((12.dp * uiScale).coerceIn(8.dp, 14.dp))
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(22.dp)
+                        .size((22.dp * uiScale).coerceIn(16.dp, 24.dp))
                         .clip(RoundedCornerShape(4.dp))
                         .background(PixelGreenCrop),
                     contentAlignment = Alignment.Center
@@ -791,33 +799,36 @@ private fun TextInputQuestSection(
                     Text(
                         text = "V",
                         fontFamily = AppFontFamily,
-                        fontSize = 13.sp,
+                        fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(5.dp, 10.dp)))
                 Text(
                     text = "Термин разгадан! Ответ принят.",
                     fontFamily = AppFontFamily,
-                    fontSize = 15.sp,
+                    fontSize = (15f * uiScale).coerceIn(11f, 17f).sp,
                     color = PixelGreenCrop,
                     fontWeight = FontWeight.Bold
                 )
             }
         }
     } else {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy((8.dp * uiScale).coerceIn(5.dp, 10.dp))) {
             // Подсказка, если ребенок хочет проверить себя (в пиксельном стиле кнопок)
             if (quest.hint.isNotBlank()) {
                 PixelButton(
                     text = if (isHintRevealed) "Скрыть подсказку" else "Нужна подсказка",
-                    leadingIcon = { LampochkaIcon(modifier = Modifier.size(16.dp)) },
+                    leadingIcon = { LampochkaIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 18.dp))) },
                     onClick = onToggleHint,
                     containerColor = if (isHintRevealed) PixelGoldBright else Color(0xFFFFD54F),
                     textColor = PixelTextDark,
-                    fontSize = 14.sp,
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
+                    fontSize = (14f * uiScale).coerceIn(11f, 16f).sp,
+                    contentPadding = PaddingValues(
+                        horizontal = (14.dp * uiScale).coerceIn(9.dp, 16.dp),
+                        vertical = (7.dp * uiScale).coerceIn(4.dp, 8.dp)
+                    )
                 )
 
                 if (isHintRevealed) {
@@ -827,14 +838,14 @@ private fun TextInputQuestSection(
                             .clip(RoundedCornerShape(8.dp))
                             .background(Color(0xFFFFF9C4))
                             .border(1.dp, Color(0xFFFFD54F), RoundedCornerShape(8.dp))
-                            .padding(10.dp)
+                            .padding((10.dp * uiScale).coerceIn(6.dp, 12.dp))
                     ) {
                         Text(
                             text = quest.hint,
                             fontFamily = AppFontFamily,
-                            fontSize = 14.sp,
+                            fontSize = (14f * uiScale).coerceIn(11f, 16f).sp,
                             color = PixelTextDark,
-                            lineHeight = 18.sp
+                            lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
                         )
                     }
                 }
@@ -848,7 +859,7 @@ private fun TextInputQuestSection(
                     Text(
                         text = quest.inputPlaceholder.ifEmpty { "Введи ответ сюда..." },
                         fontFamily = AppFontFamily,
-                        fontSize = 15.sp,
+                        fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
                         color = Color(0xFF9E9E9E)
                     )
                 },
@@ -870,29 +881,19 @@ private fun TextInputQuestSection(
             )
 
             // Кнопка подтверждения ответа
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .pixelButtonBackground(containerColor = if (currentInput.isNotBlank()) PixelGoldBright else Color(0xFFE0E0E0))
-                    .clickable(
-                        enabled = currentInput.isNotBlank(),
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        focusManager.clearFocus()
-                        onSubmit()
-                    }
-                    .padding(vertical = 11.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Проверить ответ",
-                    fontFamily = AppFontFamily,
-                    color = PixelTextDark,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            PixelButton(
+                text = "Проверить ответ",
+                onClick = {
+                    focusManager.clearFocus()
+                    onSubmit()
+                },
+                enabled = currentInput.isNotBlank(),
+                containerColor = PixelGoldBright,
+                textColor = PixelTextDark,
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = (16f * uiScale).coerceIn(12f, 18f).sp,
+                contentPadding = PaddingValues(vertical = (11.dp * uiScale).coerceIn(7.dp, 13.dp))
+            )
         }
     }
 }
@@ -908,6 +909,7 @@ private fun MoneyAllocationQuestSection(
     onAllocationChange: (Int) -> Unit,
     onSubmit: () -> Unit
 ) {
+    val uiScale = LocalUiScale.current
     val total = quest.totalBudget
     val allocation = currentAllocation.coerceIn(0, total)
     val remaining = total - allocation
@@ -919,12 +921,12 @@ private fun MoneyAllocationQuestSection(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color(0xFFE8F5E9))
-                .padding(12.dp)
+                .padding((12.dp * uiScale).coerceIn(8.dp, 14.dp))
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(22.dp)
+                        .size((22.dp * uiScale).coerceIn(16.dp, 24.dp))
                         .clip(RoundedCornerShape(4.dp))
                         .background(PixelGreenCrop),
                     contentAlignment = Alignment.Center
@@ -932,59 +934,48 @@ private fun MoneyAllocationQuestSection(
                     Text(
                         text = "V",
                         fontFamily = AppFontFamily,
-                        fontSize = 13.sp,
+                        fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(5.dp, 10.dp)))
                 Text(
                     text = "Бюджет успешно распределён! Отличное решение.",
                     fontFamily = AppFontFamily,
-                    fontSize = 15.sp,
+                    fontSize = (15f * uiScale).coerceIn(11f, 17f).sp,
                     color = PixelGreenCrop,
                     fontWeight = FontWeight.Bold
                 )
             }
         }
     } else {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy((10.dp * uiScale).coerceIn(6.dp, 12.dp))) {
             Text(
                 text = quest.sliderLabel.ifEmpty { "Выбери сумму монет для решения:" },
                 fontFamily = AppFontFamily,
-                fontSize = 14.sp,
+                fontSize = (14f * uiScale).coerceIn(11f, 16f).sp,
                 fontWeight = FontWeight.Bold,
                 color = PixelTextDark
             )
 
             // Интерактивный ползунок распределения
+            val btnSize = (40.dp * uiScale).coerceIn(32.dp, 44.dp)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Кнопка уменьшения на 10
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .pixelButtonBackground(containerColor = if (allocation > 0) PixelGoldBright else Color(0xFFDED0B6))
-                        .clickable(
-                            enabled = allocation > 0,
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) {
-                            onAllocationChange((allocation - 10).coerceAtLeast(0))
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "-",
-                        fontFamily = AppFontFamily,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (allocation > 0) PixelTextDark else PixelTextMuted,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                PixelButton(
+                    text = "-",
+                    onClick = { onAllocationChange((allocation - 10).coerceAtLeast(0)) },
+                    enabled = allocation > 0,
+                    containerColor = PixelGoldBright,
+                    textColor = PixelTextDark,
+                    modifier = Modifier.size(btnSize),
+                    fontSize = (24f * uiScale).coerceIn(18f, 26f).sp,
+                    contentPadding = PaddingValues(0.dp)
+                )
 
                 Slider(
                     value = allocation.toFloat(),
@@ -998,32 +989,20 @@ private fun MoneyAllocationQuestSection(
                     ),
                     modifier = Modifier
                         .weight(1f)
-                        .padding(horizontal = 8.dp)
+                        .padding(horizontal = (8.dp * uiScale).coerceIn(4.dp, 10.dp))
                 )
 
                 // Кнопка увеличения на 10
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .pixelButtonBackground(containerColor = if (allocation < total) PixelGoldBright else Color(0xFFDED0B6))
-                        .clickable(
-                            enabled = allocation < total,
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) {
-                            onAllocationChange((allocation + 10).coerceAtMost(total))
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "+",
-                        fontFamily = AppFontFamily,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (allocation < total) PixelTextDark else PixelTextMuted,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                PixelButton(
+                    text = "+",
+                    onClick = { onAllocationChange((allocation + 10).coerceAtMost(total)) },
+                    enabled = allocation < total,
+                    containerColor = PixelGoldBright,
+                    textColor = PixelTextDark,
+                    modifier = Modifier.size(btnSize),
+                    fontSize = (22f * uiScale).coerceIn(16f, 24f).sp,
+                    contentPadding = PaddingValues(0.dp)
+                )
             }
 
             // Наглядная шкала распределения двух направлений с орбами
@@ -1036,26 +1015,28 @@ private fun MoneyAllocationQuestSection(
                     .clip(RoundedCornerShape(8.dp))
                     .background(PixelParchmentLight)
                     .border(1.5.dp, PixelParchmentBorder, RoundedCornerShape(8.dp))
-                    .padding(10.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding((10.dp * uiScale).coerceIn(6.dp, 12.dp)),
+                verticalArrangement = Arrangement.spacedBy((8.dp * uiScale).coerceIn(4.dp, 10.dp))
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val orbIconSize = (16.dp * uiScale).coerceIn(12.dp, 18.dp)
+                    val orbTextSize = (13f * uiScale).coerceIn(10f, 15f).sp
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Image(
                             painter = painterResource(id = R.drawable.orb),
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(JoyOrange, BlendMode.SrcIn),
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(orbIconSize)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width((4.dp * uiScale).coerceIn(2.dp, 6.dp)))
                         Text(
                             text = "${quest.allocationTarget.ifEmpty { "В копилку" }}: $allocation ($percent%)",
                             fontFamily = AppFontFamily,
-                            fontSize = 13.sp,
+                            fontSize = orbTextSize,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFE65100)
                         )
@@ -1065,16 +1046,16 @@ private fun MoneyAllocationQuestSection(
                         Text(
                             text = "На радости: $remaining",
                             fontFamily = AppFontFamily,
-                            fontSize = 13.sp,
+                            fontSize = orbTextSize,
                             fontWeight = FontWeight.Bold,
                             color = PixelGreenCrop
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width((4.dp * uiScale).coerceIn(2.dp, 6.dp)))
                         Image(
                             painter = painterResource(id = R.drawable.orb),
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(Color(0xFF66BB6A), BlendMode.SrcIn),
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(orbIconSize)
                         )
                     }
                 }
@@ -1085,8 +1066,8 @@ private fun MoneyAllocationQuestSection(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(6.dp))
                         .background(Color(0xFFEBE0D0))
-                        .padding(horizontal = 6.dp, vertical = 5.dp),
-                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                        .padding(horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp), vertical = (5.dp * uiScale).coerceIn(3.dp, 6.dp)),
+                    horizontalArrangement = Arrangement.spacedBy((3.dp * uiScale).coerceIn(1.dp, 4.dp)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     repeat(totalOrbs) { index ->
@@ -1115,25 +1096,15 @@ private fun MoneyAllocationQuestSection(
             }
 
             // Кнопка подтверждения распределения
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .pixelButtonBackground(containerColor = PixelGoldBright)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { onSubmit() }
-                    .padding(vertical = 11.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Подтвердить распределение",
-                    fontFamily = AppFontFamily,
-                    color = PixelTextDark,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            PixelButton(
+                text = "Подтвердить распределение",
+                onClick = { onSubmit() },
+                containerColor = PixelGoldBright,
+                textColor = PixelTextDark,
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = (16f * uiScale).coerceIn(12f, 18f).sp,
+                contentPadding = PaddingValues(vertical = (11.dp * uiScale).coerceIn(7.dp, 13.dp))
+            )
         }
     }
 }
@@ -1149,18 +1120,19 @@ private fun CalculationQuestSection(
     onRerollNumbers: () -> Unit,
     onSelectOption: (String) -> Unit
 ) {
+    val uiScale = LocalUiScale.current
     if (isDone) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color(0xFFE8F5E9))
-                .padding(12.dp)
+                .padding((12.dp * uiScale).coerceIn(8.dp, 14.dp))
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(22.dp)
+                        .size((22.dp * uiScale).coerceIn(16.dp, 24.dp))
                         .clip(RoundedCornerShape(4.dp))
                         .background(PixelGreenCrop),
                     contentAlignment = Alignment.Center
@@ -1168,16 +1140,16 @@ private fun CalculationQuestSection(
                     Text(
                         text = "V",
                         fontFamily = AppFontFamily,
-                        fontSize = 13.sp,
+                        fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(5.dp, 10.dp)))
                 Text(
                     text = "Расчёт выполнен верно! Награда начислена.",
                     fontFamily = AppFontFamily,
-                    fontSize = 15.sp,
+                    fontSize = (15f * uiScale).coerceIn(11f, 17f).sp,
                     color = PixelGreenCrop,
                     fontWeight = FontWeight.Bold
                 )
@@ -1186,40 +1158,37 @@ private fun CalculationQuestSection(
     } else {
         val shuffledOptions = remember(quest.id, randomOffset) { quest.options.shuffled() }
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy((8.dp * uiScale).coerceIn(5.dp, 10.dp))) {
             // Кнопка рандомизации вариантов
             PixelButton(
                 text = "Перемешать варианты",
                 onClick = onRerollNumbers,
-                leadingIcon = { KubikIcon(modifier = Modifier.size(16.dp)) },
+                leadingIcon = { KubikIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 18.dp))) },
                 containerColor = Color(0xFF6D4C41),
                 textColor = PixelParchmentLight,
-                fontSize = 14.sp,
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
+                fontSize = (14f * uiScale).coerceIn(11f, 16f).sp,
+                contentPadding = PaddingValues(
+                    horizontal = (14.dp * uiScale).coerceIn(9.dp, 16.dp),
+                    vertical = (7.dp * uiScale).coerceIn(4.dp, 8.dp)
+                )
             )
 
             // Варианты ответов в аутентичном пиксельном стиле
             shuffledOptions.forEach { opt ->
-                Box(
+                PixelButton(
+                    text = opt.text,
+                    onClick = { onSelectOption(opt.id) },
+                    containerColor = PixelParchmentLight,
+                    textColor = PixelTextDark,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 2.dp)
-                        .pixelButtonBackground(containerColor = PixelParchmentLight)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { onSelectOption(opt.id) }
-                        .padding(horizontal = 14.dp, vertical = 9.dp)
-                ) {
-                    Text(
-                        text = opt.text,
-                        fontFamily = AppFontFamily,
-                        color = PixelTextDark,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxWidth()
+                        .padding(vertical = (2.dp * uiScale).coerceIn(1.dp, 3.dp)),
+                    fontSize = (15f * uiScale).coerceIn(12f, 17f).sp,
+                    contentPadding = PaddingValues(
+                        horizontal = (14.dp * uiScale).coerceIn(9.dp, 16.dp),
+                        vertical = (9.dp * uiScale).coerceIn(6.dp, 11.dp)
                     )
-                }
+                )
             }
         }
     }
@@ -1234,30 +1203,26 @@ private fun ChoiceQuestSection(
     isDone: Boolean,
     onSelectOption: (String) -> Unit
 ) {
+    val uiScale = LocalUiScale.current
     if (!isDone) {
         val shuffledOptions = remember(quest.id) { quest.options.shuffled() }
 
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp))) {
             shuffledOptions.forEach { opt ->
-                Box(
+                PixelButton(
+                    text = opt.text,
+                    onClick = { onSelectOption(opt.id) },
+                    containerColor = PixelParchmentLight,
+                    textColor = PixelTextDark,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .pixelButtonBackground(containerColor = PixelParchmentLight)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { onSelectOption(opt.id) }
-                        .padding(horizontal = 14.dp, vertical = 9.dp)
-                ) {
-                    Text(
-                        text = opt.text,
-                        fontFamily = AppFontFamily,
-                        color = PixelTextDark,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxWidth()
+                        .padding(vertical = (2.dp * uiScale).coerceIn(1.dp, 3.dp)),
+                    fontSize = (15f * uiScale).coerceIn(12f, 17f).sp,
+                    contentPadding = PaddingValues(
+                        horizontal = (14.dp * uiScale).coerceIn(9.dp, 16.dp),
+                        vertical = (9.dp * uiScale).coerceIn(6.dp, 11.dp)
                     )
-                }
+                )
             }
         }
     }

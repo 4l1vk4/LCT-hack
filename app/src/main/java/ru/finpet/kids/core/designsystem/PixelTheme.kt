@@ -43,6 +43,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.ui.unit.LayoutDirection
@@ -134,51 +137,166 @@ fun StardewBoard(
     }
 }
 
+/**
+ * Стандартизированный расчет масштабированного размера шрифта с учетом LocalUiScale.
+ */
 @Composable
-fun RenderBoardIcon(icon: String, modifier: Modifier = Modifier.size(26.dp)) {
+fun scaledSp(base: Float, min: Float = base * 0.72f, max: Float = base * 1.25f): TextUnit {
+    val uiScale = LocalUiScale.current
+    return (base * uiScale).coerceIn(min, max).sp
+}
+
+@Composable
+fun scaledSp(base: Int, min: Float = base.toFloat() * 0.72f, max: Float = base.toFloat() * 1.25f): TextUnit =
+    scaledSp(base.toFloat(), min, max)
+
+/**
+ * Стандартизированный расчет масштабированного размера отступов/иконок (Dp) с учетом LocalUiScale.
+ */
+@Composable
+fun scaledDp(base: Dp, min: Dp = base * 0.72f, max: Dp = base * 1.25f): Dp {
+    val uiScale = LocalUiScale.current
+    return (base * uiScale).coerceIn(min, max)
+}
+
+@JvmName("floatScaledSp")
+@Composable
+fun Float.scaledSp(min: Float = this * 0.72f, max: Float = this * 1.25f): TextUnit =
+    scaledSp(this, min, max)
+
+@JvmName("intScaledSp")
+@Composable
+fun Int.scaledSp(min: Float = this.toFloat() * 0.72f, max: Float = this.toFloat() * 1.25f): TextUnit =
+    scaledSp(this.toFloat(), min, max)
+
+@JvmName("dpScaledDp")
+@Composable
+fun Dp.scaledDp(min: Dp = this * 0.72f, max: Dp = this * 1.25f): Dp =
+    scaledDp(this, min, max)
+
+/**
+ * Универсальный компонент отображения пиксельных иконок.
+ * Поддерживает строковые ключи / эмодзи, Int ID графических ресурсов (R.drawable.*)
+ * и автоматически подставляет аутентичные нарисованные иконки вместо стикеров.
+ */
+@Composable
+fun PixelIcon(
+    icon: Any?,
+    modifier: Modifier = Modifier.size(18.dp),
+    contentDescription: String? = null,
+    tint: Color? = null
+) {
     when (icon) {
-        "📅" -> CalendarIcon(modifier = modifier)
-        "📊" -> DiagramIcon(modifier = modifier)
-        "⚠️" -> WarningIcon(modifier = modifier)
-        "⚡" -> LightningIcon(modifier = modifier)
-        "❤️" -> HeartIcon(modifier = modifier)
-        "🛡️", "🛡" -> ShieldIcon(modifier = modifier)
-        "🍎" -> AppleIcon(modifier = modifier)
-        "❗", "!" -> ExclamationIcon(modifier = modifier)
-        "🔒" -> LockIcon(modifier = modifier)
-        "🎯" -> TargetIcon(modifier = modifier)
-        "🪙" -> CoinIcon(modifier = modifier)
-        "⭐", "🌟" -> StarIcon(modifier = modifier)
-        "📋", "📄", "📝" -> DocsIcon(modifier = modifier)
-        "👛" -> KoshelekIcon(modifier = modifier)
-        "🐾" -> PawsIcon(modifier = modifier)
-        "⚖️", "⚖" -> VesiIcon(modifier = modifier)
-        "💡" -> LampochkaIcon(modifier = modifier)
-        "🍯", "🫙", "empty_jar", "🏦" -> EmptyJarIcon(modifier = modifier)
+        null -> Unit
+        is Int -> {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = contentDescription,
+                modifier = modifier,
+                colorFilter = tint?.let { ColorFilter.tint(it) }
+            )
+        }
+        is String -> {
+            RenderBoardIcon(icon = icon, modifier = modifier, tint = tint)
+        }
+        else -> Unit
+    }
+}
+
+@Composable
+fun PixelIcon(
+    iconRes: Int,
+    modifier: Modifier = Modifier.size(18.dp),
+    contentDescription: String? = null,
+    tint: Color? = null
+) {
+    Image(
+        painter = painterResource(id = iconRes),
+        contentDescription = contentDescription,
+        modifier = modifier,
+        colorFilter = tint?.let { ColorFilter.tint(it) }
+    )
+}
+
+@Composable
+fun RenderBoardIcon(
+    icon: String,
+    modifier: Modifier = Modifier.size(26.dp),
+    tint: Color? = null
+) {
+    when (icon) {
+        "📅", "calendar" -> CalendarIcon(modifier = modifier)
+        "📊", "diagram", "chart" -> DiagramIcon(modifier = modifier)
+        "⚠️", "warning" -> WarningIcon(modifier = modifier)
+        "⚡", "lightning" -> LightningIcon(modifier = modifier)
+        "❤️", "heart" -> HeartIcon(modifier = modifier)
+        "🛡️", "🛡", "shield" -> ShieldIcon(modifier = modifier)
+        "🍎", "apple" -> AppleIcon(modifier = modifier)
+        "❗", "!", "exclamation" -> ExclamationIcon(modifier = modifier)
+        "🔒", "lock" -> LockIcon(modifier = modifier)
+        "🎯", "target", "goal_default", "goal" -> TargetIcon(modifier = modifier)
+        "🪙", "coin", "ic_coin" -> CoinIcon(modifier = modifier)
+        "⭐", "🌟", "✨", "star", "sparkles", "celebration", "🎉" -> StarIcon(modifier = modifier)
+        "📋", "📄", "📝", "docs", "note" -> DocsIcon(modifier = modifier)
+        "👛", "koshelek", "wallet" -> KoshelekIcon(modifier = modifier)
+        "🐾", "paws", "paw" -> PawsIcon(modifier = modifier)
+        "⚖️", "⚖", "vesi", "scales" -> VesiIcon(modifier = modifier)
+        "💡", "lampochka", "lamp", "hint" -> LampochkaIcon(modifier = modifier)
+        "🍯", "🫙", "empty_jar", "🏦", "bank" -> EmptyJarIcon(modifier = modifier)
         "saving_jar" -> SavingJarIcon(modifier = modifier)
         "life_jar" -> LifeJarIcon(modifier = modifier)
         "joy_jar" -> JoyJarIcon(modifier = modifier)
-        "🐷", "piggy" -> PigIcon(modifier = modifier)
-        "🍲", "🥣", "miska" -> MiskaIcon(modifier = modifier)
+        "🐷", "pig", "piggy" -> PigIcon(modifier = modifier)
+        "🍲", "🥣", "miska", "food", "feed" -> MiskaIcon(modifier = modifier)
         "💬", "💭", "cloud" -> CloudIcon(modifier = modifier)
-        "🎲", "kubik" -> KubikIcon(modifier = modifier)
+        "🎲", "kubik", "dice" -> KubikIcon(modifier = modifier)
         "😿", "cat_cry" -> CatCryIcon(modifier = modifier)
         "🐱", "😺", "😸", "cat", "cat_happy" -> CatHappyIcon(modifier = modifier)
-        "🛒", "telezhka", "cart" -> TelezhkaIcon(modifier = modifier)
-        "📚", "books" -> BooksIcon(modifier = modifier)
-        "💰", "money_bag" -> MoneyBagIcon(modifier = modifier)
-        "🎈", "toy", "toys" -> ToyIcon(modifier = modifier)
+        "🛒", "telezhka", "cart", "shop_cart" -> TelezhkaIcon(modifier = modifier)
+        "📚", "books", "book", "school_book" -> BooksIcon(modifier = modifier)
+        "💰", "money_bag", "money" -> MoneyBagIcon(modifier = modifier)
+        "🎈", "toy", "toys", "balloon" -> ToyIcon(modifier = modifier)
         "🏷️", "discount", "happy_mood_3vryad" -> HappyMood3vryadIcon(modifier = modifier)
-        "🏠", "🏡", "house" -> HouseIcon(modifier = modifier)
+        "🏠", "🏡", "house", "home" -> HouseIcon(modifier = modifier)
         "🏫", "🎓", "school" -> SchoolIcon(modifier = modifier)
-        "🏪", "🏬", "shop" -> ShopIcon(modifier = modifier)
+        "🏪", "🏬", "shop", "store" -> ShopIcon(modifier = modifier)
         "🚪", "wardrobe" -> WardrobeIcon(modifier = modifier)
-        "✓", "galochka", "check" -> GalochkaIcon(modifier = modifier)
-        "✕", "✖", "close", "cross" -> CloseSignIcon(modifier = modifier)
-        "⚽", "ball" -> BallIcon(modifier = modifier)
-        "↺" -> Text(text = "↺", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PixelTextDark)
+        "✓", "✔", "✅", "galochka", "check", "done" -> GalochkaIcon(modifier = modifier)
+        "✕", "✖", "❌", "close", "cross" -> CloseSignIcon(modifier = modifier)
+        "⚽", "ball", "goal_ball" -> BallIcon(modifier = modifier)
+        "🎧", "headphones", "goal_headphones" -> HeadphonesIcon(modifier = modifier)
+        "🛴", "scooter", "samokat", "goal_scooter" -> ScooterIcon(modifier = modifier)
+        "🗑️", "🗑", "bin", "trash", "musor" -> BinIcon(modifier = modifier)
+        "🍽️", "dishes", "washing_dishes", "plates" -> DishesIcon(modifier = modifier)
+        "🔮", "orb" -> OrbIcon(modifier = modifier)
+        "🍂", "autumn", "autumn_game" -> AutumnIcon(modifier = modifier)
+        "cat_runaway" -> CatRunawayIcon(modifier = modifier)
+        "🔄", "↺", "refresh", "repeat", "sync" -> {
+            Box(modifier = modifier, contentAlignment = Alignment.Center) {
+                Text(
+                    text = "↺",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = tint ?: PixelTextDark
+                )
+            }
+        }
+        "💧", "water" -> WaterIcon(modifier = modifier)
+        "💊", "pill", "medicine" -> HeartIcon(modifier = modifier)
+        "🧼", "soap", "clean" -> DishesIcon(modifier = modifier)
         "" -> Unit
-        else -> Text(text = icon, fontSize = 26.sp)
+        else -> {
+            Box(
+                modifier = modifier,
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = icon,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 
@@ -201,7 +319,8 @@ fun PixelButton(
     fontSize: TextUnit = 16.sp,
     maxLines: Int = 2,
     contentPadding: PaddingValues = PaddingValues(horizontal = 10.dp, vertical = 7.dp),
-    icon: String? = null,
+    icon: Any? = null,
+    iconRes: Int? = null,
     iconSize: Dp? = null,
     iconPosition: PixelIconPosition = PixelIconPosition.Leading,
     leadingIcon: (@Composable () -> Unit)? = null,
@@ -224,20 +343,30 @@ fun PixelButton(
                 end = (contentPadding.calculateEndPadding(LayoutDirection.Ltr) * uiScale).coerceAtLeast(3.dp),
                 bottom = (contentPadding.calculateBottomPadding() * uiScale).coerceAtLeast(2.dp)
             )
+        } else if (uiScale > 1.05f) {
+            PaddingValues(
+                start = (contentPadding.calculateStartPadding(LayoutDirection.Ltr) * uiScale).coerceAtMost(contentPadding.calculateStartPadding(LayoutDirection.Ltr) * 1.25f),
+                top = (contentPadding.calculateTopPadding() * uiScale).coerceAtMost(contentPadding.calculateTopPadding() * 1.25f),
+                end = (contentPadding.calculateEndPadding(LayoutDirection.Ltr) * uiScale).coerceAtMost(contentPadding.calculateEndPadding(LayoutDirection.Ltr) * 1.25f),
+                bottom = (contentPadding.calculateBottomPadding() * uiScale).coerceAtMost(contentPadding.calculateBottomPadding() * 1.25f)
+            )
         } else {
             contentPadding
         }
     }
     val iconSpacing = (6.dp * uiScale).coerceIn(2.dp, 6.dp)
-    val effectiveFontSize = if (uiScale < 0.95f) {
-        (fontSize.value * uiScale).coerceAtLeast(10f).sp
-    } else {
-        fontSize
+    val effectiveFontSize = remember(fontSize, uiScale) {
+        if (uiScale < 0.95f || uiScale > 1.05f) {
+            (fontSize.value * uiScale).coerceIn(fontSize.value * 0.72f, fontSize.value * 1.25f).sp
+        } else {
+            fontSize
+        }
     }
 
-    val defaultIconSize = iconSize ?: (16.dp * uiScale).coerceIn(12.dp, 20.dp)
-    val resolvedIcon: (@Composable () -> Unit)? = icon?.let {
-        { RenderBoardIcon(icon = it, modifier = Modifier.size(defaultIconSize)) }
+    val defaultIconSize = iconSize ?: (16.dp * uiScale).coerceIn(12.dp, 22.dp)
+    val targetIcon = icon ?: iconRes
+    val resolvedIcon: (@Composable () -> Unit)? = targetIcon?.let {
+        { PixelIcon(icon = it, modifier = Modifier.size(defaultIconSize)) }
     }
 
     val actualLeadingIcon = leadingIcon ?: if (iconPosition == PixelIconPosition.Leading) resolvedIcon else null
@@ -340,6 +469,36 @@ fun PixelButton(
             }
         }
     }
+}
+
+/**
+ * Перегрузка PixelButton с графическим ресурсом (R.drawable.*) иконки.
+ */
+@Composable
+fun PixelButton(
+    iconRes: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = PixelGoldBright,
+    textColor: Color = PixelTextDark,
+    borderColor: Color = PixelGoldDark,
+    enabled: Boolean = true,
+    iconSize: Dp? = null,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
+) {
+    PixelButton(
+        text = "",
+        onClick = onClick,
+        modifier = modifier,
+        containerColor = containerColor,
+        textColor = textColor,
+        borderColor = borderColor,
+        enabled = enabled,
+        contentPadding = contentPadding,
+        iconRes = iconRes,
+        iconSize = iconSize,
+        iconPosition = PixelIconPosition.Center
+    )
 }
 
 /**

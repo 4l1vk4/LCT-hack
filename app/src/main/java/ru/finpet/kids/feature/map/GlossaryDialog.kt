@@ -39,6 +39,7 @@ import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.LampochkaIcon
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.PixelButton
 import ru.finpet.kids.core.designsystem.PixelGoldBright
@@ -156,6 +157,7 @@ fun GlossaryDialog(
                 .fillMaxHeight(0.92f)
                 .clip(RoundedCornerShape(8.dp))
         ) {
+            val uiScale = LocalUiScale.current
             StardewBoard(
                 modifier = Modifier.fillMaxSize(),
                 headerTitle = "ФИНАНСОВЫЙ СЛОВАРИК",
@@ -166,27 +168,30 @@ fun GlossaryDialog(
                     // подсказка
                     PixelPanel(
                         modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        contentPadding = PaddingValues(
+                            horizontal = (12.dp * uiScale).coerceIn(8.dp, 14.dp),
+                            vertical = (8.dp * uiScale).coerceIn(5.dp, 10.dp)
+                        )
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            LampochkaIcon(modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
+                            LampochkaIcon(modifier = Modifier.size((20.dp * uiScale).coerceIn(15.dp, 22.dp)))
+                            Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
                             Text(
                                 text = "Нажми на слово, чтобы узнать его значение!",
-                                fontSize = 16.sp,
+                                fontSize = (15f * uiScale).coerceIn(11f, 17f).sp,
                                 fontFamily = AppFontFamily,
                                 color = PixelTextMuted,
-                                lineHeight = 21.sp
+                                lineHeight = (20f * uiScale).coerceIn(14f, 22f).sp
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
 
                     // список терминов
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy((8.dp * uiScale).coerceIn(4.dp, 10.dp)),
                         contentPadding = PaddingValues(bottom = 8.dp)
                     ) {
                         items(glossary.size, key = { index -> glossary[index].term }) { index ->
@@ -202,7 +207,10 @@ fun GlossaryDialog(
                                     ) {
                                         expandedIndex = if (isExpanded) null else index
                                     },
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
+                                contentPadding = PaddingValues(
+                                    horizontal = (12.dp * uiScale).coerceIn(8.dp, 14.dp),
+                                    vertical = (10.dp * uiScale).coerceIn(6.dp, 12.dp)
+                                )
                             ) {
                                 Column(modifier = Modifier.fillMaxWidth()) {
                                     Row(
@@ -211,7 +219,7 @@ fun GlossaryDialog(
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .size(38.dp)
+                                                .size((38.dp * uiScale).coerceIn(28.dp, 40.dp))
                                                 .clip(RoundedCornerShape(6.dp))
                                                 .background(if (isExpanded) PixelGoldBright.copy(alpha = 0.25f) else Color(0xFFE8DAC2))
                                                 .border(
@@ -221,14 +229,14 @@ fun GlossaryDialog(
                                                 ),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            RenderBoardIcon(term.icon, modifier = Modifier.size(22.dp))
+                                            RenderBoardIcon(term.icon, modifier = Modifier.size((22.dp * uiScale).coerceIn(16.dp, 24.dp)))
                                         }
 
-                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Spacer(modifier = Modifier.width((12.dp * uiScale).coerceIn(8.dp, 14.dp)))
 
                                         Text(
                                             text = term.term,
-                                            fontSize = 17.sp,
+                                            fontSize = (17f * uiScale).coerceIn(13f, 19f).sp,
                                             fontFamily = AppFontFamily,
                                             fontWeight = FontWeight.Black,
                                             color = PixelTextDark,
@@ -237,40 +245,43 @@ fun GlossaryDialog(
 
                                         Text(
                                             text = if (isExpanded) "▲" else "▼",
-                                            fontSize = 14.sp,
+                                            fontSize = (14f * uiScale).coerceIn(11f, 16f).sp,
                                             fontWeight = FontWeight.Bold,
                                             color = if (isExpanded) PixelGoldDark else PixelTextMuted
                                         )
                                     }
 
                                     if (isExpanded) {
-                                        Spacer(modifier = Modifier.height(10.dp))
+                                        Spacer(modifier = Modifier.height((10.dp * uiScale).coerceIn(6.dp, 12.dp)))
 
                                         Text(
                                             text = term.definition,
-                                            fontSize = 16.sp,
+                                            fontSize = (15f * uiScale).coerceIn(11f, 17f).sp,
                                             color = PixelTextDark,
-                                            lineHeight = 21.sp
+                                            lineHeight = (20f * uiScale).coerceIn(14f, 22f).sp
                                         )
 
                                         if (term.example.isNotBlank()) {
-                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .pixelButtonBackground(containerColor = Color(0xFFDCEDC8))
-                                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                                                    .padding(
+                                                        horizontal = (12.dp * uiScale).coerceIn(8.dp, 14.dp),
+                                                        vertical = (8.dp * uiScale).coerceIn(5.dp, 10.dp)
+                                                    )
                                             ) {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    StarIcon(modifier = Modifier.size(20.dp))
-                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    StarIcon(modifier = Modifier.size((20.dp * uiScale).coerceIn(15.dp, 22.dp)))
+                                                    Spacer(modifier = Modifier.width((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
                                                     Text(
                                                         text = term.example,
                                                         fontFamily = AppFontFamily,
-                                                        fontSize = 15.sp,
+                                                        fontSize = (14.5f * uiScale).coerceIn(11f, 16.5f).sp,
                                                         fontWeight = FontWeight.SemiBold,
                                                         color = PixelGreenCrop,
-                                                        lineHeight = 20.sp
+                                                        lineHeight = (19f * uiScale).coerceIn(14f, 21f).sp
                                                     )
                                                 }
                                             }
@@ -282,14 +293,14 @@ fun GlossaryDialog(
 
                         // кнопка закрытия
                         item {
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height((4.dp * uiScale).coerceIn(2.dp, 6.dp)))
                             PixelButton(
                                 text = "Закрыть словарик",
                                 onClick = onDismiss,
                                 containerColor = PixelWoodMedium,
                                 textColor = PixelParchmentLight,
                                 modifier = Modifier.fillMaxWidth(),
-                                fontSize = 16.sp
+                                fontSize = (16f * uiScale).coerceIn(12f, 18f).sp
                             )
                         }
                     }

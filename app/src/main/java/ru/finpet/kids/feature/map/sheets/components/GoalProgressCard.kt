@@ -68,6 +68,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.PixelIcon
 import ru.finpet.kids.core.designsystem.TextSecondary
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
 
@@ -76,24 +77,11 @@ fun GoalStickerIcon(
     goalId: String,
     modifier: Modifier = Modifier.size(28.dp)
 ) {
-    when (goalId) {
-        "goal_ball" -> Image(
-            painter = painterResource(id = R.drawable.ball),
-            contentDescription = "Футбольный мяч",
-            modifier = modifier
-        )
-        "goal_headphones" -> Image(
-            painter = painterResource(id = R.drawable.headphones),
-            contentDescription = "Беспроводные наушники",
-            modifier = modifier
-        )
-        "goal_scooter" -> Image(
-            painter = painterResource(id = R.drawable.samokat),
-            contentDescription = "Городской самокат",
-            modifier = modifier
-        )
-        else -> TargetIcon(modifier = modifier)
-    }
+    PixelIcon(
+        icon = goalId,
+        modifier = modifier,
+        contentDescription = goalId
+    )
 }
 
 /**
