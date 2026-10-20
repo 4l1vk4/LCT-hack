@@ -410,6 +410,9 @@ fun SchoolBottomSheet(
                 // Список квестов для открытой стадии
                 filteredQuests.forEach { quest ->
                     val isDone = progressList.any { it.questId == quest.id && it.isCompleted }
+                    val isFailedToday = progressList.any {
+                        it.questId == quest.id && !it.isCompleted && it.completedInPeriod == currentPeriodIndex
+                    }
                     val isTarget = targetQuestId != null && quest.id == targetQuestId
 
                     // Случайный начальный вариант ситуации для разнообразия
@@ -452,6 +455,14 @@ fun SchoolBottomSheet(
                                         color = FreshGreen,
                                         fontWeight = FontWeight.Bold
                                     )
+                                } else if (isFailedToday) {
+                                    Text(
+                                        text = "[Вернись завтра]",
+                                        fontFamily = AppFontFamily,
+                                        fontSize = (13f * uiScale).coerceIn(10f, 14f).sp,
+                                        color = JoyOrange,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 } else {
                                     Text(
                                         text = "+${quest.rewardCoins} монет",
@@ -484,7 +495,7 @@ fun SchoolBottomSheet(
                             )
 
                             // Кнопка вариативности рандома (если есть альтернативные тексты ситуации)
-                            if (quest.dynamicVariants.size > 1 && !isDone && !isDailyLimitReached) {
+                            if (quest.dynamicVariants.size > 1 && !isDone && !isFailedToday && !isDailyLimitReached) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 PixelButton(
                                     text = "Другая ситуация",
@@ -501,7 +512,36 @@ fun SchoolBottomSheet(
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            if (!isDone && isDailyLimitReached) {
+                            if (isFailedToday) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color(0xFFFFF3E0))
+                                        .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(8.dp))
+                                        .padding(12.dp)
+                                ) {
+                                    Column {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = "Учебная пауза",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = (15f * uiScale).coerceIn(11f, 17f).sp,
+                                                color = Color(0xFFE65100),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Возвращайся к этому заданию завтра со свежими силами, чтобы решить правильно и забрать награду.",
+                                            fontFamily = AppFontFamily,
+                                            fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
+                                            color = PixelTextDark,
+                                            lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
+                                        )
+                                    }
+                                }
+                            } else if (!isDone && isDailyLimitReached) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()

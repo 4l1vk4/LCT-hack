@@ -143,12 +143,17 @@ class QuestEngineUseCaseTest {
     }
 
     @Test
-    fun `executeOption with incorrect choice gives zero coins`() = runTest {
-        val result = questEngineUseCase.executeOption("quest_choice_1", "opt_candy")
+    fun `executeOption with incorrect choice gives zero coins and does not complete quest`() = runTest {
+        val result = questEngineUseCase.executeOption("quest_choice_1", "opt_candy", dayIndex = 5)
         assertNotNull(result)
         assertFalse(result?.isRecommended == true)
         assertEquals(0, result?.coinsAwarded)
         assertEquals(100, result?.newBalance) // Баланс не изменился
+
+        val saved = repository.quests["quest_choice_1"]
+        assertNotNull(saved)
+        assertFalse("Ошибочный ответ не закрывает квест навсегда", saved?.isCompleted == true)
+        assertEquals(5, saved?.completedInPeriod)
     }
 
     @Test
@@ -161,7 +166,29 @@ class QuestEngineUseCaseTest {
         assertEquals("Правильный ответ — Копилка!", result?.feedback)
 
         val saved = repository.quests["quest_text_1"]
-        assertTrue(saved?.isCompleted == true)
+        assertNotNull(saved)
+        assertFalse("Ошибочный ввод не завершает квест, позволяя решить его завтра", saved?.isCompleted == true)
+        assertEquals(3, saved?.completedInPeriod)
+    }
+
+    @Test
+    fun `quest failed today can be retried and completed successfully next day`() = runTest {
+        // День 1: ребенок ошибся
+        val failResult = questEngineUseCase.executeOption("quest_choice_1", "opt_candy", dayIndex = 1)
+        assertFalse(failResult?.isRecommended == true)
+        val progressDay1 = repository.quests["quest_choice_1"]
+        assertFalse(progressDay1?.isCompleted == true)
+        assertEquals(1, progressDay1?.completedInPeriod)
+
+        // День 2: ребенок выбирает правильный ответ и восстанавливает прогресс
+        val successResult = questEngineUseCase.executeOption("quest_choice_1", "opt_lunch", dayIndex = 2)
+        assertTrue(successResult?.isRecommended == true)
+        assertEquals(40, successResult?.coinsAwarded)
+        assertEquals(140, successResult?.newBalance)
+
+        val progressDay2 = repository.quests["quest_choice_1"]
+        assertTrue("Квест успешно пройден на следующий день", progressDay2?.isCompleted == true)
+        assertEquals(2, progressDay2?.completedInPeriod)
     }
 
     @Test
@@ -179,6 +206,10 @@ class QuestEngineUseCaseTest {
         assertFalse(resultUnbalanced?.isRecommended == true)
         assertEquals(0, resultUnbalanced?.coinsAwarded)
         assertEquals("Старайся откладывать от 30% до 50%.", resultUnbalanced?.feedback)
+
+        val saved = repository.quests["quest_alloc_1"]
+        assertNotNull(saved)
+        assertFalse("Несбалансированное распределение не завершает квест", saved?.isCompleted == true)
     }
 
     @Test
