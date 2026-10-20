@@ -81,6 +81,8 @@ class FakeFinPetRepository : FinPetRepository {
     }
 
     override fun getQuestProgress(): Flow<List<QuestProgressEntity>> = flowOf(quests.values.toList())
+    override suspend fun getAllQuestProgressSync(): List<QuestProgressEntity> = quests.values.toList()
+    override suspend fun getQuestProgressByIdSync(questId: String): QuestProgressEntity? = quests[questId]
     override suspend fun saveQuestProgress(progress: QuestProgressEntity) {
         quests[progress.questId] = progress
     }

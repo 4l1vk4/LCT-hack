@@ -563,11 +563,10 @@ class MainViewModel @Inject constructor(
 
     private suspend fun getCompletedTodayQuestsCount(): Int {
         val currentDay = _virtualDate.value.dayOfMonth
-        val prof = repository.getProfileSync()
         val schoolQuestIds = (_quests.value.ifEmpty { contentRepository.getQuests() }).map { it.id }.toSet()
-        return repository.getQuestProgress().first().count {
+        return repository.getAllQuestProgressSync().count {
             it.questId in schoolQuestIds &&
-            (it.completedInPeriod == currentDay || (prof != null && it.completedInPeriod == prof.currentPeriodIndex)) &&
+            it.completedInPeriod == currentDay &&
             it.isCompleted
         }
     }
@@ -576,7 +575,7 @@ class MainViewModel @Inject constructor(
         val qList = _quests.value.ifEmpty { contentRepository.getQuests() }
         if (qList.isEmpty()) return false
         val prof = repository.getProfileSync() ?: return false
-        val progress = repository.getQuestProgress().first()
+        val progress = repository.getAllQuestProgressSync()
         val isDemo = demoMode.value
         val currentStageIndex = when (prof.growthStage) {
             "ADULT" -> 2
@@ -605,7 +604,8 @@ class MainViewModel @Inject constructor(
         if (result != null && result.isRecommended) {
             MatchThreePreferences.awardSchoolBooster(context)
         }
-        if (getCompletedTodayQuestsCount() >= 2) {
+        val todayCount = getCompletedTodayQuestsCount()
+        if (todayCount >= 2 || areAllAvailableQuestsDone()) {
             calendarDao.completeChecklistTaskByCategory(_virtualDate.value.dayOfMonth, "SCHOOL")
         }
         if (areAllAvailableQuestsDone()) {
@@ -616,7 +616,12 @@ class MainViewModel @Inject constructor(
 
     fun answerQuest(questId: String, optionId: String) {
         viewModelScope.launch {
-            if (!demoMode.value && getCompletedTodayQuestsCount() >= 2) return@launch
+            if (!demoMode.value) {
+                val existing = repository.getQuestProgressByIdSync(questId)
+                if (existing?.isCompleted == true) return@launch
+                if (existing != null && !existing.isCompleted && existing.completedInPeriod == _virtualDate.value.dayOfMonth) return@launch
+                if (getCompletedTodayQuestsCount() >= 2) return@launch
+            }
             val result = questEngineUseCase.executeOption(questId, optionId, _virtualDate.value.dayOfMonth)
             onQuestAnswered(result)
         }
@@ -624,7 +629,12 @@ class MainViewModel @Inject constructor(
 
     fun answerQuestText(questId: String, answer: String) {
         viewModelScope.launch {
-            if (!demoMode.value && getCompletedTodayQuestsCount() >= 2) return@launch
+            if (!demoMode.value) {
+                val existing = repository.getQuestProgressByIdSync(questId)
+                if (existing?.isCompleted == true) return@launch
+                if (existing != null && !existing.isCompleted && existing.completedInPeriod == _virtualDate.value.dayOfMonth) return@launch
+                if (getCompletedTodayQuestsCount() >= 2) return@launch
+            }
             val result = questEngineUseCase.executeTextAnswer(questId, answer, _virtualDate.value.dayOfMonth)
             onQuestAnswered(result)
         }
@@ -632,7 +642,12 @@ class MainViewModel @Inject constructor(
 
     fun answerQuestAllocation(questId: String, amount: Int) {
         viewModelScope.launch {
-            if (!demoMode.value && getCompletedTodayQuestsCount() >= 2) return@launch
+            if (!demoMode.value) {
+                val existing = repository.getQuestProgressByIdSync(questId)
+                if (existing?.isCompleted == true) return@launch
+                if (existing != null && !existing.isCompleted && existing.completedInPeriod == _virtualDate.value.dayOfMonth) return@launch
+                if (getCompletedTodayQuestsCount() >= 2) return@launch
+            }
             val result = questEngineUseCase.executeAllocation(questId, amount, _virtualDate.value.dayOfMonth)
             onQuestAnswered(result)
         }

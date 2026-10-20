@@ -43,10 +43,22 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import ru.finpet.kids.R
 
 @Composable
@@ -684,7 +696,7 @@ fun CatRunawayIcon(
 ) {
     Image(
         painter = painterResource(id = R.drawable.cat_runaway),
-        contentDescription = "Питомец убежал",
+        contentDescription = "Питомец ушёл погулять",
         modifier = modifier
     )
 }
@@ -708,7 +720,8 @@ fun PixelCheckbox(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    size: Dp = 28.dp
 ) {
     val imageRes = if (checked) R.drawable.check else R.drawable.checkbox
     val clickableModifier = if (onCheckedChange != null && enabled) {
@@ -722,7 +735,7 @@ fun PixelCheckbox(
         painter = painterResource(id = imageRes),
         contentDescription = if (checked) "Выбрано" else "Не выбрано",
         modifier = modifier
-            .size(28.dp)
+            .size(size)
             .then(clickableModifier)
     )
 }
@@ -776,7 +789,9 @@ fun FinCard(
 ) {
     Box(
         modifier = modifier
-            .pixelPanelBackground()
+            .pixelPanelBackground(
+                containerColor = if (backgroundColor != CardSurface && backgroundColor != Color.Unspecified) backgroundColor else null
+            )
             .padding(horizontal = 4.dp, vertical = 2.dp)
     ) {
         content()
@@ -832,4 +847,97 @@ fun RichFeedbackText(
         lineHeight = lineHeight,
         modifier = modifier
     )
+}
+
+/**
+ * Пиксельный слайдер на основе shkala.png (фон) и dvigatel.png (бегунок).
+ * Заполнение прогресса отображается слева от ползунка в фирменном полукруглом стиле.
+ */
+@Composable
+fun PixelSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    val uiScale = LocalUiScale.current
+    val sliderHeight = (26.dp * uiScale).coerceIn(20.dp, 30.dp)
+
+    BoxWithConstraints(
+        modifier = modifier
+            .height(sliderHeight)
+            .fillMaxWidth()
+    ) {
+        val density = LocalDensity.current
+        val widthPx = constraints.maxWidth.toFloat()
+        val heightPx = with(density) { sliderHeight.toPx() }
+        val thumbWidthPx = heightPx * (58f / 81f)
+        val maxTravelPx = maxOf(1f, widthPx - thumbWidthPx)
+
+        val rangeSpan = valueRange.endInclusive - valueRange.start
+        val fraction = if (rangeSpan > 0f) {
+            ((value - valueRange.start) / rangeSpan).coerceIn(0f, 1f)
+        } else 0f
+
+        val updateValueFromPx: (Float) -> Unit = { xPx ->
+            val clampedX = (xPx - thumbWidthPx / 2f).coerceIn(0f, maxTravelPx)
+            val newFraction = clampedX / maxTravelPx
+            val newValue = valueRange.start + newFraction * rangeSpan
+            onValueChange(newValue)
+        }
+
+        val thumbOffsetPx = fraction * maxTravelPx
+        val fillWidthPx = thumbOffsetPx + thumbWidthPx * (38f / 58f)
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(percent = 50))
+                .pointerInput(enabled, maxTravelPx) {
+                    if (!enabled) return@pointerInput
+                    detectTapGestures { offset ->
+                        updateValueFromPx(offset.x)
+                    }
+                }
+                .pointerInput(enabled, maxTravelPx) {
+                    if (!enabled) return@pointerInput
+                    detectHorizontalDragGestures { change, _ ->
+                        change.consume()
+                        updateValueFromPx(change.position.x)
+                    }
+                }
+        ) {
+            // Фон шкалы
+            Image(
+                painter = painterResource(id = R.drawable.shkala),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+
+            // Заполнение шкалы слева до бегунка
+            if (fraction > 0.001f) {
+                val fillWidthDp = with(density) { fillWidthPx.toDp() }
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(fillWidthDp)
+                        .background(Color(0xFF8A6F30))
+                )
+            }
+
+            // Бегунок-двигатель с полукругом слева и разделителем
+            val thumbOffsetDp = with(density) { thumbOffsetPx.toDp() }
+            Image(
+                painter = painterResource(id = R.drawable.dvigatel),
+                contentDescription = null,
+                modifier = Modifier
+                    .offset(x = thumbOffsetDp)
+                    .fillMaxHeight()
+                    .aspectRatio(58f / 81f),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+    }
 }

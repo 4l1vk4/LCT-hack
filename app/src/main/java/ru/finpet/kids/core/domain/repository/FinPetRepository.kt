@@ -43,6 +43,8 @@ interface FinPetRepository {
     suspend fun initDefaultGoals(goals: List<GoalEntity>)
 
     fun getQuestProgress(): Flow<List<QuestProgressEntity>>
+    suspend fun getAllQuestProgressSync(): List<QuestProgressEntity>
+    suspend fun getQuestProgressByIdSync(questId: String): QuestProgressEntity?
     suspend fun saveQuestProgress(progress: QuestProgressEntity)
 
     suspend fun resetAllData()

@@ -26,6 +26,7 @@ import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelButton
+import ru.finpet.kids.core.designsystem.PixelCheckbox
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.TextPrimary

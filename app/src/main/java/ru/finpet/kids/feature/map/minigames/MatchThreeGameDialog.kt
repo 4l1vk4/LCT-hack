@@ -714,12 +714,12 @@ fun MatchThreeGameDialog(
                     )
                 }
 
-                // 8. Бейджи с количеством бустеров: отцентрированы точно на круглых ушках кнопок (сдвинуты правее и выше)
+                // 8. Бейджи с количеством бустеров
                 val badgePositions = listOf(
-                    Triple(BoosterType.SINGLE, 257f to 1864f, singleCount),
-                    Triple(BoosterType.COLUMN, 465f to 1864f, columnCount),
-                    Triple(BoosterType.ROW, 674f to 1864f, rowCount),
-                    Triple(BoosterType.AREA, 883f to 1864f, areaCount)
+                    Triple(BoosterType.SINGLE, 261f to 1868f, singleCount),
+                    Triple(BoosterType.COLUMN, 469f to 1868f, columnCount),
+                    Triple(BoosterType.ROW, 678f to 1868f, rowCount),
+                    Triple(BoosterType.AREA, 887f to 1868f, areaCount)
                 )
 
                 badgePositions.forEach { (type, pos, count) ->

@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.finpet.kids.core.data.local.entity.GoalEntity
 import ru.finpet.kids.core.designsystem.CoinIcon
+import ru.finpet.kids.core.designsystem.PixelCheckbox
 import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
@@ -351,31 +352,15 @@ fun GoalProgressCard(
                         ) { onSelectActiveGoal(goal.id) }
                         .padding(vertical = 2.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .graphicsLayer {
-                                scaleX = checkboxScale
-                                scaleY = checkboxScale
-                            }
-                            .size((26.dp * uiScale).coerceIn(18.dp, 28.dp))
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(if (isSelected) JoyOrange else Color(0xFFD7C4A5))
-                            .border(
-                                width = 1.5.dp,
-                                color = if (isSelected) PixelGoldDark else Color(0xFF8D6E63).copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(4.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isSelected) {
-                            Text(
-                                text = "✓",
-                                color = Color.White,
-                                fontSize = (16f * uiScale).coerceIn(12f, 18f).sp,
-                                fontWeight = FontWeight.Black
-                            )
+                    PixelCheckbox(
+                        checked = isSelected,
+                        onCheckedChange = { onSelectActiveGoal(goal.id) },
+                        size = (26.dp * uiScale).coerceIn(18.dp, 28.dp),
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = checkboxScale
+                            scaleY = checkboxScale
                         }
-                    }
+                    )
 
                     Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
                     GoalStickerIcon(goalId = goal.id, modifier = Modifier.size((26.dp * uiScale).coerceIn(18.dp, 28.dp)))

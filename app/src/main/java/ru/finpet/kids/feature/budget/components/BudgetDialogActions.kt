@@ -50,7 +50,7 @@ fun BudgetDialogActions(
             val confirmText = when {
                 isOverBudget -> "Перерасход"
                 uiScale < 0.85f -> "Утвердить"
-                else -> "📜 Утвердить план"
+                else -> "Утвердить план"
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),

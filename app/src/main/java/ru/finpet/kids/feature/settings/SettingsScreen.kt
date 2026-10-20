@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import ru.finpet.kids.core.designsystem.PixelSlider
 import ru.finpet.kids.core.designsystem.PixelSwitch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -78,7 +79,7 @@ fun SettingsScreen(
             ) {
                 Column {
                     Text(
-                        text = "⚙️ Настройки",
+                        text = "Настройки",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = TextPrimary
@@ -151,15 +152,13 @@ fun SettingsScreen(
                                     color = JoyOrange
                                 )
                             }
-                            Slider(
+                            PixelSlider(
                                 value = musicVolume,
                                 onValueChange = onMusicVolumeChange,
                                 valueRange = 0f..1f,
-                                colors = SliderDefaults.colors(
-                                    thumbColor = JoyOrange,
-                                    activeTrackColor = JoyOrange,
-                                    inactiveTrackColor = Color(0xFFFFE0B2)
-                                )
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp)
                             )
                         }
                     }

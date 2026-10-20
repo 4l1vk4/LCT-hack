@@ -336,32 +336,29 @@ fun DayDetailsDialog(
                     if (isToday && demoMode) {
                         item {
                             Spacer(modifier = Modifier.height((4.dp * uiScale).coerceIn(2.dp, 4.dp)))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp))
-                            ) {
                                 PixelButton(
-                                    text = "⏩ Пропустить день",
+                                    text = "Пропустить день",
                                     onClick = onCompletePeriod,
                                     containerColor = PixelGreenCrop,
                                     textColor = Color.White,
                                     borderColor = Color(0xFF1B5E20),
-                                    modifier = Modifier.weight(1f),
+                                    modifier = Modifier.fillMaxWidth(),
                                     fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
                                     contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
                                 )
 
+                                Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
+
                                 PixelButton(
-                                    text = "🗓️ Пропустить период (+200)",
+                                    text = "Пропустить период (+200)",
                                     onClick = onAdvancePeriod,
                                     containerColor = JoyOrange,
                                     textColor = Color.White,
                                     borderColor = Color(0xFFBF360C),
-                                    modifier = Modifier.weight(1f),
+                                    modifier = Modifier.fillMaxWidth(),
                                     fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
                                     contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
                                 )
-                            }
 
                             if (growthStage != "ADULT") {
                                 val nextStageText = if (growthStage == "BABY") {

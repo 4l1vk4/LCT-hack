@@ -435,7 +435,6 @@ fun HomeGoalsBottomSheet(
             confirmButton = {
                 PixelButton(
                     text = "В домик!",
-                    icon = "🏠",
                     onClick = {
                         completedGoalCelebration = null
                         onDismiss()

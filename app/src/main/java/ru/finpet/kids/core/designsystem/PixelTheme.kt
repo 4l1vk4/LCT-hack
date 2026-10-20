@@ -25,6 +25,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.unit.Dp
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -554,37 +560,65 @@ fun PixelAlertDialog(
     ) {
         FinPetTheme {
             KeepScreenImmersive()
+            val configuration = LocalConfiguration.current
+            val maxDialogHeight = (configuration.screenHeightDp * 0.85f).dp
+
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.92f)
-                    .wrapContentHeight(),
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onDismissRequest
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                StardewBoard(
-                    headerTitle = title,
-                    headerIcon = icon,
-                    modifier = modifier
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.92f)
+                        .heightIn(max = maxDialogHeight)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {}
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp, vertical = 4.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    StardewBoard(
+                        headerTitle = title,
+                        headerIcon = icon,
+                        modifier = modifier.heightIn(max = maxDialogHeight)
                     ) {
-                        content()
-                        Spacer(modifier = Modifier.height(14.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = maxDialogHeight - 70.dp)
+                                .padding(horizontal = 4.dp, vertical = 4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            if (dismissButton != null) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    dismissButton()
-                                }
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f, fill = false)
+                                    .verticalScroll(rememberScrollState()),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                content()
                             }
-                            Box(modifier = Modifier.weight(1f)) {
-                                confirmButton()
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (dismissButton != null) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        dismissButton()
+                                    }
+                                }
+                                Box(modifier = Modifier.weight(1f)) {
+                                    confirmButton()
+                                }
                             }
                         }
                     }

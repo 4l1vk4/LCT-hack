@@ -271,9 +271,9 @@ fun BudgetPlanVsFactCard(
                                     "• Честные накопления: пополняй копилку только после того, как котик накормлен, и держи покупки в рамках плана.\n\n" +
                                     "• Экономить с умом: неизрасходованные монеты в кошельке не снижают процент, если питомец сыт и здоров!",
                             fontFamily = AppFontFamily,
-                            fontSize = 17.sp,
+                            fontSize = (15f * uiScale).coerceIn(12f, 16f).sp,
                             color = PixelTextDark,
-                            lineHeight = 23.sp
+                            lineHeight = (20f * uiScale).coerceIn(16f, 22f).sp
                         )
                     }
                 }

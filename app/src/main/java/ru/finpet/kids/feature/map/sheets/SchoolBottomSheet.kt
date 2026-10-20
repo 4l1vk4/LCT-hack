@@ -33,8 +33,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import kotlin.math.roundToInt
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
+import ru.finpet.kids.core.designsystem.PixelSlider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -257,7 +256,10 @@ fun SchoolBottomSheet(
 
             // Оповещение об исчерпании дневного лимита (2 задачи в день)
             if (isDailyLimitReached) {
-                FinCard(modifier = Modifier.fillMaxWidth()) {
+                FinCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    backgroundColor = Color(0xFFD4ECD5)
+                ) {
                     Row(
                         modifier = Modifier.padding(
                             horizontal = (12.dp * uiScale).coerceIn(8.dp, 14.dp),
@@ -269,7 +271,7 @@ fun SchoolBottomSheet(
                             modifier = Modifier
                                 .size((36.dp * uiScale).coerceIn(26.dp, 38.dp))
                                 .clip(RoundedCornerShape(6.dp))
-                                .pixelButtonBackground(containerColor = PixelGoldBright.copy(alpha = 0.35f)),
+                                .pixelButtonBackground(containerColor = FreshGreen.copy(alpha = 0.35f)),
                             contentAlignment = Alignment.Center
                         ) {
                             BooksIcon(modifier = Modifier.size((22.dp * uiScale).coerceIn(16.dp, 24.dp)))
@@ -281,7 +283,7 @@ fun SchoolBottomSheet(
                                 fontFamily = AppFontFamily,
                                 fontSize = (16f * uiScale).coerceIn(11f, 18f).sp,
                                 fontWeight = FontWeight.Bold,
-                                color = PixelTextDark
+                                color = Color(0xFF1B5E20)
                             )
                             Text(
                                 text = "Ты решил 2 задачи за сегодня ($displayTodaySolved/2). Новые уроки откроются в следующий день!",
@@ -456,7 +458,25 @@ fun SchoolBottomSheet(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy((4.dp * uiScale).coerceIn(2.dp, 6.dp))
                             ) {
-                                if (isFailedToday) {
+                                if (isDone) {
+                                    Box(
+                                        modifier = Modifier
+                                            .pixelButtonBackground(containerColor = Color(0xFFE8F5E9))
+                                            .padding(
+                                                horizontal = (8.dp * uiScale).coerceIn(5.dp, 10.dp),
+                                                vertical = (3.5.dp * uiScale).coerceIn(2.dp, 5.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "Выполнено!",
+                                            fontFamily = AppFontFamily,
+                                            fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
+                                            color = PixelGreenCrop,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                } else if (isFailedToday) {
                                     Box(
                                         modifier = Modifier
                                             .pixelButtonBackground(containerColor = Color(0xFFFFF3E0))
@@ -476,7 +496,7 @@ fun SchoolBottomSheet(
                                                 modifier = Modifier.size((14.dp * uiScale).coerceIn(11.dp, 17.dp))
                                             )
                                             Text(
-                                                text = "Вернись завтра",
+                                                text = "Неверный ответ",
                                                 fontFamily = AppFontFamily,
                                                 fontSize = (13.5f * uiScale).coerceIn(10f, 16f).sp,
                                                 color = JoyOrange,
@@ -484,7 +504,7 @@ fun SchoolBottomSheet(
                                             )
                                         }
                                     }
-                                } else if (!isDone) {
+                                } else {
                                     Box(
                                         modifier = Modifier
                                             .pixelButtonBackground(containerColor = Color(0xFFFFF8E1))
@@ -511,11 +531,13 @@ fun SchoolBottomSheet(
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
+                            // Отступ от надписи +8 монет и статуса
+                            Spacer(modifier = Modifier.height((10.dp * uiScale).coerceIn(7.dp, 14.dp)))
 
                             // Название задания
                             Text(
                                 text = quest.title,
+                                fontFamily = AppFontFamily,
                                 fontSize = (16f * uiScale).coerceIn(12f, 18f).sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary
@@ -526,6 +548,7 @@ fun SchoolBottomSheet(
                             // Описание ситуации
                             Text(
                                 text = displaySituation,
+                                fontFamily = AppFontFamily,
                                 fontSize = (14f * uiScale).coerceIn(10f, 16f).sp,
                                 color = TextPrimary,
                                 lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
@@ -533,7 +556,7 @@ fun SchoolBottomSheet(
 
                             // Кнопка вариативности рандома (если есть альтернативные тексты ситуации)
                             if (quest.dynamicVariants.size > 1 && !isDone && !isFailedToday && !isDailyLimitReached) {
-                                Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 8.dp)))
+                                Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(5.dp, 10.dp)))
                                 PixelButton(
                                     text = "Другая ситуация",
                                     onClick = {
@@ -544,13 +567,13 @@ fun SchoolBottomSheet(
                                     textColor = PixelParchmentLight,
                                     fontSize = (14f * uiScale).coerceIn(11f, 16f).sp,
                                     contentPadding = PaddingValues(
-                                        horizontal = (14.dp * uiScale).coerceIn(9.dp, 16.dp),
-                                        vertical = (7.dp * uiScale).coerceIn(4.dp, 8.dp)
+                                        horizontal = (14.dp * uiScale).coerceIn(10.dp, 16.dp),
+                                        vertical = (7.dp * uiScale).coerceIn(4.dp, 9.dp)
                                     )
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height((10.dp * uiScale).coerceIn(6.dp, 12.dp)))
+                            Spacer(modifier = Modifier.height((12.dp * uiScale).coerceIn(8.dp, 14.dp)))
 
                             if (isFailedToday) {
                                 Box(
@@ -561,14 +584,8 @@ fun SchoolBottomSheet(
                                         .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(8.dp))
                                         .padding((12.dp * uiScale).coerceIn(8.dp, 14.dp))
                                 ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.sad_mood_3vryad),
-                                            contentDescription = null,
-                                            modifier = Modifier.size((34.dp * uiScale).coerceIn(26.dp, 42.dp))
-                                        )
-                                        Spacer(modifier = Modifier.width((10.dp * uiScale).coerceIn(6.dp, 12.dp)))
-                                        Column {
+                                    Column {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
                                             Text(
                                                 text = "Учебная пауза",
                                                 fontFamily = AppFontFamily,
@@ -576,15 +593,15 @@ fun SchoolBottomSheet(
                                                 color = Color(0xFFE65100),
                                                 fontWeight = FontWeight.Bold
                                             )
-                                            Spacer(modifier = Modifier.height((3.dp * uiScale).coerceIn(2.dp, 5.dp)))
-                                            Text(
-                                                text = "Возвращайся к этому заданию завтра со свежими силами, чтобы решить правильно и забрать награду.",
-                                                fontFamily = AppFontFamily,
-                                                fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
-                                                color = PixelTextDark,
-                                                lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
-                                            )
                                         }
+                                        Spacer(modifier = Modifier.height((4.dp * uiScale).coerceIn(2.dp, 6.dp)))
+                                        Text(
+                                            text = "Возвращайся к этому заданию завтра со свежими силами, чтобы решить правильно и забрать награду.",
+                                            fontFamily = AppFontFamily,
+                                            fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
+                                            color = PixelTextDark,
+                                            lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
+                                        )
                                     }
                                 }
                             } else if (!isDone && isDailyLimitReached) {
@@ -594,7 +611,7 @@ fun SchoolBottomSheet(
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(Color(0xFFFFF3E0))
                                         .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(8.dp))
-                                        .padding(12.dp)
+                                        .padding((12.dp * uiScale).coerceIn(8.dp, 14.dp))
                                 ) {
                                     Text(
                                         text = "На сегодня лимит задач исчерпан ($displayTodaySolved/2). Переходи к следующему дню, чтобы решать новые задания!",
@@ -605,7 +622,6 @@ fun SchoolBottomSheet(
                                     )
                                 }
                             } else {
-                                // --- РЕНДЕРИНГ МЕХАНИКИ ПО ТИПУ ЗАДАНИЯ ---
                                 when (quest.type) {
                                 "TEXT_INPUT" -> {
                                     TextInputQuestSection(
@@ -660,12 +676,12 @@ fun SchoolBottomSheet(
                                     )
                                 }
                             }
-                            }
                         }
                     }
                 }
             }
         }
+    }
     }
 
     // Модальное окно со словариком терминов
@@ -978,6 +994,35 @@ private fun MoneyAllocationQuestSection(
                 color = PixelTextDark
             )
 
+            // Текущее распределение сумм
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(PixelParchmentLight)
+                    .border(1.5.dp, PixelParchmentBorder, RoundedCornerShape(8.dp))
+                    .padding(horizontal = (12.dp * uiScale).coerceIn(8.dp, 16.dp), vertical = (8.dp * uiScale).coerceIn(6.dp, 10.dp)),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val labelTextSize = (13f * uiScale).coerceIn(10f, 15f).sp
+                Text(
+                    text = "${quest.allocationTarget.ifEmpty { "В копилку" }}: $allocation ($percent%)",
+                    fontFamily = AppFontFamily,
+                    fontSize = labelTextSize,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFE65100)
+                )
+
+                Text(
+                    text = "На радости: $remaining",
+                    fontFamily = AppFontFamily,
+                    fontSize = labelTextSize,
+                    fontWeight = FontWeight.Bold,
+                    color = PixelGreenCrop
+                )
+            }
+
             // Интерактивный ползунок распределения
             val btnSize = (40.dp * uiScale).coerceIn(32.dp, 44.dp)
             Row(
@@ -996,16 +1041,10 @@ private fun MoneyAllocationQuestSection(
                     contentPadding = PaddingValues(0.dp)
                 )
 
-                Slider(
+                PixelSlider(
                     value = allocation.toFloat(),
                     onValueChange = { onAllocationChange(((it / 10).toInt() * 10).coerceIn(0, total)) },
                     valueRange = 0f..total.toFloat(),
-                    steps = (total / 10) - 1,
-                    colors = SliderDefaults.colors(
-                        thumbColor = JoyOrange,
-                        activeTrackColor = JoyOrange,
-                        inactiveTrackColor = Color(0xFF66BB6A)
-                    ),
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = (8.dp * uiScale).coerceIn(4.dp, 10.dp))
@@ -1022,96 +1061,6 @@ private fun MoneyAllocationQuestSection(
                     fontSize = (22f * uiScale).coerceIn(16f, 24f).sp,
                     contentPadding = PaddingValues(0.dp)
                 )
-            }
-
-            // Наглядная шкала распределения двух направлений с орбами
-            val totalOrbs = (total / 10).coerceIn(1, 20)
-            val allocatedOrbs = ((allocation.toFloat() / total) * totalOrbs).roundToInt()
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(PixelParchmentLight)
-                    .border(1.5.dp, PixelParchmentBorder, RoundedCornerShape(8.dp))
-                    .padding((10.dp * uiScale).coerceIn(6.dp, 12.dp)),
-                verticalArrangement = Arrangement.spacedBy((8.dp * uiScale).coerceIn(4.dp, 10.dp))
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val orbIconSize = (16.dp * uiScale).coerceIn(12.dp, 18.dp)
-                    val orbTextSize = (13f * uiScale).coerceIn(10f, 15f).sp
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(id = R.drawable.orb),
-                            contentDescription = null,
-                            colorFilter = ColorFilter.tint(JoyOrange, BlendMode.SrcIn),
-                            modifier = Modifier.size(orbIconSize)
-                        )
-                        Spacer(modifier = Modifier.width((4.dp * uiScale).coerceIn(2.dp, 6.dp)))
-                        Text(
-                            text = "${quest.allocationTarget.ifEmpty { "В копилку" }}: $allocation ($percent%)",
-                            fontFamily = AppFontFamily,
-                            fontSize = orbTextSize,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFE65100)
-                        )
-                    }
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "На радости: $remaining",
-                            fontFamily = AppFontFamily,
-                            fontSize = orbTextSize,
-                            fontWeight = FontWeight.Bold,
-                            color = PixelGreenCrop
-                        )
-                        Spacer(modifier = Modifier.width((4.dp * uiScale).coerceIn(2.dp, 6.dp)))
-                        Image(
-                            painter = painterResource(id = R.drawable.orb),
-                            contentDescription = null,
-                            colorFilter = ColorFilter.tint(Color(0xFF66BB6A), BlendMode.SrcIn),
-                            modifier = Modifier.size(orbIconSize)
-                        )
-                    }
-                }
-
-                // Ряд пиксельных орбов распределения
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFFEBE0D0))
-                        .padding(horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp), vertical = (5.dp * uiScale).coerceIn(3.dp, 6.dp)),
-                    horizontalArrangement = Arrangement.spacedBy((3.dp * uiScale).coerceIn(1.dp, 4.dp)),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    repeat(totalOrbs) { index ->
-                        val isTarget = index < allocatedOrbs
-                        Image(
-                            painter = painterResource(id = R.drawable.orb),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                            colorFilter = ColorFilter.tint(
-                                color = if (isTarget) JoyOrange else Color(0xFF66BB6A),
-                                blendMode = BlendMode.SrcIn
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null
-                                ) {
-                                    val newAlloc = ((index + 1) * (total / totalOrbs)).coerceIn(0, total)
-                                    onAllocationChange(newAlloc)
-                                }
-                        )
-                    }
-                }
             }
 
             // Кнопка подтверждения распределения

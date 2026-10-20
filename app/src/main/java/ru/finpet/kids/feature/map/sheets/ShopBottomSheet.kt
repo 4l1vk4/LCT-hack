@@ -242,7 +242,7 @@ fun ShopBottomSheet(
                         LockIcon(modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Лавка закрыта: ${profile?.petName ?: "Кот"} убежал! Поставь миску корма у двери в комнате котика, чтобы вернуть его.",
+                            text = "Лавка закрыта: ${profile?.petName ?: "Кот"} ушёл погулять и грустит! Поставь миску корма у двери в комнате котика, чтобы вернуть его.",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFC62828),

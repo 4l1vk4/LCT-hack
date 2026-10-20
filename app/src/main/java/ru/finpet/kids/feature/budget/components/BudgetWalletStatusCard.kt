@@ -94,35 +94,36 @@ fun BudgetWalletStatusCard(
         )
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
+            val textSize = (16f * uiScale).sp
+            val coinSize = (18.dp * uiScale)
+
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy((4.dp * uiScale).coerceIn(3.dp, 6.dp))
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "В кошельке: $balance",
                         fontWeight = FontWeight.Bold,
-                        fontSize = (16f * uiScale).coerceIn(11f, 17f).sp,
+                        fontSize = textSize,
                         color = PixelTextDark,
                         fontFamily = AppFontFamily
                     )
-                    Spacer(modifier = Modifier.width(3.dp))
-                    CoinIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 19.dp)))
+                    Spacer(modifier = Modifier.width((4.dp * uiScale).coerceIn(3.dp, 6.dp)))
+                    CoinIcon(modifier = Modifier.size(coinSize))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "В баночках: $totalPlanned",
-                        fontSize = (16f * uiScale).coerceIn(11f, 17f).sp,
+                        fontSize = textSize,
                         fontWeight = FontWeight.Bold,
                         color = if (isOverBudget) PixelRedBerry else PixelTextDark,
                         fontFamily = AppFontFamily
                     )
-                    Spacer(modifier = Modifier.width(3.dp))
-                    CoinIcon(modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 19.dp)))
+                    Spacer(modifier = Modifier.width((4.dp * uiScale).coerceIn(3.dp, 6.dp)))
+                    CoinIcon(modifier = Modifier.size(coinSize))
                 }
             }
-
             Spacer(modifier = Modifier.height(6.dp))
 
             Box(

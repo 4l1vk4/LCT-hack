@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
+import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.LifeJarIcon
 import ru.finpet.kids.core.designsystem.JoyJarIcon
 import ru.finpet.kids.core.designsystem.SavingJarIcon
@@ -34,10 +35,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -85,7 +90,7 @@ fun TutorialScreen(
             "Есть 3 типа решений:\n🥣 Обязательное — еда, вода, уход\n🎈 Желаемое — игрушки, вкусняшки\n🐷 Отложить — в копилку на мечту",
             "Наверху — панель с монетками, настроением и меню (инструкция + настройки).",
             "Внизу — вкладки. Покликай и изучи!",
-            "Следи за питомцем — если о нём не заботиться, он убежит.",
+            "Следи за питомцем — если о нём не заботиться, он начнёт грустить или уйдёт погулять.",
             "Удачи!"
         )
     }
@@ -255,7 +260,7 @@ fun TutorialScreen(
             }
         }
 
-        // 4. Точки-индикаторы
+        // 4. Точки-индикаторы в виде орбов
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -265,22 +270,18 @@ fun TutorialScreen(
                 .fillMaxWidth()
         ) {
             steps.indices.forEach { i ->
-                val isFilled = i <= step        // ← заполнены все точки ДО текущей включительно
+                val isFilled = i <= step        // ← заполнены все орбы ДО текущего включительно
 
-                Box(
+                Image(
+                    painter = painterResource(id = R.drawable.orb),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(
+                        color = if (isFilled) JoyOrange else Color(0xFFD7CCC8),
+                        blendMode = BlendMode.SrcIn
+                    ),
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
-                        .size(12.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (isFilled) JoyOrange
-                            else Color(0xFFFFFDF7)
-                        )
-                        .border(
-                            width = 1.5.dp,
-                            color = if (isFilled) Color(0xFFC67D00) else Color(0xFFFFD54F),
-                            shape = CircleShape
-                        )
+                        .size(14.dp)
                 )
             }
         }

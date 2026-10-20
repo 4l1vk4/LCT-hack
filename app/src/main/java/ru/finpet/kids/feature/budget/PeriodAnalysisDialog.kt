@@ -34,6 +34,8 @@ import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
 import ru.finpet.kids.core.designsystem.LampochkaIcon
+import ru.finpet.kids.core.designsystem.MiskaIcon
+import ru.finpet.kids.core.designsystem.ToyIcon
 import ru.finpet.kids.core.designsystem.PawsIcon
 import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.PixelBlueWater
@@ -70,12 +72,6 @@ fun PeriodAnalysisDialog(
     val plan = resolution.plan
     val actual = resolution.actual
     val newStats = resolution.newStats
-
-    val complianceEmoji = when {
-        compliance.totalPercent >= 85 -> "🏆"
-        compliance.totalPercent >= 60 -> "👍"
-        else -> "🌱"
-    }
 
     val complianceBadgeTitle = when {
         compliance.totalPercent >= 85 -> "Отличная точность бюджета! (${compliance.totalPercent}%)"
@@ -227,8 +223,6 @@ fun PeriodAnalysisDialog(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(text = complianceEmoji, fontSize = 20.sp)
-                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = complianceBadgeTitle,
                                         fontFamily = AppFontFamily,
@@ -280,12 +274,11 @@ fun PeriodAnalysisDialog(
                                             .padding(horizontal = 8.dp, vertical = 6.dp),
                                         verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
-                                        for (msg in problemMessages) {
+                                        for (msg in problemMessages.distinct()) {
                                             BudgetProblemRow(text = msg)
                                         }
                                     }
-                                }
-                                if (compliance.feedback.isNotBlank()) {
+                                } else if (compliance.feedback.isNotBlank()) {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     RichFeedbackText(
                                         text = compliance.feedback,
@@ -322,7 +315,7 @@ fun PeriodAnalysisDialog(
                     ) {
                         // Обязательные расходы (еда, уход)
                         PlanFactRow(
-                            icon = "🍲",
+                            icon = "miska",
                             title = "Обязательное",
                             planVal = if (!isBudgetUnplanned) plan.plannedMandatory else null,
                             actualVal = actual.actualMandatory,
@@ -332,7 +325,7 @@ fun PeriodAnalysisDialog(
                         )
                         // Желаемое (сладости, радости)
                         PlanFactRow(
-                            icon = "🎈",
+                            icon = "toy",
                             title = "Желаемое",
                             planVal = if (!isBudgetUnplanned) plan.plannedOptional else null,
                             actualVal = actual.actualOptional,
@@ -433,9 +426,9 @@ fun PeriodAnalysisDialog(
                     // Карточка прогресса эволюции
                     val stage = newStats.stage
                     val stageTitle = when (stage) {
-                        GrowthStage.BABY -> "Малыш 🐾"
-                        GrowthStage.TEEN -> "Подросток 🐾"
-                        GrowthStage.ADULT -> "Взрослый кот 👑"
+                        GrowthStage.BABY -> "Малыш"
+                        GrowthStage.TEEN -> "Подросток"
+                        GrowthStage.ADULT -> "Взрослый кот"
                     }
                     val targetPoints = when (stage) {
                         GrowthStage.BABY -> GrowthStage.TEEN.minPoints
@@ -463,7 +456,6 @@ fun PeriodAnalysisDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    StarIcon(modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "Стадия: $stageTitle",
@@ -563,10 +555,11 @@ private fun PlanFactRow(
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (icon == "🎯") {
-                    TargetIcon(modifier = Modifier.size(16.dp))
-                } else {
-                    Text(text = icon, fontSize = 16.sp)
+                when (icon) {
+                    "miska", "🍲" -> MiskaIcon(modifier = Modifier.size(16.dp))
+                    "toy", "🎈" -> ToyIcon(modifier = Modifier.size(16.dp))
+                    "🎯", "target" -> TargetIcon(modifier = Modifier.size(16.dp))
+                    else -> Text(text = icon, fontSize = 16.sp)
                 }
                 Spacer(modifier = Modifier.width(4.dp))
                 if (planVal != null) {

@@ -213,32 +213,29 @@ fun CalendarScreen(
         item(key = "next_day_action") {
             if (demoMode) {
                 Spacer(modifier = Modifier.height((10.dp * uiScale).coerceIn(6.dp, 14.dp)))
-                Row(
+                PixelButton(
+                    text = "Пропустить день",
+                    onClick = onCompletePeriod,
+                    containerColor = PixelGreenCrop,
+                    textColor = Color.White,
+                    borderColor = Color(0xFF1B5E20),
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp))
-                ) {
-                    PixelButton(
-                        text = "⏩ Пропустить день",
-                        onClick = onCompletePeriod,
-                        containerColor = PixelGreenCrop,
-                        textColor = Color.White,
-                        borderColor = Color(0xFF1B5E20),
-                        modifier = Modifier.weight(1f),
-                        fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
-                        contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
-                    )
+                    fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
+                    contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
+                )
 
-                    PixelButton(
-                        text = "🗓️ Пропустить период (+200)",
-                        onClick = onAdvancePeriod,
-                        containerColor = JoyOrange,
-                        textColor = Color.White,
-                        borderColor = Color(0xFFBF360C),
-                        modifier = Modifier.weight(1f),
-                        fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
-                        contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
-                    )
-                }
+                Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
+
+                PixelButton(
+                    text = "Пропустить период (+200)",
+                    onClick = onAdvancePeriod,
+                    containerColor = JoyOrange,
+                    textColor = Color.White,
+                    borderColor = Color(0xFFBF360C),
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = (13f * uiScale).coerceIn(9f, 15f).sp,
+                    contentPadding = PaddingValues(vertical = (6.dp * uiScale).coerceIn(4.dp, 8.dp), horizontal = (6.dp * uiScale).coerceIn(3.dp, 8.dp))
+                )
 
                 val currentStage = profile?.growthStage ?: "BABY"
                 if (currentStage != "ADULT") {
@@ -246,7 +243,7 @@ fun CalendarScreen(
                     val nextStageText = if (isBaby) {
                         "Пропустить 7 периодов (до «Подростка»)"
                     } else {
-                        "👑 Пропустить 11 периодов (до «Взрослого»)"
+                        "Пропустить 11 периодов (до «Взрослого»)"
                     }
                     Spacer(modifier = Modifier.height((6.dp * uiScale).coerceIn(4.dp, 8.dp)))
                     PixelButton(

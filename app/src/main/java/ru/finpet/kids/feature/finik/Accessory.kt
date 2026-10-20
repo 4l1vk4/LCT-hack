@@ -63,7 +63,7 @@ val ACCESSORIES: List<Accessory> = listOf(
     ),
     Accessory(
         id = "clown_nose",
-        title = "Клоунский нос",
+        title = "Нос",
         drawableRes = R.drawable.clown_nose,
         baby  = AccessoryPlacement(cx = 0.466f, cy = 0.490f, widthRatio = 0.125f),
         teen  = AccessoryPlacement(cx = 0.465f, cy = 0.505f, widthRatio = 0.110f),

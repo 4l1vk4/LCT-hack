@@ -124,8 +124,14 @@ interface QuestProgressDao {
     @Query("SELECT * FROM quest_progress")
     fun getAllProgress(): Flow<List<QuestProgressEntity>>
 
+    @Query("SELECT * FROM quest_progress")
+    suspend fun getAllProgressSync(): List<QuestProgressEntity>
+
     @Query("SELECT * FROM quest_progress WHERE questId = :questId LIMIT 1")
     fun getProgress(questId: String): Flow<QuestProgressEntity?>
+
+    @Query("SELECT * FROM quest_progress WHERE questId = :questId LIMIT 1")
+    suspend fun getProgressSync(questId: String): QuestProgressEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(progress: QuestProgressEntity)

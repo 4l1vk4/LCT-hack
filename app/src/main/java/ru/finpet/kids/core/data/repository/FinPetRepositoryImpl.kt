@@ -98,6 +98,12 @@ class FinPetRepositoryImpl @Inject constructor(
     override fun getQuestProgress(): Flow<List<QuestProgressEntity>> =
         questProgressDao.getAllProgress()
 
+    override suspend fun getAllQuestProgressSync(): List<QuestProgressEntity> =
+        questProgressDao.getAllProgressSync()
+
+    override suspend fun getQuestProgressByIdSync(questId: String): QuestProgressEntity? =
+        questProgressDao.getProgressSync(questId)
+
     override suspend fun saveQuestProgress(progress: QuestProgressEntity) {
         questProgressDao.insertOrUpdate(progress)
     }
