@@ -36,6 +36,8 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var musicPlayer: ru.finpet.kids.core.audio.MusicPlayer
 
+    private var mainViewModel: MainViewModel? = null
+
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { _ ->
@@ -73,6 +75,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val viewModel: MainViewModel = hiltViewModel()
+                    mainViewModel = viewModel
                     MainScreen(viewModel = viewModel)
                 }
             }
@@ -96,6 +99,7 @@ class MainActivity : ComponentActivity() {
         musicPlayer.onAppForeground()
         NotificationPreferences.recordAppOpen(this)
         NotificationScheduler.scheduleAll(this)
+        mainViewModel?.checkRealDayTransition()
     }
 
     override fun onStop() {

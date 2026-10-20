@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ru.finpet.kids.core.data.local.dao.CalendarDao
 import ru.finpet.kids.core.data.local.entity.CalendarNoteEntity
@@ -298,6 +300,7 @@ class MainViewModel @Inject constructor(
                 initVirtualTime()
                 settingsRepository.setDemoMode(false)
                 ensureCalendarDataInitialized()
+                startMidnightRealTimeWatcher()
                 _purchases.value = purchasesDeferred.await()
                 _quests.value = questsDeferred.await()
                 if (areAllAvailableQuestsDone()) {
@@ -320,13 +323,25 @@ class MainViewModel @Inject constructor(
             settingsRepository.setVirtualDate(vDate)
             vDate
         } else {
-            val daysPassed = ChronoUnit.DAYS.between(lastReal, todayReal)
+            val daysPassed = ChronoUnit.DAYS.between(lastReal, todayReal).toInt()
             if (daysPassed > 0) {
                 val baseDate = savedVirtual ?: lastReal
-                val advanced = baseDate.plusDays(daysPassed)
+                var iteratingDate = baseDate
+                // В реальном времени: при завершении настоящего дня производим перерасчет характеристик котика.
+                // Ограничиваем шаги (максимум 7), чтобы при долгом отсутствии не формировать стресс/тревогу у ребенка (по ТЗ),
+                // но при этом корректно начислить карманные деньги понедельника.
+                val steps = minOf(daysPassed, 7)
+                for (step in 0 until steps) {
+                    val nextStepDate = iteratingDate.plusDays(1)
+                    executeDayTransition(curDate = iteratingDate, nextDate = nextStepDate)
+                    iteratingDate = nextStepDate
+                }
+                if (daysPassed > steps) {
+                    iteratingDate = todayReal
+                }
                 settingsRepository.setLastRealDate(todayReal)
-                settingsRepository.setVirtualDate(advanced)
-                advanced
+                settingsRepository.setVirtualDate(iteratingDate)
+                iteratingDate
             } else {
                 savedVirtual ?: todayReal
             }
@@ -337,6 +352,27 @@ class MainViewModel @Inject constructor(
         val oldMonth = savedVirtual?.month
         if (oldMonth != null && oldMonth != resolvedVirtual.month) {
             seedCalendarNotesForMonth(YearMonth.from(resolvedVirtual))
+        }
+    }
+
+    private fun startMidnightRealTimeWatcher() {
+        viewModelScope.launch(Dispatchers.IO) {
+            while (isActive) {
+                delay(30_000L) // проверка каждые 30 секунд
+                checkRealDayTransition()
+            }
+        }
+    }
+
+    fun checkRealDayTransition() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val todayReal = LocalDate.now()
+            val lastReal = settingsRepository.getLastRealLocalDateSync() ?: todayReal
+            if (ChronoUnit.DAYS.between(lastReal, todayReal) > 0) {
+                initVirtualTime()
+                loadCurrentPeriod()
+                refreshReportSync()
+            }
         }
     }
 
@@ -717,112 +753,125 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private suspend fun executeDayTransition(
+        curDate: LocalDate,
+        nextDate: LocalDate,
+        isPeriodSkip: Boolean = false,
+        isDemoPeriodSkip: Boolean = false
+    ) {
+        val monthChanged = nextDate.month != curDate.month
+        val nextDayIndex = nextDate.dayOfMonth
+        val nextYM = YearMonth.from(nextDate)
+        val curYM = YearMonth.from(curDate)
+
+        if (monthChanged) {
+            seedCalendarNotesForMonth(nextYM)
+        }
+
+        val isPeriodTransition = nextDate.dayOfWeek == DayOfWeek.MONDAY
+
+        val profBefore = repository.getProfileSync()
+        val stageBefore = profBefore?.growthStage ?: "BABY"
+        val petName = profBefore?.petName ?: "Котик"
+
+        // 1. Применяем результаты прошедшего дня (curDate) к питомцу (включая переход в воскресенье)
+        if (profBefore != null) {
+            val fedYesterday = calendarDao.getNoteByDayAndCategory(curDate.dayOfMonth, "PET_FOOD")?.isCompleted == true
+            var newSatiety = profBefore.satiety
+            var newHealth = profBefore.health
+            var newMood = profBefore.mood
+            var newRunaway = profBefore.isPetRunaway
+            var newRunawayDays = profBefore.runawayDaysLeft
+
+            if (profBefore.isPetRunaway) {
+                if (profBefore.bowlPlacedToday) {
+                    val daysRemaining = profBefore.runawayDaysLeft - 1
+                    if (daysRemaining <= 0) {
+                        newRunaway = false
+                        newRunawayDays = 0
+                        newMood = 60
+                        newSatiety = 80
+                        newHealth = maxOf(profBefore.health, 70)
+                    } else {
+                        newRunawayDays = daysRemaining
+                        newMood = 0
+                    }
+                } else {
+                    newMood = 0
+                }
+            } else {
+                if (!fedYesterday) {
+                    newSatiety = maxOf(0, profBefore.satiety - 25)
+                    if (newSatiety < 20) {
+                        newHealth = maxOf(0, profBefore.health - 10)
+                    }
+                    newMood = maxOf(0, profBefore.mood - 15)
+                }
+                val effectiveMood = PetEconomyCalculator.calculateEffectiveMood(newMood, newSatiety, newHealth)
+                if (newMood <= 0 || effectiveMood <= 0) {
+                    newRunaway = true
+                    newRunawayDays = if (newRunawayDays <= 0) (1..3).random() else newRunawayDays
+                    newMood = 0
+                }
+            }
+
+            repository.saveProfile(
+                profBefore.copy(
+                    satiety = newSatiety,
+                    health = newHealth,
+                    mood = if (newRunaway) 0 else newMood,
+                    isPetRunaway = newRunaway,
+                    runawayDaysLeft = newRunawayDays,
+                    bowlPlacedToday = false
+                )
+            )
+        }
+
+        // 2. Если наступил понедельник — закрываем завершившийся период (неделю)
+        if (isPeriodTransition) {
+            val result = completePeriodUseCase(
+                nextDayIndex = nextDayIndex,
+                yearMonth = nextYM,
+                isPeriodSkip = isPeriodSkip,
+                isDemoPeriodSkip = isDemoPeriodSkip
+            )
+            if (result != null) {
+                val stageAfter = result.newStats.stage.name
+                if (stageAfter != stageBefore) {
+                    _petGrowthEvent.value = PetGrowthInfo(petName, result.newStats.stage)
+                }
+                if (result.newStats.stage == GrowthStage.ADULT) {
+                    val currentStart = settingsRepository.adultStageStartDay.first()
+                    if (currentStart == 0) {
+                        settingsRepository.setAdultStageStartDay(nextDayIndex)
+                    }
+                }
+                val isIncome = result.periodIncome > 0
+                val enrichedResult = result.copy(
+                    isMonthTransition = monthChanged,
+                    closedMonthName = CalendarMonthInfo.of(curYM).monthName,
+                    newMonthName = CalendarMonthInfo.of(nextYM).monthName,
+                    isIncomeDay = isIncome
+                )
+                // диалог анализа периода
+                _periodAnalysisEvent.value = enrichedResult
+                if (isIncome) {
+                    showMoneyEvent(
+                        amount = result.periodIncome,
+                        source = "Карманные деньги на неделю (понедельник)"
+                    )
+                }
+            }
+        }
+    }
+
     fun advanceOneDay() {
         viewModelScope.launch {
             val curDate = _virtualDate.value
             val nextDate = curDate.plusDays(1)
             _virtualDate.value = nextDate
             settingsRepository.setVirtualDate(nextDate)
-
-            val monthChanged = nextDate.month != curDate.month
-            val nextDayIndex = nextDate.dayOfMonth
-            val nextYM = YearMonth.from(nextDate)
-            val curYM = YearMonth.from(curDate)
-
-            if (monthChanged) {
-                seedCalendarNotesForMonth(nextYM)
-            }
-
-            val isPeriodTransition = nextDate.dayOfWeek == DayOfWeek.MONDAY
-
-            val profBefore = repository.getProfileSync()
-            val stageBefore = profBefore?.growthStage ?: "BABY"
-            val petName = profBefore?.petName ?: "Котик"
-
-            // 1. Применяем результаты прошедшего дня (curDate) к питомцу (включая переход в воскресенье)
-            if (profBefore != null) {
-                val fedYesterday = calendarDao.getNoteByDayAndCategory(curDate.dayOfMonth, "PET_FOOD")?.isCompleted == true
-                var newSatiety = profBefore.satiety
-                var newHealth = profBefore.health
-                var newMood = profBefore.mood
-                var newRunaway = profBefore.isPetRunaway
-                var newRunawayDays = profBefore.runawayDaysLeft
-
-                if (profBefore.isPetRunaway) {
-                    if (profBefore.bowlPlacedToday) {
-                        val daysRemaining = profBefore.runawayDaysLeft - 1
-                        if (daysRemaining <= 0) {
-                            newRunaway = false
-                            newRunawayDays = 0
-                            newMood = 60
-                            newSatiety = 80
-                            newHealth = maxOf(profBefore.health, 70)
-                        } else {
-                            newRunawayDays = daysRemaining
-                            newMood = 0
-                        }
-                    } else {
-                        newMood = 0
-                    }
-                } else {
-                    if (!fedYesterday) {
-                        newSatiety = maxOf(0, profBefore.satiety - 25)
-                        if (newSatiety < 20) {
-                            newHealth = maxOf(0, profBefore.health - 10)
-                        }
-                        newMood = maxOf(0, profBefore.mood - 15)
-                    }
-                    val effectiveMood = PetEconomyCalculator.calculateEffectiveMood(newMood, newSatiety, newHealth)
-                    if (newMood <= 0 || effectiveMood <= 0) {
-                        newRunaway = true
-                        newRunawayDays = if (newRunawayDays <= 0) (1..3).random() else newRunawayDays
-                        newMood = 0
-                    }
-                }
-
-                repository.saveProfile(
-                    profBefore.copy(
-                        satiety = newSatiety,
-                        health = newHealth,
-                        mood = if (newRunaway) 0 else newMood,
-                        isPetRunaway = newRunaway,
-                        runawayDaysLeft = newRunawayDays,
-                        bowlPlacedToday = false
-                    )
-                )
-            }
-
-            // 2. Если наступил понедельник — закрываем завершившийся период (неделю)
-            if (isPeriodTransition) {
-                val result = completePeriodUseCase(nextDayIndex = nextDayIndex, yearMonth = nextYM, isPeriodSkip = false)
-                if (result != null) {
-                    val stageAfter = result.newStats.stage.name
-                    if (stageAfter != stageBefore) {
-                        _petGrowthEvent.value = PetGrowthInfo(petName, result.newStats.stage)
-                    }
-                    if (result.newStats.stage == GrowthStage.ADULT) {
-                        val currentStart = settingsRepository.adultStageStartDay.first()
-                        if (currentStart == 0) {
-                            settingsRepository.setAdultStageStartDay(nextDayIndex)
-                        }
-                    }
-                    val isIncome = result.periodIncome > 0
-                    val enrichedResult = result.copy(
-                        isMonthTransition = monthChanged,
-                        closedMonthName = CalendarMonthInfo.of(curYM).monthName,
-                        newMonthName = CalendarMonthInfo.of(nextYM).monthName,
-                        isIncomeDay = isIncome
-                    )
-                    // диалог анализа периода
-                    _periodAnalysisEvent.value = enrichedResult
-                    if (isIncome) {
-                        showMoneyEvent(
-                            amount = result.periodIncome,
-                            source = "Карманные деньги на неделю (понедельник)"
-                        )
-                    }
-                }
-            }
+            executeDayTransition(curDate, nextDate)
             loadCurrentPeriod()
         }
     }
