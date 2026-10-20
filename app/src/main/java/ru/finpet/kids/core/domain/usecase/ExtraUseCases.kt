@@ -68,7 +68,7 @@ class QuestEngineUseCase @Inject constructor(
     private val repository: FinPetRepository,
     private val contentRepository: ContentRepository
 ) {
-    suspend fun executeOption(questId: String, optionId: String): QuestExecutionResult? {
+    suspend fun executeOption(questId: String, optionId: String, dayIndex: Int = 0): QuestExecutionResult? {
         val quests = contentRepository.getQuests()
         val quest = quests.find { it.id == questId } ?: return null
         val option = quest.options.find { it.id == optionId } ?: return null
@@ -76,29 +76,33 @@ class QuestEngineUseCase @Inject constructor(
         return repository.inTransaction<QuestExecutionResult?> {
             val profile = repository.getProfileSync() ?: return@inTransaction null
 
-            val coinsToAward = option.rewardCoins
+            val isSuccess = option.isRecommended
+            val coinsToAward = if (isSuccess) option.rewardCoins else 0
             val newBalance = profile.balance + coinsToAward
-            repository.saveProfile(profile.copy(balance = newBalance))
+            if (coinsToAward > 0) {
+                repository.saveProfile(profile.copy(balance = newBalance))
+            }
 
+            val progressPeriod = if (dayIndex > 0) dayIndex else profile.currentPeriodIndex
             val progress = QuestProgressEntity(
                 questId = questId,
-                isCompleted = true,
+                isCompleted = isSuccess,
                 selectedOptionId = optionId,
-                rewardClaimed = true,
-                completedInPeriod = profile.currentPeriodIndex
+                rewardClaimed = isSuccess,
+                completedInPeriod = progressPeriod
             )
             repository.saveQuestProgress(progress)
 
             QuestExecutionResult(
                 coinsAwarded = coinsToAward,
                 feedback = option.feedback,
-                isRecommended = option.isRecommended,
+                isRecommended = isSuccess,
                 newBalance = newBalance
             )
         }
     }
 
-    suspend fun executeTextAnswer(questId: String, answer: String): QuestExecutionResult? {
+    suspend fun executeTextAnswer(questId: String, answer: String, dayIndex: Int = 0): QuestExecutionResult? {
         val quests = contentRepository.getQuests()
         val quest = quests.find { it.id == questId } ?: return null
 
@@ -113,14 +117,17 @@ class QuestEngineUseCase @Inject constructor(
 
             val coinsToAward = if (isCorrect) quest.rewardCoins else 0
             val newBalance = profile.balance + coinsToAward
-            repository.saveProfile(profile.copy(balance = newBalance))
+            if (coinsToAward > 0) {
+                repository.saveProfile(profile.copy(balance = newBalance))
+            }
 
+            val progressPeriod = if (dayIndex > 0) dayIndex else profile.currentPeriodIndex
             val progress = QuestProgressEntity(
                 questId = questId,
-                isCompleted = true,
+                isCompleted = isCorrect,
                 selectedOptionId = "text:$cleanAnswer",
-                rewardClaimed = true,
-                completedInPeriod = profile.currentPeriodIndex
+                rewardClaimed = isCorrect,
+                completedInPeriod = progressPeriod
             )
             repository.saveQuestProgress(progress)
 
@@ -140,7 +147,7 @@ class QuestEngineUseCase @Inject constructor(
         }
     }
 
-    suspend fun executeAllocation(questId: String, allocatedAmount: Int): QuestExecutionResult? {
+    suspend fun executeAllocation(questId: String, allocatedAmount: Int, dayIndex: Int = 0): QuestExecutionResult? {
         val quests = contentRepository.getQuests()
         val quest = quests.find { it.id == questId } ?: return null
 
@@ -151,14 +158,17 @@ class QuestEngineUseCase @Inject constructor(
 
             val coinsToAward = if (isBalanced) quest.rewardCoins else 0
             val newBalance = profile.balance + coinsToAward
-            repository.saveProfile(profile.copy(balance = newBalance))
+            if (coinsToAward > 0) {
+                repository.saveProfile(profile.copy(balance = newBalance))
+            }
 
+            val progressPeriod = if (dayIndex > 0) dayIndex else profile.currentPeriodIndex
             val progress = QuestProgressEntity(
                 questId = questId,
-                isCompleted = true,
+                isCompleted = isBalanced,
                 selectedOptionId = "alloc:$allocatedAmount",
-                rewardClaimed = true,
-                completedInPeriod = profile.currentPeriodIndex
+                rewardClaimed = isBalanced,
+                completedInPeriod = progressPeriod
             )
             repository.saveQuestProgress(progress)
 

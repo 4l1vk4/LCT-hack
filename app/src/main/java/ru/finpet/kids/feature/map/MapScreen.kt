@@ -54,6 +54,7 @@ fun MapScreen(
     demoMode: Boolean = false,
     adultStageStartDay: Int = 0,
     selectedSkin: String = "cat_black",
+    currentDay: Int = 1,
     preorderItemIds: Set<String> = emptySet(),
     onTogglePreorderItem: (String) -> Unit = {},
     onQuickBuyItems: (List<PurchaseItem>) -> Unit = {},
@@ -144,7 +145,7 @@ fun MapScreen(
             petName = petName,
             growthStage = profile?.growthStage ?: "BABY",
             demoMode = demoMode,
-            currentPeriodIndex = profile?.currentPeriodIndex ?: 1,
+            currentPeriodIndex = if (currentDay > 0) currentDay else (profile?.currentPeriodIndex ?: 1),
             targetQuestId = targetQuestId,
             skinId = selectedSkin,
             petMood = petMood,
@@ -156,7 +157,12 @@ fun MapScreen(
                 val quest = quests.find { it.id == questId }
                 val opt = quest?.options?.find { it.id == optionId }
                 onAnswerQuest(questId, optionId)
-                questFeedback = opt?.feedback ?: "Молодец!"
+                val base = opt?.feedback ?: "Молодец!"
+                questFeedback = if (opt?.isRecommended == true) {
+                    base
+                } else {
+                    "$base\n\nЭто полезный урок! Задание остаётся за тобой — вернись завтра, чтобы решить его на отлично!"
+                }
             },
             onAnswerText = { questId, answerText ->
                 val quest = quests.find { it.id == questId }
@@ -170,7 +176,8 @@ fun MapScreen(
                     quest?.feedbackSuccess?.ifEmpty { "Правильно! Ты отлично разбираешься в финансовых терминах!" }
                 } else {
                     val exp = quest?.expectedAnswers?.firstOrNull() ?: ""
-                    quest?.feedbackFailure?.ifEmpty { "Хорошая попытка! Верный ответ: $exp." }
+                    val failText = quest?.feedbackFailure?.ifEmpty { "Хорошая попытка! Верный ответ: $exp." } ?: "Хорошая попытка! Верный ответ: $exp."
+                    "$failText\n\nЭто полезный урок! Задание остаётся за тобой — вернись завтра, чтобы решить его на отлично!"
                 } ?: "Отличный ответ!"
             },
             onAnswerAllocation = { questId, amount ->
@@ -180,7 +187,8 @@ fun MapScreen(
                 questFeedback = if (isBalanced) {
                     quest?.allocationSuccessFeedback?.ifEmpty { "Прекрасное распределение бюджета! Мудрый и взвешенный выбор." }
                 } else {
-                    quest?.allocationWarningFeedback?.ifEmpty { "Ты сделал выбор! Стремись к балансу между текущими радостями и будущей целью." }
+                    val warnText = quest?.allocationWarningFeedback?.ifEmpty { "Ты сделал выбор! Стремись к балансу между текущими радостями и будущей целью." } ?: "Ты сделал выбор!"
+                    "$warnText\n\nЭто полезный урок! Задание остаётся за тобой — вернись завтра, чтобы решить его на отлично!"
                 } ?: "Бюджет распределен!"
             }
         )

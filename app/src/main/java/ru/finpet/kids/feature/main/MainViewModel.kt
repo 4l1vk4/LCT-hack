@@ -581,7 +581,7 @@ class MainViewModel @Inject constructor(
     fun answerQuest(questId: String, optionId: String) {
         viewModelScope.launch {
             if (!demoMode.value && getCompletedTodayQuestsCount() >= 2) return@launch
-            val result = questEngineUseCase.executeOption(questId, optionId)
+            val result = questEngineUseCase.executeOption(questId, optionId, _virtualDate.value.dayOfMonth)
             onQuestAnswered(result)
         }
     }
@@ -589,7 +589,7 @@ class MainViewModel @Inject constructor(
     fun answerQuestText(questId: String, answer: String) {
         viewModelScope.launch {
             if (!demoMode.value && getCompletedTodayQuestsCount() >= 2) return@launch
-            val result = questEngineUseCase.executeTextAnswer(questId, answer)
+            val result = questEngineUseCase.executeTextAnswer(questId, answer, _virtualDate.value.dayOfMonth)
             onQuestAnswered(result)
         }
     }
@@ -597,7 +597,7 @@ class MainViewModel @Inject constructor(
     fun answerQuestAllocation(questId: String, amount: Int) {
         viewModelScope.launch {
             if (!demoMode.value && getCompletedTodayQuestsCount() >= 2) return@launch
-            val result = questEngineUseCase.executeAllocation(questId, amount)
+            val result = questEngineUseCase.executeAllocation(questId, amount, _virtualDate.value.dayOfMonth)
             onQuestAnswered(result)
         }
     }

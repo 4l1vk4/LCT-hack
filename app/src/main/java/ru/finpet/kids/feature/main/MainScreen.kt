@@ -307,6 +307,7 @@ fun MainScreen(
                             demoMode = demoMode,
                             adultStageStartDay = adultStageStartDay,
                             selectedSkin = ready?.skinId ?: "cat_black",
+                            currentDay = virtualDate.dayOfMonth,
                             preorderItemIds = preorderItemIds,
                             onTogglePreorderItem = { viewModel.togglePreorderItem(it) },
                             onQuickBuyItems = { viewModel.quickBuyItems(it) },
