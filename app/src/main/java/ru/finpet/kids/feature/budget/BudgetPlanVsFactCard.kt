@@ -246,11 +246,6 @@ fun BudgetPlanVsFactCard(
                                 },
                                 fontFamily = AppFontFamily
                             )
-                            Spacer(modifier = Modifier.width((3.dp * uiScale).coerceIn(2.dp, 4.dp)))
-                            Text(
-                                text = "ℹ️",
-                                fontSize = (11f * uiScale).coerceIn(9f, 13f).sp
-                            )
                         }
                     }
 
@@ -1222,7 +1217,7 @@ private fun BudgetHelpDialog(onDismiss: () -> Unit) {
                 Text(
                     text = "Показывает, насколько точно твои реальные траты совпали с планом в баночках.",
                     fontFamily = AppFontFamily,
-                    fontSize = 13.sp,
+                    fontSize = 15.sp,
                     color = PixelTextDark,
                     lineHeight = 18.sp
                 )
@@ -1230,7 +1225,7 @@ private fun BudgetHelpDialog(onDismiss: () -> Unit) {
                 Text(
                     text = "Шкала оценок:\n• 75-100% — Отлично! Ты умело управляешь бюджетом.\n• 50-74% — Хорошо, но были небольшие перерасходы.\n• Меньше 50% — Внимание! Траты сильно превысили план.",
                     fontFamily = AppFontFamily,
-                    fontSize = 12.sp,
+                    fontSize = 15.sp,
                     color = PixelTextMuted,
                     lineHeight = 17.sp
                 )
@@ -1238,7 +1233,7 @@ private fun BudgetHelpDialog(onDismiss: () -> Unit) {
                 Text(
                     text = "Совет: трать монеты осознанно и не забывай откладывать в копилку мечты!",
                     fontFamily = AppFontFamily,
-                    fontSize = 12.sp,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = PixelGreenCrop
                 )
