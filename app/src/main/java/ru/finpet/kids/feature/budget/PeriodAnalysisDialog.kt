@@ -50,6 +50,8 @@ import ru.finpet.kids.core.designsystem.RichFeedbackText
 import ru.finpet.kids.core.designsystem.StardewBoard
 import ru.finpet.kids.core.designsystem.TargetIcon
 import ru.finpet.kids.core.designsystem.WarningIcon
+import ru.finpet.kids.core.designsystem.OrbRow
+import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.domain.calculator.PetEconomyCalculator
 import ru.finpet.kids.core.domain.model.GrowthStage
 import ru.finpet.kids.core.domain.model.PeriodResolution
@@ -484,22 +486,13 @@ fun PeriodAnalysisDialog(
 
                             Spacer(modifier = Modifier.height(6.dp))
 
-                            // Прогресс-бар
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(8.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0xFFD7CCC8))
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth(progressFraction)
-                                        .height(8.dp)
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(if (stage == GrowthStage.ADULT) PixelGreenCrop else PixelGoldDark)
-                                )
-                            }
+                            // Прогресс-бар в виде ряда пиксельных орбов
+                            OrbRow(
+                                filledRatio = progressFraction,
+                                tintColor = if (stage == GrowthStage.ADULT) PixelGreenCrop else PixelGoldBright,
+                                orbCount = 20,
+                                emptyColor = Color(0xFFD7CCC8)
+                            )
 
                             Spacer(modifier = Modifier.height(6.dp))
 

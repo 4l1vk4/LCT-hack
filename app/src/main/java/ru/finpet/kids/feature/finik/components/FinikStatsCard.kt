@@ -18,24 +18,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.FinCard
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.LocalUiScale
+import ru.finpet.kids.core.designsystem.OrbRow
 import ru.finpet.kids.core.designsystem.OrbStatBar
-import ru.finpet.kids.core.designsystem.StarIcon
+import ru.finpet.kids.core.designsystem.PixelGoldBright
+import ru.finpet.kids.core.designsystem.PixelGoldDark
+import ru.finpet.kids.core.designsystem.PixelGreenCrop
+import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.SkyBlue
+import ru.finpet.kids.core.designsystem.StarIcon
 import ru.finpet.kids.core.designsystem.TextPrimary
 import ru.finpet.kids.core.designsystem.TextSecondary
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import ru.finpet.kids.core.designsystem.AppFontFamily
-import ru.finpet.kids.core.designsystem.PixelGoldDark
-import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.pixelButtonBackground
 import ru.finpet.kids.core.domain.model.GrowthStage
 
@@ -44,7 +41,7 @@ import ru.finpet.kids.core.domain.model.GrowthStage
  * - Отображает взвешенное общее настроение в процентах.
  * - Индикаторы характеристик: Сытость (яблоко), Энергия (молния), Здоровье (сердечко).
  * - Если стат <= 30% и котик дома, выводится знак внимания.
- * - Индикатор взросления и очков заботы.
+ * - Индикатор взросления и очков заботы, заполненный пиксельными орбами.
  */
 @Composable
 fun FinikStatsCard(
@@ -58,6 +55,7 @@ fun FinikStatsCard(
     growthStage: String = "BABY",
     modifier: Modifier = Modifier
 ) {
+    val uiScale = LocalUiScale.current
     FinCard(
         modifier = modifier
             .fillMaxWidth()
@@ -71,13 +69,13 @@ fun FinikStatsCard(
             ) {
                 Text(
                     text = "Состояние $displayName",
-                    fontSize = 17.sp,
+                    fontSize = (17f * uiScale).coerceIn(13f, 18f).sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
                 Text(
                     text = "$effectiveMood%",
-                    fontSize = 17.sp,
+                    fontSize = (17f * uiScale).coerceIn(13f, 18f).sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = remember(effectiveMood) {
                         when {
@@ -119,80 +117,71 @@ fun FinikStatsCard(
                 showWarning = !isPetRunaway
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
-            val stageEnum = try { GrowthStage.valueOf(growthStage) } catch (_: Exception) { GrowthStage.BABY }
-            val (stageName, targetPts) = when (stageEnum) {
-                GrowthStage.BABY -> Pair(stageEnum.title, GrowthStage.TEEN.minPoints)
-                GrowthStage.TEEN -> Pair(stageEnum.title, GrowthStage.ADULT.minPoints)
-                GrowthStage.ADULT -> Pair("Взрослый кот", GrowthStage.ADULT.minPoints)
-            }
-            val progressFraction = when (stageEnum) {
-                GrowthStage.BABY -> (carePoints.toFloat() / GrowthStage.TEEN.minPoints.toFloat()).coerceIn(0f, 1f)
-                GrowthStage.TEEN -> (carePoints.toFloat() / GrowthStage.ADULT.minPoints.toFloat()).coerceIn(0f, 1f)
-                GrowthStage.ADULT -> 1f
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .pixelButtonBackground(containerColor = Color(0xFFFFF9EE))
-                    .padding(horizontal = 14.dp, vertical = 10.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        StarIcon(modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Text(
-                            text = "Стадия: $stageName",
-                            fontFamily = AppFontFamily,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = PixelTextDark,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = if (stageEnum == GrowthStage.ADULT) "$carePoints" else "$carePoints / $targetPts",
-                            fontFamily = AppFontFamily,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PixelGoldDark
-                        )
-                        Spacer(modifier = Modifier.width(3.dp))
-                        StarIcon(modifier = Modifier.size(14.dp))
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(11.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Color(0xFFD7C4A5))
-                        .border(1.dp, Color(0xFF8D6E63).copy(alpha = 0.45f), RoundedCornerShape(4.dp))
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth(progressFraction)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(JoyOrange)
-                    )
-                }
-            }
-
-
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Следи за всеми показателями — сытость, здоровье и точность бюджета растят питомца!",
-                fontSize = 14.sp,
+                fontSize = (14f * uiScale).coerceIn(11f, 15f).sp,
                 color = TextSecondary,
-                lineHeight = 18.sp
+                lineHeight = (18f * uiScale).coerceIn(14f, 20f).sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+        val stageEnum = try { GrowthStage.valueOf(growthStage) } catch (_: Exception) { GrowthStage.BABY }
+        val (stageName, targetPts) = when (stageEnum) {
+            GrowthStage.BABY -> Pair(stageEnum.title, GrowthStage.TEEN.minPoints)
+            GrowthStage.TEEN -> Pair(stageEnum.title, GrowthStage.ADULT.minPoints)
+            GrowthStage.ADULT -> Pair("Взрослый кот", GrowthStage.ADULT.minPoints)
+        }
+        val progressFraction = when (stageEnum) {
+            GrowthStage.BABY -> (carePoints.toFloat() / GrowthStage.TEEN.minPoints.toFloat()).coerceIn(0f, 1f)
+            GrowthStage.TEEN -> (carePoints.toFloat() / GrowthStage.ADULT.minPoints.toFloat()).coerceIn(0f, 1f)
+            GrowthStage.ADULT -> 1f
+        }
+        val stageColor = if (stageEnum == GrowthStage.ADULT) PixelGreenCrop else PixelGoldBright
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .pixelButtonBackground(containerColor = Color(0xFF509676))
+                .padding(
+                    horizontal = (14.dp * uiScale).coerceIn(8.dp, 16.dp),
+                    vertical = (10.dp * uiScale).coerceIn(6.dp, 12.dp)
+                )
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Стадия: $stageName",
+                        fontFamily = AppFontFamily,
+                        fontSize = (16f * uiScale).coerceIn(12f, 17f).sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = PixelTextDark,
+                        letterSpacing = 0.5.sp
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = if (stageEnum == GrowthStage.ADULT) "$carePoints" else "$carePoints / $targetPts",
+                        fontFamily = AppFontFamily,
+                        fontSize = (15f * uiScale).coerceIn(11f, 16f).sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFF703E)
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    StarIcon(modifier = Modifier.size((20.dp * uiScale).coerceIn(10.dp, 24.dp)))
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            OrbRow(
+                filledRatio = progressFraction,
+                tintColor = stageColor,
+                orbCount = 20,
+                emptyColor = Color(0xFFFF703E)
             )
         }
     }

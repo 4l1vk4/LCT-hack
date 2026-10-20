@@ -62,6 +62,7 @@ import ru.finpet.kids.R
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.FinPetTheme
 import ru.finpet.kids.core.designsystem.KeepScreenImmersive
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelGoldBright
 import ru.finpet.kids.core.designsystem.PixelGoldDark
 import ru.finpet.kids.core.designsystem.PixelPanel
@@ -341,6 +342,7 @@ fun MatchThreeGameDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         FinPetTheme {
+            val uiScale = LocalUiScale.current
             KeepScreenImmersive()
 
             BoxWithConstraints(
@@ -413,7 +415,7 @@ fun MatchThreeGameDialog(
                             text = "$score",
                             fontFamily = AppFontFamily,
                             fontWeight = FontWeight.ExtraBold,
-                            fontSize = (32f * scale).coerceAtLeast(19f).sp,
+                            fontSize = (32f * scale * uiScale).coerceAtLeast(18f * uiScale).sp,
                             color = Color.White,
                             textAlign = TextAlign.Center
                         )
@@ -618,7 +620,7 @@ fun MatchThreeGameDialog(
                                     text = "КОМБО x$comboNum!",
                                     fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.ExtraBold,
-                                    fontSize = (22f * scale).coerceAtLeast(20f).sp,
+                                    fontSize = (22f * scale * uiScale).coerceIn(16f * uiScale, 28f * uiScale).sp,
                                     color = PixelGoldDark,
                                     textAlign = TextAlign.Center
                                 )
@@ -627,7 +629,7 @@ fun MatchThreeGameDialog(
                                     text = "+$bonusPts очков",
                                     fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = (16f * scale).coerceAtLeast(18f).sp,
+                                    fontSize = (16f * scale * uiScale).coerceIn(13f * uiScale, 22f * uiScale).sp,
                                     color = PixelTextDark,
                                     textAlign = TextAlign.Center
                                 )
@@ -636,7 +638,7 @@ fun MatchThreeGameDialog(
                                     text = activeStatus,
                                     fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.ExtraBold,
-                                    fontSize = (17f * scale).coerceAtLeast(20f).sp,
+                                    fontSize = (17f * scale * uiScale).coerceIn(13f * uiScale, 22f * uiScale).sp,
                                     color = PixelTextDark,
                                     textAlign = TextAlign.Center
                                 )
@@ -657,7 +659,7 @@ fun MatchThreeGameDialog(
                                     text = title,
                                     fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.ExtraBold,
-                                    fontSize = (18f * scale).coerceAtLeast(20f).sp,
+                                    fontSize = (18f * scale * uiScale).coerceIn(14f * uiScale, 24f * uiScale).sp,
                                     color = PixelGoldDark,
                                     textAlign = TextAlign.Center
                                 )
@@ -666,7 +668,7 @@ fun MatchThreeGameDialog(
                                     text = hint,
                                     fontFamily = AppFontFamily,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = (15f * scale).coerceAtLeast(18f).sp,
+                                    fontSize = (15f * scale * uiScale).coerceIn(12f * uiScale, 20f * uiScale).sp,
                                     color = PixelTextDark,
                                     textAlign = TextAlign.Center
                                 )
@@ -674,7 +676,7 @@ fun MatchThreeGameDialog(
                                 Text(
                                     text = "(нажми на бустер внизу для отмены)",
                                     fontFamily = AppFontFamily,
-                                    fontSize = (12f * scale).coerceAtLeast(16f).sp,
+                                    fontSize = (12f * scale * uiScale).coerceIn(10f * uiScale, 16f * uiScale).sp,
                                     color = Color(0xFF6B5848),
                                     textAlign = TextAlign.Center
                                 )
@@ -712,30 +714,46 @@ fun MatchThreeGameDialog(
                     )
                 }
 
-                // 8. Бейджи с количеством бустеров: отцентрированы точно на круглых ушках кнопок
+                // 8. Бейджи с количеством бустеров: отцентрированы точно на круглых ушках кнопок (сдвинуты правее и выше)
                 val badgePositions = listOf(
-                    245f to 1877f to singleCount,
-                    453f to 1877f to columnCount,
-                    662f to 1877f to rowCount,
-                    871f to 1877f to areaCount
+                    Triple(BoosterType.SINGLE, 257f to 1864f, singleCount),
+                    Triple(BoosterType.COLUMN, 465f to 1864f, columnCount),
+                    Triple(BoosterType.ROW, 674f to 1864f, rowCount),
+                    Triple(BoosterType.AREA, 883f to 1864f, areaCount)
                 )
 
-                val badgeFontSize = (28f * scale).coerceIn(11f, 18f).sp
-
-                badgePositions.forEach { (pos, count) ->
+                badgePositions.forEach { (type, pos, count) ->
                     val (bx, by) = pos
                     Box(
                         modifier = Modifier
                             .offset(x = cPx(bx), y = cPx(by))
-                            .size(cPx(70f), cPx(70f)),
+                            .size(cPx(70f), cPx(70f))
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                if (isResolving) return@clickable
+                                if (count > 0) {
+                                    activeBooster = if (activeBooster == type) null else type
+                                }
+                            },
                         contentAlignment = Alignment.Center
                     ) {
+                        // Динамическое масштабирование шрифта в зависимости от количества бустеров (1 цифра, 2 цифры, 3+ цифр)
+                        val digits = count.toString().length
+                        val baseSp = when {
+                            digits <= 1 -> 36f
+                            digits == 2 -> 26f
+                            else -> 20f
+                        }
+                        val badgeFontSize = (baseSp * scale * uiScale).coerceIn(8f * uiScale, 22f * uiScale).sp
+
                         Text(
                             text = "$count",
                             fontFamily = AppFontFamily,
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = badgeFontSize,
-                            color = Color(0xFF2E2213),
+                            color = if (count > 0) Color(0xFF2E2213) else Color(0xFF6B5848),
                             textAlign = TextAlign.Center
                         )
                     }

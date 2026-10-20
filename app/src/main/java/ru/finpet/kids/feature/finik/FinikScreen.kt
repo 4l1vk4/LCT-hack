@@ -123,9 +123,9 @@ fun FinikScreen(
     val initialSpeech = remember(isPetRunaway, effectiveMood, displayName) {
         when {
             isPetRunaway -> "Мяу... Мне было так грустно, что я пошел прогуляться. Поставь миску корма у двери!"
-            effectiveMood >= 80 -> "Мурр! Я полон сил и готов копить на мечту вместе с тобой!"
-            effectiveMood >= 50 -> "Привет! Не забудь покормить меня и проверить уроки в Школе!"
-            else -> "Мяу... Мне немного грустно. Давай купим вкусняшку в Лавке?"
+            effectiveMood >= 80 -> "Мурр! Я полон сил и готов копить на мечту вместе с тобой! Нажми на меня, если хочешь о чём-то спросить."
+            effectiveMood >= 50 -> "Привет! Не забудь покормить меня и заглянуть в Школу. Можешь нажать на меня и спросить что-нибудь!"
+            else -> "Мяу... Мне немного грустно. Давай купим вкусняшку в Лавке? А ещё можешь нажать на меня и спросить что-нибудь!"
         }
     }
     var currentSpeech by remember(initialSpeech) { mutableStateOf(initialSpeech) }
@@ -151,7 +151,15 @@ fun FinikScreen(
                 PixelPanel(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
+                        .padding(bottom = 8.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            if (!isPetRunaway) {
+                                panelOpen = true
+                            }
+                        },
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
                 ) {
                     Row(
@@ -159,17 +167,17 @@ fun FinikScreen(
                         verticalAlignment = Alignment.Top
                     ) {
                         if (isPetRunaway) {
-                            CatCryIcon(modifier = Modifier.size(22.dp))
+                            CatCryIcon(modifier = Modifier.size((22.dp * uiScale).coerceIn(16.dp, 24.dp)))
                         } else {
-                            CloudIcon(modifier = Modifier.size(22.dp))
+                            CloudIcon(modifier = Modifier.size((22.dp * uiScale).coerceIn(16.dp, 24.dp)))
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(4.dp, 8.dp)))
                         Text(
                             text = currentSpeech,
-                            fontSize = 16.sp,
+                            fontSize = (16f * uiScale).coerceIn(12f, 17f).sp,
                             fontWeight = FontWeight.Medium,
                             color = TextPrimary,
-                            lineHeight = 22.sp,
+                            lineHeight = (22f * uiScale).coerceIn(16f, 23f).sp,
                             modifier = Modifier.weight(1f)
                         )
                     }
