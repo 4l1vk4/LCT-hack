@@ -60,16 +60,7 @@ fun OrbStatBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                when (icon) {
-                    "⚡" -> LightningIcon(modifier = Modifier.size(16.dp))
-                    "❤️" -> HeartIcon(modifier = Modifier.size(16.dp))
-                    "🛡️" -> ShieldIcon(modifier = Modifier.size(16.dp))
-                    "🍎" -> AppleIcon(modifier = Modifier.size(16.dp))
-                    "📅" -> CalendarIcon(modifier = Modifier.size(16.dp))
-                    "📊" -> DiagramIcon(modifier = Modifier.size(16.dp))
-                    "⚠️" -> WarningIcon(modifier = Modifier.size(16.dp))
-                    else -> Text(text = icon, fontSize = 16.sp)
-                }
+                RenderBoardIcon(icon = icon, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = label,

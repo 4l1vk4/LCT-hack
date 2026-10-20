@@ -29,6 +29,7 @@ import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.ExclamationIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.MiskaIcon
 import ru.finpet.kids.core.designsystem.PixelAlertDialog
 import ru.finpet.kids.core.designsystem.PixelButton
@@ -51,6 +52,7 @@ fun FinikRunawaySection(
     modifier: Modifier = Modifier
 ) {
     var showConfirmDialog by remember { mutableStateOf(false) }
+    val uiScale = LocalUiScale.current
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -67,40 +69,35 @@ fun FinikRunawaySection(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                    .padding(
+                        horizontal = (14.dp * uiScale).coerceIn(8.dp, 16.dp),
+                        vertical = (10.dp * uiScale).coerceIn(6.dp, 12.dp)
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    ExclamationIcon(modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "$petName загрустил и ушел погулять...",
-                        fontFamily = AppFontFamily,
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.Black,
-                        color = PixelRedBerry
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    ExclamationIcon(modifier = Modifier.size(20.dp))
-                }
+                Text(
+                    text = "$petName загрустил и ушел погулять...",
+                    fontFamily = AppFontFamily,
+                    fontSize = (17f * uiScale).coerceIn(13f, 20f).sp,
+                    fontWeight = FontWeight.Black,
+                    color = PixelRedBerry,
+                    textAlign = TextAlign.Center
+                )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height((5.dp * uiScale).coerceIn(3.dp, 7.dp)))
 
                 Text(
                     text = "Настроение упало до 0%. Поставь миску его любимых вкусняшек у двери (цена x2 от обычного корма: 60 монет). Питомец вернётся через 1–3 дня, если ставить миску каждый день!",
                     fontFamily = AppFontFamily,
-                    fontSize = 14.sp,
+                    fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
                     color = PixelTextDark,
                     textAlign = TextAlign.Center,
-                    lineHeight = 19.sp
+                    lineHeight = (18f * uiScale).coerceIn(14f, 20f).sp
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height((5.dp * uiScale).coerceIn(3.dp, 7.dp)))
 
         if (bowlPlacedToday) {
             // миска уже поставлена сегодня — 9-slice PixelPanel
@@ -112,7 +109,10 @@ fun FinikRunawaySection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                        .padding(
+                            horizontal = (14.dp * uiScale).coerceIn(8.dp, 16.dp),
+                            vertical = (10.dp * uiScale).coerceIn(6.dp, 12.dp)
+                        ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
@@ -120,15 +120,15 @@ fun FinikRunawaySection(
                             text = "Миска с кормом стоит у двери!",
                             fontFamily = AppFontFamily,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
+                            fontSize = (15f * uiScale).coerceIn(11f, 17f).sp,
                             color = FreshGreen
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
+                        Spacer(modifier = Modifier.height((2.dp * uiScale).coerceIn(1.dp, 3.dp)))
                         Text(
                             text = "Кот чувствует заботу. Проверь завтра, вернулся ли он!",
                             fontFamily = AppFontFamily,
-                            fontSize = 14.sp,
-                            lineHeight = 19.sp,
+                            fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
+                            lineHeight = (18f * uiScale).coerceIn(14f, 20f).sp,
                             color = PixelTextDark
                         )
                     }
@@ -148,28 +148,13 @@ fun FinikRunawaySection(
                     enabled = canAffordBowl,
                     containerColor = JoyOrange,
                     textColor = PixelTextDark,
-                    fontSize = 15.sp,
+                    fontSize = (14f * uiScale).coerceIn(11f, 16f).sp,
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                        horizontal = (12.dp * uiScale).coerceIn(8.dp, 14.dp),
+                        vertical = (8.dp * uiScale).coerceIn(5.dp, 10.dp)
+                    ),
                     modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = { MiskaIcon(modifier = Modifier.size(18.dp)) },
-                    trailingIcon = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "(60 ",
-                                fontFamily = AppFontFamily,
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 15.sp,
-                                color = if (canAffordBowl) PixelTextDark else Color(0xFF7A6855)
-                            )
-                            CoinIcon(modifier = Modifier.size(15.dp))
-                            Text(
-                                text = ")",
-                                fontFamily = AppFontFamily,
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 15.sp,
-                                color = if (canAffordBowl) PixelTextDark else Color(0xFF7A6855)
-                            )
-                        }
-                    }
+                    icon = "🥣"
                 )
 
                 // красный восклицательный знак над кнопкой справа сверху
@@ -178,31 +163,33 @@ fun FinikRunawaySection(
                         .align(Alignment.TopEnd)
                         .offset(x = 4.dp, y = (-8).dp)
                 ) {
-                    ExclamationIcon(modifier = Modifier.size(24.dp))
+                    ExclamationIcon(modifier = Modifier.size((22.dp * uiScale).coerceIn(16.dp, 26.dp)))
                 }
             }
 
             if (!canAffordBowl) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height((4.dp * uiScale).coerceIn(2.dp, 5.dp)))
                 Text(
                     text = "Не хватает монет (нужно 60 монет). Загляни в домик и выполни задания по дому!",
                     fontFamily = AppFontFamily,
-                    fontSize = 14.sp,
-                    lineHeight = 19.sp,
+                    fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
+                    lineHeight = (18f * uiScale).coerceIn(14f, 20f).sp,
                     color = PixelRedBerry,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = (16.dp * uiScale).coerceIn(10.dp, 18.dp))
                 )
                 if (onNavigateToHomeChores != null) {
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height((5.dp * uiScale).coerceIn(3.dp, 7.dp)))
                     PixelButton(
-                        text = "В Домик к заданиям 🏡",
+                        text = "В Домик к заданиям",
+                        icon = "🏡",
                         onClick = onNavigateToHomeChores,
                         containerColor = JoyOrange,
                         textColor = PixelTextDark,
+                        fontSize = (14f * uiScale).coerceIn(11f, 16f).sp,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp)
+                            .padding(horizontal = (8.dp * uiScale).coerceIn(4.dp, 10.dp))
                     )
                 }
             }
@@ -211,6 +198,7 @@ fun FinikRunawaySection(
 
     // диалог подтверждения покупки корма для сбежавшего питомца
     if (showConfirmDialog) {
+        val uiScale2 = LocalUiScale.current
         PixelAlertDialog(
             onDismissRequest = { showConfirmDialog = false },
             title = "Корм для питомца",
@@ -225,7 +213,8 @@ fun FinikRunawaySection(
                     containerColor = JoyOrange,
                     textColor = PixelTextDark,
                     modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = { CoinIcon(modifier = Modifier.size(16.dp)) }
+                    fontSize = (15f * uiScale2).coerceIn(11f, 16f).sp,
+                    trailingIcon = { CoinIcon(modifier = Modifier.size((15.dp * uiScale2).coerceIn(11.dp, 18.dp))) }
                 )
             },
             dismissButton = {
@@ -234,7 +223,8 @@ fun FinikRunawaySection(
                     onClick = { showConfirmDialog = false },
                     containerColor = PixelWoodMedium,
                     textColor = PixelParchmentLight,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = (15f * uiScale2).coerceIn(11f, 16f).sp
                 )
             }
         ) {
@@ -242,20 +232,20 @@ fun FinikRunawaySection(
                 Text(
                     text = "$petName сейчас гуляет. Если купить и поставить миску корма у двери, он почувствует будет довольным и вернется домой через 1–3 дня!",
                     fontFamily = AppFontFamily,
-                    fontSize = 16.sp,
-                    lineHeight = 21.sp,
+                    fontSize = (15f * uiScale2).coerceIn(11f, 16f).sp,
+                    lineHeight = (20f * uiScale2).coerceIn(15f, 22f).sp,
                     color = PixelTextDark
                 )
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height((8.dp * uiScale2).coerceIn(5.dp, 12.dp)))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "Цена покупки: 60 ",
                         fontFamily = AppFontFamily,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        fontSize = (15f * uiScale2).coerceIn(11f, 16f).sp,
                         color = PixelTextDark
                     )
-                    CoinIcon(modifier = Modifier.size(18.dp))
+                    CoinIcon(modifier = Modifier.size((16.dp * uiScale2).coerceIn(12.dp, 20.dp)))
                 }
             }
         }

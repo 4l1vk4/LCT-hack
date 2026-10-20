@@ -311,16 +311,13 @@ fun AddRecurringExpenseDialog(
                 horizontalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp))
             ) {
                 icons.forEach { icon ->
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .pixelButtonBackground(containerColor = if (recIcon == icon) PixelGoldBright else PixelParchmentLight)
-                            .clickable { recIcon = icon }
-                            .padding(vertical = (5.dp * uiScale).coerceIn(3.dp, 6.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        RenderBoardIcon(icon, modifier = Modifier.size((16.dp * uiScale).coerceIn(12.dp, 18.dp)))
-                    }
+                    PixelButton(
+                        icon = icon,
+                        onClick = { recIcon = icon },
+                        containerColor = if (recIcon == icon) PixelGoldBright else PixelParchmentLight,
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = (5.dp * uiScale).coerceIn(3.dp, 6.dp))
+                    )
                 }
             }
 

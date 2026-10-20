@@ -1,9 +1,7 @@
 package ru.finpet.kids.feature.calendar.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
@@ -29,9 +27,9 @@ fun CalendarLegend(
     modifier: Modifier = Modifier
 ) {
     val uiScale = LocalUiScale.current
-    val iconSize = (12.dp * uiScale).coerceIn(9.dp, 14.dp)
-    val textFontSize = (11f * uiScale).coerceIn(8f, 13f).sp
-    val spacerWidth = (2.dp * uiScale).coerceIn(1.dp, 3.dp)
+    val iconSize = (14.dp * uiScale).coerceIn(12.dp, 15.dp)
+    val textFontSize = (14f * uiScale).coerceIn(12.5f, 14f).sp
+    val spacerWidth = (3.dp * uiScale).coerceIn(2.dp, 4.dp)
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         PawsIcon(modifier = Modifier.size(iconSize))

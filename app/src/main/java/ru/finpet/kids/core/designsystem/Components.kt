@@ -524,6 +524,83 @@ fun HappyMood3vryadIcon(
     )
 }
 
+@Composable
+fun HouseIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.house),
+        contentDescription = "Домик",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun SchoolIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.school),
+        contentDescription = "Школа",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun ShopIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.shop),
+        contentDescription = "Лавка",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun WardrobeIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.wardrobe),
+        contentDescription = "Шкаф",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun GalochkaIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.galochka),
+        contentDescription = "Галочка",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun CloseSignIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.close_sign),
+        contentDescription = "Закрыть",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun BallIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.ball),
+        contentDescription = "Мяч",
+        modifier = modifier
+    )
+}
+
 /**
  * Аутентичный пиксельный чекбокс на основе checkbox.png и check.png
  */

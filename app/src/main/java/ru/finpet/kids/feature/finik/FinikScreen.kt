@@ -50,6 +50,7 @@ import ru.finpet.kids.core.data.local.entity.GoalEntity
 import ru.finpet.kids.core.data.local.entity.ProfileEntity
 import androidx.compose.ui.text.style.TextAlign
 import ru.finpet.kids.core.designsystem.AppFontFamily
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import ru.finpet.kids.core.designsystem.PixelPanel
 import ru.finpet.kids.core.designsystem.PixelTextDark
 import ru.finpet.kids.core.designsystem.TextPrimary
@@ -111,6 +112,7 @@ fun FinikScreen(
     val isPetRunaway = profile?.isPetRunaway == true
     val mood = if (isPetRunaway) 0 else (profile?.mood ?: 70)
     val displayName = petName ?: profile?.petName ?: "Финни"
+    val uiScale = LocalUiScale.current
 
     // Взвешенное общее самочувствие котика
     val effectiveMood = remember(mood, satiety, health) {
@@ -214,11 +216,13 @@ fun FinikScreen(
                             .size(width = boardW, height = boardH),
                         contentAlignment = Alignment.Center
                     ) {
-                        val nameFontSize = when {
-                            displayName.length > 12 -> 11.sp
-                            displayName.length > 8  -> 13.sp
-                            else                    -> 15.sp
+                        val baseFontSize = when {
+                            displayName.length > 12 -> 11f
+                            displayName.length > 8  -> 13f
+                            else                    -> 15f
                         }
+                        val nameFontSize = (baseFontSize * uiScale).coerceIn(8f, 16f).sp
+                        val letterSpacing = (1f * uiScale).coerceIn(0.2f, 1.2f).sp
                         Text(
                             text = displayName.uppercase(),
                             fontFamily = AppFontFamily,
@@ -227,7 +231,7 @@ fun FinikScreen(
                             color = PixelTextDark,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
-                            letterSpacing = 1.sp
+                            letterSpacing = letterSpacing
                         )
                     }
 

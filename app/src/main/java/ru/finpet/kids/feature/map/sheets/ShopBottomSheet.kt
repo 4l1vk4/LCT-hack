@@ -452,7 +452,8 @@ fun ShopBottomSheet(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             PixelButton(
-                                text = "🏠 В Домик",
+                                text = "В Домик",
+                                icon = "🏠",
                                 onClick = {
                                     itemToConfirm = null
                                     onDismiss()
@@ -464,7 +465,8 @@ fun ShopBottomSheet(
                                 modifier = Modifier.weight(1f)
                             )
                             PixelButton(
-                                text = "🎓 В Школу",
+                                text = "В Школу",
+                                icon = "🎓",
                                 onClick = {
                                     itemToConfirm = null
                                     onDismiss()

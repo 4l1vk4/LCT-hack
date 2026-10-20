@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -140,7 +142,7 @@ fun RenderBoardIcon(icon: String, modifier: Modifier = Modifier.size(26.dp)) {
         "⚠️" -> WarningIcon(modifier = modifier)
         "⚡" -> LightningIcon(modifier = modifier)
         "❤️" -> HeartIcon(modifier = modifier)
-        "🛡️" -> ShieldIcon(modifier = modifier)
+        "🛡️", "🛡" -> ShieldIcon(modifier = modifier)
         "🍎" -> AppleIcon(modifier = modifier)
         "❗", "!" -> ExclamationIcon(modifier = modifier)
         "🔒" -> LockIcon(modifier = modifier)
@@ -154,6 +156,8 @@ fun RenderBoardIcon(icon: String, modifier: Modifier = Modifier.size(26.dp)) {
         "💡" -> LampochkaIcon(modifier = modifier)
         "🍯", "🫙", "empty_jar", "🏦" -> EmptyJarIcon(modifier = modifier)
         "saving_jar" -> SavingJarIcon(modifier = modifier)
+        "life_jar" -> LifeJarIcon(modifier = modifier)
+        "joy_jar" -> JoyJarIcon(modifier = modifier)
         "🐷", "piggy" -> PigIcon(modifier = modifier)
         "🍲", "🥣", "miska" -> MiskaIcon(modifier = modifier)
         "💬", "💭", "cloud" -> CloudIcon(modifier = modifier)
@@ -165,16 +169,29 @@ fun RenderBoardIcon(icon: String, modifier: Modifier = Modifier.size(26.dp)) {
         "💰", "money_bag" -> MoneyBagIcon(modifier = modifier)
         "🎈", "toy", "toys" -> ToyIcon(modifier = modifier)
         "🏷️", "discount", "happy_mood_3vryad" -> HappyMood3vryadIcon(modifier = modifier)
+        "🏠", "🏡", "house" -> HouseIcon(modifier = modifier)
+        "🏫", "🎓", "school" -> SchoolIcon(modifier = modifier)
+        "🏪", "🏬", "shop" -> ShopIcon(modifier = modifier)
+        "🚪", "wardrobe" -> WardrobeIcon(modifier = modifier)
+        "✓", "galochka", "check" -> GalochkaIcon(modifier = modifier)
+        "✕", "✖", "close", "cross" -> CloseSignIcon(modifier = modifier)
+        "⚽", "ball" -> BallIcon(modifier = modifier)
         "↺" -> Text(text = "↺", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PixelTextDark)
+        "" -> Unit
         else -> Text(text = icon, fontSize = 26.sp)
     }
 }
 
+enum class PixelIconPosition {
+    Leading,
+    Trailing,
+    Center
+}
 
 // Пиксельная кнопка на основе button_left_part, button_middle_little_part, button_right_part.
 @Composable
 fun PixelButton(
-    text: String,
+    text: String = "",
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     containerColor: Color = PixelGoldBright,
@@ -184,11 +201,15 @@ fun PixelButton(
     fontSize: TextUnit = 16.sp,
     maxLines: Int = 2,
     contentPadding: PaddingValues = PaddingValues(horizontal = 10.dp, vertical = 7.dp),
+    icon: String? = null,
+    iconSize: Dp? = null,
+    iconPosition: PixelIconPosition = PixelIconPosition.Leading,
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
     repeating: Boolean = false,
     repeatInitialDelayMillis: Long = 350L,
-    repeatIntervalMillis: Long = 100L
+    repeatIntervalMillis: Long = 100L,
+    content: (@Composable RowScope.() -> Unit)? = null
 ) {
     val uiScale = LocalUiScale.current
     val actualBg = if (enabled) containerColor else Color(0xFFC0B098)
@@ -213,6 +234,14 @@ fun PixelButton(
     } else {
         fontSize
     }
+
+    val defaultIconSize = iconSize ?: (16.dp * uiScale).coerceIn(12.dp, 20.dp)
+    val resolvedIcon: (@Composable () -> Unit)? = icon?.let {
+        { RenderBoardIcon(icon = it, modifier = Modifier.size(defaultIconSize)) }
+    }
+
+    val actualLeadingIcon = leadingIcon ?: if (iconPosition == PixelIconPosition.Leading) resolvedIcon else null
+    val actualTrailingIcon = trailingIcon ?: if (iconPosition == PixelIconPosition.Trailing) resolvedIcon else null
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -280,25 +309,70 @@ fun PixelButton(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            if (leadingIcon != null) {
-                leadingIcon()
-                Spacer(modifier = Modifier.width(iconSpacing))
-            }
-            Text(
-                text = text,
-                fontFamily = AppFontFamily,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = effectiveFontSize,
-                color = actualText,
-                textAlign = TextAlign.Center,
-                maxLines = maxLines
-            )
-            if (trailingIcon != null) {
-                Spacer(modifier = Modifier.width(iconSpacing))
-                trailingIcon()
+            if (content != null) {
+                content()
+            } else if (text.isBlank()) {
+                // Если текста нет, отображаем иконку прямо по центру кнопки
+                val centerIcon = if (iconPosition == PixelIconPosition.Center && resolvedIcon != null) {
+                    resolvedIcon
+                } else {
+                    actualLeadingIcon ?: actualTrailingIcon ?: resolvedIcon
+                }
+                centerIcon?.invoke()
+            } else {
+                if (actualLeadingIcon != null) {
+                    actualLeadingIcon()
+                    Spacer(modifier = Modifier.width(iconSpacing))
+                }
+                Text(
+                    text = text,
+                    fontFamily = AppFontFamily,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = effectiveFontSize,
+                    color = actualText,
+                    textAlign = TextAlign.Center,
+                    maxLines = maxLines
+                )
+                if (actualTrailingIcon != null) {
+                    Spacer(modifier = Modifier.width(iconSpacing))
+                    actualTrailingIcon()
+                }
             }
         }
     }
+}
+
+/**
+ * Перегрузка PixelButton с composable-контентом для удобного размещения любой разметки/иконки по центру.
+ */
+@Composable
+fun PixelButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = PixelGoldBright,
+    textColor: Color = PixelTextDark,
+    borderColor: Color = PixelGoldDark,
+    enabled: Boolean = true,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 10.dp, vertical = 7.dp),
+    repeating: Boolean = false,
+    repeatInitialDelayMillis: Long = 350L,
+    repeatIntervalMillis: Long = 100L,
+    content: @Composable RowScope.() -> Unit
+) {
+    PixelButton(
+        text = "",
+        onClick = onClick,
+        modifier = modifier,
+        containerColor = containerColor,
+        textColor = textColor,
+        borderColor = borderColor,
+        enabled = enabled,
+        contentPadding = contentPadding,
+        repeating = repeating,
+        repeatInitialDelayMillis = repeatInitialDelayMillis,
+        repeatIntervalMillis = repeatIntervalMillis,
+        content = content
+    )
 }
 
 /**

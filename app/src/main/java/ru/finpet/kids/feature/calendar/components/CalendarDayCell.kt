@@ -78,7 +78,7 @@ fun CalendarDayCell(
             .background(cellBg)
             .border(borderWidth, cellBorder, RoundedCornerShape(4.dp))
             .clickable(onClick = onClick)
-            .padding((2.5.dp * uiScale).coerceIn(1.5.dp, 3.dp))
+            .padding((2.5.dp * uiScale).coerceIn(2.dp, 3.dp))
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -95,22 +95,22 @@ fun CalendarDayCell(
                     text = "$dayNumber",
                     fontFamily = AppFontFamily,
                     fontWeight = if (isToday) FontWeight.Black else FontWeight.Bold,
-                    fontSize = (12f * uiScale).coerceIn(8f, 13f).sp,
+                    fontSize = (13.5f * uiScale).coerceIn(12f, 14f).sp,
                     color = if (isToday) PixelGoldDark else if (isPast) PixelTextMuted else PixelTextDark
                 )
                 if (isToday) {
-                    PawsIcon(modifier = Modifier.size((11.dp * uiScale).coerceIn(8.dp, 12.dp)))
+                    PawsIcon(modifier = Modifier.size((12.dp * uiScale).coerceIn(10.dp, 13.dp)))
                 } else if (allTasksCompleted) {
                     Text(
                         text = "✓",
-                        fontSize = (11f * uiScale).coerceIn(8f, 12f).sp,
+                        fontSize = (12f * uiScale).coerceIn(10.5f, 12.5f).sp,
                         color = JoyOrange,
                         fontWeight = FontWeight.Black
                     )
                 } else if (isPast) {
                     Text(
                         text = "✓",
-                        fontSize = (11f * uiScale).coerceIn(8f, 12f).sp,
+                        fontSize = (12f * uiScale).coerceIn(10.5f, 12.5f).sp,
                         color = PixelGreenCrop,
                         fontWeight = FontWeight.Bold
                     )
@@ -124,7 +124,7 @@ fun CalendarDayCell(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (isIncomeDay) {
-                    CoinIcon(modifier = Modifier.size((12.dp * uiScale).coerceIn(8.dp, 13.dp)))
+                    CoinIcon(modifier = Modifier.size((13.dp * uiScale).coerceIn(11.dp, 14.dp)))
                 }
             }
 
