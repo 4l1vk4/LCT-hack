@@ -81,7 +81,7 @@ val PixelBlueWater = Color(0xFF1565C0)
 fun StardewBoard(
     modifier: Modifier = Modifier,
     headerTitle: String? = null,
-    headerIcon: String = "📅",
+    headerIcon: Any? = "📅",
     content: @Composable () -> Unit
 ) {
     Box(
@@ -116,7 +116,7 @@ fun StardewBoard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        RenderBoardIcon(headerIcon, modifier = Modifier.size(iconSize))
+                        PixelIcon(icon = headerIcon, modifier = Modifier.size(iconSize))
                         Spacer(modifier = Modifier.width((5.dp * uiScale).coerceIn(2.dp, 6.dp)))
                         Text(
                             text = headerTitle,
@@ -127,7 +127,7 @@ fun StardewBoard(
                             letterSpacing = (0.5f * uiScale).coerceIn(0.2f, 1f).sp
                         )
                         Spacer(modifier = Modifier.width((5.dp * uiScale).coerceIn(2.dp, 6.dp)))
-                        RenderBoardIcon(headerIcon, modifier = Modifier.size(iconSize))
+                        PixelIcon(icon = headerIcon, modifier = Modifier.size(iconSize))
                     }
                 }
                 Spacer(modifier = Modifier.height((8.dp * uiScale).coerceIn(4.dp, 10.dp)))
@@ -256,7 +256,8 @@ fun RenderBoardIcon(
         "📚", "books", "book", "school_book" -> BooksIcon(modifier = modifier)
         "💰", "money_bag", "money" -> MoneyBagIcon(modifier = modifier)
         "🎈", "toy", "toys", "balloon" -> ToyIcon(modifier = modifier)
-        "🏷️", "discount", "happy_mood_3vryad" -> HappyMood3vryadIcon(modifier = modifier)
+        "🏷️", "discount", "happy_mood_3vryad", "happy_cat" -> HappyMood3vryadIcon(modifier = modifier)
+        "sad_mood_3vryad", "sad_cat" -> SadMood3vryadIcon(modifier = modifier)
         "🏠", "🏡", "house", "home" -> HouseIcon(modifier = modifier)
         "🏫", "🎓", "school" -> SchoolIcon(modifier = modifier)
         "🏪", "🏬", "shop", "store" -> ShopIcon(modifier = modifier)
@@ -541,7 +542,7 @@ fun PixelButton(
 fun PixelAlertDialog(
     onDismissRequest: () -> Unit,
     title: String,
-    icon: String = "⚠️",
+    icon: Any? = "⚠️",
     confirmButton: @Composable () -> Unit,
     dismissButton: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,

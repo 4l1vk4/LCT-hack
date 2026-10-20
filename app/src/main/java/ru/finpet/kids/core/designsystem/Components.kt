@@ -519,7 +519,18 @@ fun HappyMood3vryadIcon(
 ) {
     Image(
         painter = painterResource(id = R.drawable.happy_mood_3vryad),
-        contentDescription = "Скидки и акции",
+        contentDescription = "Радостный котик",
+        modifier = modifier
+    )
+}
+
+@Composable
+fun SadMood3vryadIcon(
+    modifier: Modifier = Modifier.size(18.dp)
+) {
+    Image(
+        painter = painterResource(id = R.drawable.sad_mood_3vryad),
+        contentDescription = "Грустный котик",
         modifier = modifier
     )
 }

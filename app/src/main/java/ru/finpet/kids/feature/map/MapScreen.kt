@@ -1,9 +1,15 @@
 package ru.finpet.kids.feature.map
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import ru.finpet.kids.core.designsystem.LocalUiScale
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +41,11 @@ import ru.finpet.kids.feature.map.sheets.ShopBottomSheet
 
 // флаг для отладки: если включить true, на карте подсвечиваются кликабельные прямоугольники
 private const val DEBUG_HOTSPOTS = false
+
+data class QuestFeedbackInfo(
+    val text: String,
+    val isCorrect: Boolean
+)
 
 // главный экран карты города: кликаем по зданиям (лавка, школа, дом) и открываем шторки
 @Composable
@@ -80,7 +91,7 @@ fun MapScreen(
     // какая локация сейчас открыта: "SHOP", "QUESTS" или "GOALS"
     var activeModal by remember(initialModal) { mutableStateOf<String?>(initialModal) }
     var focusOnHomeChores by remember { mutableStateOf(false) }
-    var questFeedback by remember { mutableStateOf<String?>(null) }
+    var questFeedback by remember { mutableStateOf<QuestFeedbackInfo?>(null) }
     var showNoPetDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(initialModal) {
@@ -157,12 +168,14 @@ fun MapScreen(
                 val quest = quests.find { it.id == questId }
                 val opt = quest?.options?.find { it.id == optionId }
                 onAnswerQuest(questId, optionId)
+                val isCorrect = opt?.isRecommended == true
                 val base = opt?.feedback ?: "Молодец!"
-                questFeedback = if (opt?.isRecommended == true) {
+                val text = if (isCorrect) {
                     base
                 } else {
                     "$base\n\nЭто полезный урок! Задание остаётся за тобой — вернись завтра, чтобы решить его на отлично!"
                 }
+                questFeedback = QuestFeedbackInfo(text = text, isCorrect = isCorrect)
             },
             onAnswerText = { questId, answerText ->
                 val quest = quests.find { it.id == questId }
@@ -172,24 +185,26 @@ fun MapScreen(
                     val exp = it.trim().lowercase()
                     clean == exp || clean.contains(exp) || exp.contains(clean)
                 } ?: true
-                questFeedback = if (isCorrect) {
+                val text = if (isCorrect) {
                     quest?.feedbackSuccess?.ifEmpty { "Правильно! Ты отлично разбираешься в финансовых терминах!" }
                 } else {
                     val exp = quest?.expectedAnswers?.firstOrNull() ?: ""
                     val failText = quest?.feedbackFailure?.ifEmpty { "Хорошая попытка! Верный ответ: $exp." } ?: "Хорошая попытка! Верный ответ: $exp."
                     "$failText\n\nЭто полезный урок! Задание остаётся за тобой — вернись завтра, чтобы решить его на отлично!"
                 } ?: "Отличный ответ!"
+                questFeedback = QuestFeedbackInfo(text = text, isCorrect = isCorrect)
             },
             onAnswerAllocation = { questId, amount ->
                 val quest = quests.find { it.id == questId }
                 onAnswerQuestAllocation(questId, amount)
                 val isBalanced = quest?.let { amount in it.recommendedMin..it.recommendedMax } ?: true
-                questFeedback = if (isBalanced) {
+                val text = if (isBalanced) {
                     quest?.allocationSuccessFeedback?.ifEmpty { "Прекрасное распределение бюджета! Мудрый и взвешенный выбор." }
                 } else {
                     val warnText = quest?.allocationWarningFeedback?.ifEmpty { "Ты сделал выбор! Стремись к балансу между текущими радостями и будущей целью." } ?: "Ты сделал выбор!"
                     "$warnText\n\nЭто полезный урок! Задание остаётся за тобой — вернись завтра, чтобы решить его на отлично!"
                 } ?: "Бюджет распределен!"
+                questFeedback = QuestFeedbackInfo(text = text, isCorrect = isBalanced)
             }
         )
     }
@@ -290,25 +305,35 @@ fun MapScreen(
 
     // обратная связь после ответа на квест
     questFeedback?.let { feedback ->
+        val uiScale = LocalUiScale.current
+        val isCorrect = feedback.isCorrect
+        val catDrawable = if (isCorrect) R.drawable.happy_mood_3vryad else R.drawable.sad_mood_3vryad
         PixelAlertDialog(
             onDismissRequest = { questFeedback = null },
-            title = "Совет питомца",
-            icon = "!",
+            title = if (isCorrect) "Отличный ответ!" else "Совет питомца",
+            icon = catDrawable,
             confirmButton = {
                 PixelButton(
-                    text = "Спасибо, понятно!",
+                    text = if (isCorrect) "Ура, понятно!" else "Спасибо, понятно!",
                     onClick = { questFeedback = null },
-                    containerColor = FreshGreen,
+                    containerColor = if (isCorrect) FreshGreen else JoyOrange,
                     textColor = Color.White,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
         ) {
+            Image(
+                painter = painterResource(id = catDrawable),
+                contentDescription = if (isCorrect) "Радостный котик" else "Грустный котик",
+                modifier = Modifier
+                    .size((64.dp * uiScale).coerceIn(48.dp, 80.dp))
+                    .padding(bottom = (8.dp * uiScale).coerceIn(4.dp, 10.dp))
+            )
             Text(
-                text = feedback,
+                text = feedback.text,
                 fontFamily = AppFontFamily,
-                fontSize = 15.sp,
-                lineHeight = 21.sp,
+                fontSize = (15f * uiScale).coerceIn(12f, 17f).sp,
+                lineHeight = (21f * uiScale).coerceIn(16f, 23f).sp,
                 color = PixelTextDark,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )

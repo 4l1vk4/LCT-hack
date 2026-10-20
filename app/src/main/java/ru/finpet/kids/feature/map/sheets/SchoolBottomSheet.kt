@@ -60,7 +60,9 @@ import ru.finpet.kids.core.data.local.entity.QuestProgressEntity
 import ru.finpet.kids.core.data.repository.QuestItem
 import ru.finpet.kids.core.designsystem.AppFontFamily
 import ru.finpet.kids.core.designsystem.BooksIcon
+import ru.finpet.kids.core.designsystem.CoinIcon
 import ru.finpet.kids.core.designsystem.FinCard
+import ru.finpet.kids.core.designsystem.GalochkaIcon
 import ru.finpet.kids.core.designsystem.FreshGreen
 import ru.finpet.kids.core.designsystem.JoyOrange
 import ru.finpet.kids.core.designsystem.KubikIcon
@@ -437,44 +439,99 @@ fun SchoolBottomSheet(
                     ) {
                         Column(modifier = Modifier.padding((14.dp * uiScale).coerceIn(8.dp, 16.dp))) {
 
-                            // Заголовок карточки и значки темы/стадии
+                            // Теги темы и стадии задания
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
+                                horizontalArrangement = Arrangement.spacedBy((5.dp * uiScale).coerceIn(3.dp, 6.dp)),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy((5.dp * uiScale).coerceIn(3.dp, 6.dp)),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    TopicChip(topic = quest.topic, topicTitle = quest.topicTitle)
-                                    StageBadge(stage = quest.stage)
-                                }
+                                TopicChip(topic = quest.topic, topicTitle = quest.topicTitle)
+                                StageBadge(stage = quest.stage)
+                            }
 
+                            Spacer(modifier = Modifier.height((5.dp * uiScale).coerceIn(3.dp, 7.dp)))
+
+                            // Статус квеста / Награда (размещены аккуратно под тегами со скейлами)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy((4.dp * uiScale).coerceIn(2.dp, 6.dp))
+                            ) {
                                 if (isDone) {
-                                    Text(
-                                        text = "[Пройдено]",
-                                        fontFamily = AppFontFamily,
-                                        fontSize = (14.5f * uiScale).coerceIn(11f, 16.5f).sp,
-                                        color = FreshGreen,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .pixelButtonBackground(containerColor = Color(0xFFE8F5E9))
+                                            .padding(
+                                                horizontal = (8.dp * uiScale).coerceIn(5.dp, 10.dp),
+                                                vertical = (3.5.dp * uiScale).coerceIn(2.dp, 5.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy((4.dp * uiScale).coerceIn(2.dp, 5.dp))
+                                        ) {
+                                            GalochkaIcon(modifier = Modifier.size((13.dp * uiScale).coerceIn(10.dp, 16.dp)))
+                                            Text(
+                                                text = "Пройдено",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = (13.5f * uiScale).coerceIn(10f, 16f).sp,
+                                                color = FreshGreen,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
                                 } else if (isFailedToday) {
-                                    Text(
-                                        text = "[Вернись завтра]",
-                                        fontFamily = AppFontFamily,
-                                        fontSize = (14.5f * uiScale).coerceIn(11f, 16.5f).sp,
-                                        color = JoyOrange,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .pixelButtonBackground(containerColor = Color(0xFFFFF3E0))
+                                            .padding(
+                                                horizontal = (8.dp * uiScale).coerceIn(5.dp, 10.dp),
+                                                vertical = (3.5.dp * uiScale).coerceIn(2.dp, 5.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy((4.dp * uiScale).coerceIn(2.dp, 5.dp))
+                                        ) {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.sad_mood_3vryad),
+                                                contentDescription = null,
+                                                modifier = Modifier.size((14.dp * uiScale).coerceIn(11.dp, 17.dp))
+                                            )
+                                            Text(
+                                                text = "Вернись завтра",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = (13.5f * uiScale).coerceIn(10f, 16f).sp,
+                                                color = JoyOrange,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
                                 } else {
-                                    Text(
-                                        text = "+${quest.rewardCoins} монет",
-                                        fontFamily = AppFontFamily,
-                                        fontSize = (14.5f * uiScale).coerceIn(11f, 16.5f).sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = PixelGoldDark
-                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .pixelButtonBackground(containerColor = Color(0xFFFFF8E1))
+                                            .padding(
+                                                horizontal = (8.dp * uiScale).coerceIn(5.dp, 10.dp),
+                                                vertical = (3.5.dp * uiScale).coerceIn(2.dp, 5.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy((4.dp * uiScale).coerceIn(2.dp, 5.dp))
+                                        ) {
+                                            CoinIcon(modifier = Modifier.size((14.dp * uiScale).coerceIn(11.dp, 17.dp)))
+                                            Text(
+                                                text = "+${quest.rewardCoins} монет",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = (13.5f * uiScale).coerceIn(10f, 16f).sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = PixelGoldDark
+                                            )
+                                        }
+                                    }
                                 }
                             }
 
@@ -526,10 +583,16 @@ fun SchoolBottomSheet(
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(Color(0xFFFFF3E0))
                                         .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(8.dp))
-                                        .padding(12.dp)
+                                        .padding((12.dp * uiScale).coerceIn(8.dp, 14.dp))
                                 ) {
-                                    Column {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.sad_mood_3vryad),
+                                            contentDescription = null,
+                                            modifier = Modifier.size((34.dp * uiScale).coerceIn(26.dp, 42.dp))
+                                        )
+                                        Spacer(modifier = Modifier.width((10.dp * uiScale).coerceIn(6.dp, 12.dp)))
+                                        Column {
                                             Text(
                                                 text = "Учебная пауза",
                                                 fontFamily = AppFontFamily,
@@ -537,15 +600,15 @@ fun SchoolBottomSheet(
                                                 color = Color(0xFFE65100),
                                                 fontWeight = FontWeight.Bold
                                             )
+                                            Spacer(modifier = Modifier.height((3.dp * uiScale).coerceIn(2.dp, 5.dp)))
+                                            Text(
+                                                text = "Возвращайся к этому заданию завтра со свежими силами, чтобы решить правильно и забрать награду.",
+                                                fontFamily = AppFontFamily,
+                                                fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
+                                                color = PixelTextDark,
+                                                lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
+                                            )
                                         }
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = "Возвращайся к этому заданию завтра со свежими силами, чтобы решить правильно и забрать награду.",
-                                            fontFamily = AppFontFamily,
-                                            fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
-                                            color = PixelTextDark,
-                                            lineHeight = (18f * uiScale).coerceIn(13f, 21f).sp
-                                        )
                                     }
                                 }
                             } else if (!isDone && isDailyLimitReached) {
@@ -789,21 +852,11 @@ private fun TextInputQuestSection(
                 .padding((12.dp * uiScale).coerceIn(8.dp, 14.dp))
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size((22.dp * uiScale).coerceIn(16.dp, 24.dp))
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(PixelGreenCrop),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "V",
-                        fontFamily = AppFontFamily,
-                        fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
+                Image(
+                    painter = painterResource(id = R.drawable.happy_mood_3vryad),
+                    contentDescription = null,
+                    modifier = Modifier.size((28.dp * uiScale).coerceIn(22.dp, 34.dp))
+                )
                 Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(5.dp, 10.dp)))
                 Text(
                     text = "Термин разгадан! Ответ принят.",
@@ -924,21 +977,11 @@ private fun MoneyAllocationQuestSection(
                 .padding((12.dp * uiScale).coerceIn(8.dp, 14.dp))
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size((22.dp * uiScale).coerceIn(16.dp, 24.dp))
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(PixelGreenCrop),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "V",
-                        fontFamily = AppFontFamily,
-                        fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
+                Image(
+                    painter = painterResource(id = R.drawable.happy_mood_3vryad),
+                    contentDescription = null,
+                    modifier = Modifier.size((28.dp * uiScale).coerceIn(22.dp, 34.dp))
+                )
                 Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(5.dp, 10.dp)))
                 Text(
                     text = "Бюджет успешно распределён! Отличное решение.",
@@ -1130,21 +1173,11 @@ private fun CalculationQuestSection(
                 .padding((12.dp * uiScale).coerceIn(8.dp, 14.dp))
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size((22.dp * uiScale).coerceIn(16.dp, 24.dp))
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(PixelGreenCrop),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "V",
-                        fontFamily = AppFontFamily,
-                        fontSize = (13f * uiScale).coerceIn(10f, 15f).sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
+                Image(
+                    painter = painterResource(id = R.drawable.happy_mood_3vryad),
+                    contentDescription = null,
+                    modifier = Modifier.size((28.dp * uiScale).coerceIn(22.dp, 34.dp))
+                )
                 Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(5.dp, 10.dp)))
                 Text(
                     text = "Расчёт выполнен верно! Награда начислена.",
@@ -1204,7 +1237,31 @@ private fun ChoiceQuestSection(
     onSelectOption: (String) -> Unit
 ) {
     val uiScale = LocalUiScale.current
-    if (!isDone) {
+    if (isDone) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFFE8F5E9))
+                .padding((12.dp * uiScale).coerceIn(8.dp, 14.dp))
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(id = R.drawable.happy_mood_3vryad),
+                    contentDescription = null,
+                    modifier = Modifier.size((28.dp * uiScale).coerceIn(22.dp, 34.dp))
+                )
+                Spacer(modifier = Modifier.width((8.dp * uiScale).coerceIn(5.dp, 10.dp)))
+                Text(
+                    text = "Задание успешно пройдено!",
+                    fontFamily = AppFontFamily,
+                    fontSize = (15f * uiScale).coerceIn(11f, 17f).sp,
+                    color = PixelGreenCrop,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    } else {
         val shuffledOptions = remember(quest.id) { quest.options.shuffled() }
 
         Column(verticalArrangement = Arrangement.spacedBy((6.dp * uiScale).coerceIn(4.dp, 8.dp))) {
